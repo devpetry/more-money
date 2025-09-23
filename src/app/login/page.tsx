@@ -1,3 +1,5 @@
+import LoginForm from "@/components/LoginForm";
+
 export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -18,24 +20,7 @@ export default function LoginPage() {
         </p>
 
         {/* Formulário */}
-        <form className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="email@dominio.com"
-            className="px-4 py-2 rounded-md bg-[#E0E0E0] text-[#9E9E9E] outline-none rounded-xl"
-          />
-          <input
-            type="password"
-            placeholder="senha"
-            className="px-4 py-2 rounded-md bg-[#E0E0E0] text-[#9E9E9E] outline-none rounded-xl"
-          />
-          <button
-            type="submit"
-            className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 rounded-md transition rounded-xl"
-          >
-            ENTRAR
-          </button>
-        </form>
+        <LoginForm />
 
         {/* Link esqueci senha */}
         <div className="mt-4 text-center">
