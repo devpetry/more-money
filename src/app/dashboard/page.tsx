@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div>
+    <div className="flex min-h-screen flex-col items-center">
       <main>
         <h1 className="text-3xl font-black">Olá, {session.user?.name}</h1>
         <LogoutButton /> 

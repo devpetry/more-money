@@ -2,10 +2,15 @@
 
 export default function Home() {
   return (
-    <div className="">
+    <div className="flex min-h-screen flex-col items-center">
       <main>
         <h1 className="text-3xl font-black">Página Principal [Home]</h1>
-        <a className="text-3xl underline" href="/login">Login</a>
+        <button 
+        type="button"
+        className="btn btn-outline"
+        >
+          <a href="/login">Entrar</a>
+        </button>
       </main>
     </div>
   );
