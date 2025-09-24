@@ -3,7 +3,7 @@ import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "More Money",
-  description: "Gerenciador financeiro simples e prático",
+  description: "Gerenciador financeiro",
 };
 
 export default function RootLayout({
