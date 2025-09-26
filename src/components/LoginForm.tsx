@@ -87,7 +87,7 @@ export default function LoginForm() {
         )}
         <button
           type="submit"
-          className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 transition rounded-xl mt-2"
+          className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 transition rounded-xl"
         >
           ENTRAR
         </button>
@@ -97,7 +97,7 @@ export default function LoginForm() {
           </div>
         )}
       </form>
-      <div className="mt-4 text-center">
+      <div className="mt-2 text-center">
         <a href="#" className="text-sm text-[#9E9E9E] hover:underline">
           Esqueci minha senha
         </a>
