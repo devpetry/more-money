@@ -7,6 +7,7 @@ export default async function DashboardPage() {
 
   if (!session) {
     redirect("/login");
+    console.log("Não existe sessão: ", session);
   }
 
   return (
