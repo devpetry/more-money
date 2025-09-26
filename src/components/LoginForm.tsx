@@ -25,6 +25,7 @@ export default function LoginForm() {
     }
 
     return (
+      <>
         <form onSubmit={login} className="flex flex-col gap-4">
           <input
             name="email"
@@ -45,6 +46,12 @@ export default function LoginForm() {
             ENTRAR
           </button>
           {error === "CredentialsSignin" && <div className="text-[#FF5252] text-sm text-center">Erro ao entrar</div>}
-        </form>        
+        </form>
+        <div className="mt-4 text-center">
+          <a href="#" className="text-sm text-[#9E9E9E] hover:underline">
+            Esqueci minha senha
+          </a>
+        </div>
+      </>     
     )
 }
