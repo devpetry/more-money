@@ -18,3 +18,17 @@ export const RecoverySchema = z.object({
 });
 
 export type TRecoverySchema = z.infer<typeof RecoverySchema>;
+
+export const ChangePasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "A nova senha deve ter pelo menos 8 caracteres."),
+    confirmPassword: z.string().min(1, "A confirmação da senha é obrigatória."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "As senhas não coincidem.",
+  });
+
+export type TChangePasswordSchema = z.infer<typeof ChangePasswordSchema>;

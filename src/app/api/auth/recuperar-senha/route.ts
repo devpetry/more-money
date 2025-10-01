@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     );
 
     // Link de recuperação
-    const recoveryLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${recoveryToken}`;
+    const recoveryLink = `${process.env.NEXTAUTH_URL}/alterar-senha?token=${recoveryToken}`;
 
     // Enviar e-mail
     const { error } = await resend.emails.send({
@@ -91,8 +91,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message:
-          "Instruções de recuperação enviadas para o e-mail.",
+        message: "Instruções de recuperação enviadas para o e-mail.",
       },
       { status: 200 }
     );
