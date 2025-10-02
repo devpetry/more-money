@@ -1,27 +1,34 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { RecoverySchema, TRecoverySchema } from "@/schemas/auth";
+import { ChangePasswordSchema, TChangePasswordSchema } from "@/schemas/auth";
 
-type FormErrors = Partial<TRecoverySchema>;
+type FormErrors = Partial<TChangePasswordSchema>;
 
-export default function RecoverPasswordForm() {
+interface ChangePasswordFormProps {
+  token: string; // recebido via query params na página
+}
+
+export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
 
-  async function recuperarSenha(e: FormEvent<HTMLFormElement>) {
+  async function alterarSenha(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErrors({});
     setMessage(null);
     setSuccess(null);
 
     const formData = new FormData(e.currentTarget);
-    const data = { email: formData.get("email") };
+    const data = {
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+    };
 
     // Validação com Zod
-    const validation = RecoverySchema.safeParse(data);
+    const validation = ChangePasswordSchema.safeParse(data);
     if (!validation.success) {
       const fieldErrors: Partial<FormErrors> = {};
       validation.error.issues.forEach((issue) => {
@@ -35,19 +42,17 @@ export default function RecoverPasswordForm() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/recuperar-senha", {
+      const response = await fetch("/api/auth/alterar-senha", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validation.data),
+        body: JSON.stringify({ token, password: validation.data.password }),
       });
 
       const result = await response.json();
       setMessage(result.message);
       setSuccess(result.success ?? null);
     } catch {
-      setMessage(
-        "Não foi possível processar sua solicitação. Tente novamente."
-      );
+      setMessage("Não foi possível alterar sua senha. Tente novamente.");
       setSuccess(false);
     } finally {
       setLoading(false);
@@ -65,10 +70,10 @@ export default function RecoverPasswordForm() {
 
       {/* Título */}
       <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
-        Recuperação de senha
+        Redefinição de senha
       </h2>
       <p className="text-center text-[#9E9E9E] text-sm mb-4">
-        Insira seu e-mail para recuperar sua senha
+        Escolha uma nova senha para acessar sua conta
       </p>
 
       {/* Mensagem de feedback */}
@@ -83,32 +88,58 @@ export default function RecoverPasswordForm() {
       )}
 
       {/* Formulário */}
-      <form onSubmit={recuperarSenha} className="flex flex-col gap-4">
+      <form onSubmit={alterarSenha} className="flex flex-col gap-4">
         <input
-          name="email"
-          type="email"
-          placeholder="email@dominio.com"
+          name="password"
+          type="password"
+          placeholder="nova senha"
           disabled={loading}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? "password-error" : undefined}
           className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl
             ${
-              errors.email
+              errors.password
                 ? "border-2 border-[#FF5252]"
                 : "focus:ring-2 focus:ring-[#00C853]"
             }`}
         />
-        {errors.email && (
-          <p id="email-error" className="text-[#FF5252] text-xs -mt-3">
-            {errors.email}
+        {errors.password && (
+          <p id="password-error" className="text-[#FF5252] text-xs -mt-3">
+            {errors.password}
           </p>
         )}
+
+        <input
+          name="confirmPassword"
+          type="password"
+          placeholder="confirme a nova senha"
+          disabled={loading}
+          aria-invalid={!!errors.confirmPassword}
+          aria-describedby={
+            errors.confirmPassword ? "confirmPassword-error" : undefined
+          }
+          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl
+            ${
+              errors.confirmPassword
+                ? "border-2 border-[#FF5252]"
+                : "focus:ring-2 focus:ring-[#00C853]"
+            }`}
+        />
+        {errors.confirmPassword && (
+          <p
+            id="confirmPassword-error"
+            className="text-[#FF5252] text-xs -mt-3"
+          >
+            {errors.confirmPassword}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={loading}
           className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 transition rounded-xl disabled:opacity-50"
         >
-          {loading ? "ENVIANDO..." : "ENVIAR E-MAIL DE RECUPERAÇÃO"}
+          {loading ? "ALTERANDO..." : "ALTERAR SENHA"}
         </button>
       </form>
     </div>
