@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { Client } from "pg";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
 const handler = NextAuth({
@@ -19,21 +19,20 @@ const handler = NextAuth({
           return null;
         }
 
-        // Configurações de conexão (variáveis de ambiente)
-        const client = new Client({
+        // Pool de conexões
+        const pool = new Pool({
           user: process.env.DB_USER,
           host: process.env.DB_HOST,
           database: process.env.DB_DATABASE,
           password: process.env.DB_PASSWORD,
-          // Fornece um valor padrão caso a variável de ambiente não esteja definida
-          port: parseInt(process.env.DB_PORT || "6543", 10),
+          port: Number(process.env.DB_PORT),
         });
 
         try {
-          await client.connect();
+          await pool.connect();
 
-          // Query para buscar o usuário pelo email
-          const res = await client.query(
+          // Buscar o usuário pelo email
+          const res = await pool.query(
             'SELECT * FROM "Usuario" WHERE email = $1',
             [credentials.email]
           );
@@ -62,7 +61,7 @@ const handler = NextAuth({
           console.error("Erro na autenticação:", error);
           return null;
         } finally {
-          await client.end();
+          await pool.end();
         }
       },
     }),

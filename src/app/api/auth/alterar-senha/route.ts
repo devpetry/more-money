@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     // Verifica se o token existe e ainda não expirou
     const res = await client.query(
-      `SELECT id FROM "Usuario" 
+      `SELECT "id", "senhaHash" FROM "Usuario" 
        WHERE "tokenRecuperacao" = $1 
        AND "expiracaoTokenRecuperacao" > NOW()`,
       [hashedToken]
@@ -48,15 +48,27 @@ export async function POST(request: Request) {
     // Gera hash da nova senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Atualiza senha e limpa token
-    await client.query(
-      `UPDATE "Usuario"
+    // Verifica se a nova senha é diferente da anterior
+    const isSamePassword = await bcrypt.compare(password, usuario.senhaHash);
+    if (isSamePassword) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "A nova senha deve ser diferente da anterior.",
+        },
+        { status: 400 }
+      );
+    } else {
+      // Atualiza senha e limpa token
+      await client.query(
+        `UPDATE "Usuario"
        SET "senhaHash" = $1,
            "tokenRecuperacao" = NULL,
            "expiracaoTokenRecuperacao" = NULL
        WHERE id = $2`,
-      [hashedPassword, usuario.id]
-    );
+        [hashedPassword, usuario.id]
+      );
+    }
 
     return NextResponse.json(
       { success: true, message: "Senha redefinida com sucesso!" },
