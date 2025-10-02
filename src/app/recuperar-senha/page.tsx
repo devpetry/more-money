@@ -6,8 +6,8 @@ export default async function RecuperarSenhaPage() {
   const session = await getServerSession();
 
   if (session) {
+    console.log("⚠️   Já existe sessão: ", session);
     redirect("/dashboard");
-    console.log("Já existe sessão: ", session);
   }
 
   return (

@@ -6,8 +6,8 @@ export default async function DashboardPage() {
   const session = await getServerSession();
 
   if (!session) {
+    console.log("⚠️   Não existe sessão: ", session);
     redirect("/login");
-    console.log("Não existe sessão: ", session);
   }
 
   return (

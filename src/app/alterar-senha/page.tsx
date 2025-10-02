@@ -10,7 +10,7 @@ export default async function AlterarSenhaPage({
   const session = await getServerSession();
 
   if (session) {
-    console.log("Já existe sessão: ", session);
+    console.log("⚠️   Já existe sessão: ", session);
     redirect("/dashboard");
   }
 
