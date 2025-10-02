@@ -44,7 +44,6 @@ export default function LoginForm() {
       ...validation.data,
       callbackUrl: "/dashboard",
     });
-    setLoading(false);
   }
 
   const getNextAuthErrorMessage = (error: string | null) => {
