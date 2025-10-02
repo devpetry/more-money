@@ -2,11 +2,11 @@ import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-export default async function AlterarSenhaPage({
-  searchParams,
-}: {
-  searchParams: { token?: string };
-}) {
+interface PageProps {
+  searchParams: Promise<{ token?: string }>;
+}
+
+export default async function AlterarSenhaPage({ searchParams }: PageProps) {
   const session = await getServerSession();
 
   if (session) {
@@ -14,8 +14,9 @@ export default async function AlterarSenhaPage({
     redirect("/dashboard");
   }
 
-  // Garantir que o token existe
-  const token = searchParams?.token;
+  const params = await searchParams;
+  const token = params?.token;
+
   if (!token) {
     return (
       <div className="flex items-center justify-center min-h-screen">
