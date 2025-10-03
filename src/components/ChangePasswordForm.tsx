@@ -137,7 +137,7 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 transition rounded-xl disabled:opacity-50"
+          className="bg-[#00C853] hover:bg-[#00C853]/75 text-[#0D1117] font-black py-2 transition rounded-xl disabled:opacity-50"
         >
           {loading ? "ALTERANDO..." : "ALTERAR SENHA"}
         </button>
