@@ -15,6 +15,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex min-h-screen flex-col items-center">
       <main>
+        <h1 className="text-3xl font-black mt-4">Usuários</h1>
         <SidebarToggle />
       </main>
     </div>
