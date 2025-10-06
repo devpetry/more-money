@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
+import { pool } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-
-// Pool de conexões
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
-});
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -26,7 +17,8 @@ export async function POST(request: Request) {
   const client = await pool.connect();
 
   try {
-    // Hash do token recebido para comparar com o que está no banco
+    await client.query("BEGIN");
+
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     // Verifica se o token existe e ainda não expirou
@@ -39,18 +31,19 @@ export async function POST(request: Request) {
 
     const usuario = res.rows[0];
     if (!usuario) {
+      await client.query("ROLLBACK");
       return NextResponse.json(
         { success: false, message: "Token inválido ou expirado." },
         { status: 400 }
       );
     }
 
-    // Gera hash da nova senha
     const hashedPassword = await bcrypt.hash(password, 10);
-
     // Verifica se a nova senha é diferente da anterior
-    const isSamePassword = await bcrypt.compare(password, usuario.senha_hash);
-    if (isSamePassword) {
+    const same = await bcrypt.compare(password, usuario.senha_hash);
+
+    if (same) {
+      await client.query("ROLLBACK");
       return NextResponse.json(
         {
           success: false,
@@ -58,17 +51,18 @@ export async function POST(request: Request) {
         },
         { status: 400 }
       );
-    } else {
-      // Atualiza senha e limpa token
-      await client.query(
-        `UPDATE "Usuario"
+    }
+
+    await client.query(
+      `UPDATE "Usuario"
        SET "senha_hash" = $1,
            "token_recuperacao" = NULL,
            "expiracao_token_recuperacao" = NULL
        WHERE id = $2`,
-        [hashedPassword, usuario.id]
-      );
-    }
+      [hashedPassword, usuario.id]
+    );
+
+    await client.query("COMMIT");
 
     return NextResponse.json(
       { success: true, message: "Senha redefinida com sucesso!" },
@@ -76,6 +70,7 @@ export async function POST(request: Request) {
     );
   } catch (err) {
     console.error("Erro ao redefinir senha:", err);
+    await client.query("ROLLBACK");
     return NextResponse.json(
       { success: false, message: "Erro interno. Tente novamente." },
       { status: 500 }

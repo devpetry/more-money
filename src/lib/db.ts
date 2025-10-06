@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 
 // Pool de conexões
-const pool = new Pool({
+export const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
@@ -17,6 +17,9 @@ export async function query(
   try {
     const res = await client.query(text, params);
     return res.rows;
+  } catch (error) {
+    console.error("Erro na query:", error);
+    throw error;
   } finally {
     client.release();
   }

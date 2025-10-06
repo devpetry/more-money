@@ -1,34 +1,60 @@
 import { z } from "zod";
 
+/* ----------------------------- LOGIN ----------------------------- */
 export const LoginSchema = z.object({
   email: z
     .string()
-    .min(1, "O e-mail é obrigatório.")
-    .email("Formato de e-mail inválido."),
-  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres."),
+    .nonempty("O e-mail é obrigatório.")
+    .trim()
+    .email("Digite um e-mail válido."),
+  password: z
+    .string()
+    .nonempty("A senha é obrigatória.")
+    .min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
 
 export type TLoginSchema = z.infer<typeof LoginSchema>;
 
-export const RecoverySchema = z.object({
+/* ------------------------- RECUPERAÇÃO ---------------------------- */
+export const PasswordRecoverySchema = z.object({
   email: z
     .string()
-    .min(1, "O e-mail é obrigatório para a recuperação.")
-    .email("Formato de e-mail inválido."),
+    .nonempty("O e-mail é obrigatório.")
+    .trim()
+    .email("Digite um e-mail válido."),
 });
 
-export type TRecoverySchema = z.infer<typeof RecoverySchema>;
+export type TPasswordRecoverySchema = z.infer<typeof PasswordRecoverySchema>;
 
-export const ChangePasswordSchema = z
+/* ---------------------- REDEFINIÇÃO DE SENHA ---------------------- */
+export const PasswordChangeSchema = z
   .object({
     password: z
       .string()
-      .min(8, "A nova senha deve ter pelo menos 8 caracteres."),
-    confirmPassword: z.string().min(1, "A confirmação da senha é obrigatória."),
+      .nonempty("A nova senha é obrigatória.")
+      .min(6, "A nova senha deve ter pelo menos 6 caracteres.")
+      .max(100, "A senha não pode ultrapassar 100 caracteres."),
+    confirmPassword: z
+      .string()
+      .nonempty("Confirme sua nova senha.")
+      .min(6, "A confirmação deve ter pelo menos 6 caracteres."),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
     message: "As senhas não coincidem.",
   });
 
-export type TChangePasswordSchema = z.infer<typeof ChangePasswordSchema>;
+export type TPasswordChangeSchema = z.infer<typeof PasswordChangeSchema>;
+
+/* -------------------------- EXPORTS ÚNICOS ------------------------ */
+export const Schemas = {
+  login: LoginSchema,
+  recovery: PasswordRecoverySchema,
+  passwordChange: PasswordChangeSchema,
+};
+
+export type {
+  TLoginSchema as LoginData,
+  TPasswordRecoverySchema as RecoveryData,
+  TPasswordChangeSchema as PasswordChangeData,
+};

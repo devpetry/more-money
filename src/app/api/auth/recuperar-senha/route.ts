@@ -1,25 +1,16 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { RecoverySchema } from "@/schemas/auth";
-import { Pool } from "pg";
+import { PasswordRecoverySchema } from "@/schemas/auth";
+import { pool } from "@/lib/db";
 import crypto from "crypto";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Pool de conexões
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
-});
 
 export async function POST(request: Request) {
   const body = await request.json();
 
   // Validação com Zod
-  const validation = RecoverySchema.safeParse(body);
+  const validation = PasswordRecoverySchema.safeParse(body);
   if (!validation.success) {
     return NextResponse.json(
       { success: false, message: "E-mail inválido." },
@@ -38,7 +29,6 @@ export async function POST(request: Request) {
     );
     const usuario = res.rows[0];
 
-    // Retornar sucesso mesmo que o e-mail não exista
     if (!usuario) {
       return NextResponse.json(
         {
@@ -72,33 +62,32 @@ export async function POST(request: Request) {
 
     // Enviar e-mail
     const { error } = await resend.emails.send({
-      from: "More Money <onboarding@resend.dev>", // deve ser domínio verificado
+      from: "More Money <onboarding@resend.dev>",
       to: [email],
       subject: "Recuperação de Senha",
       html: `
         <p>Olá ${usuario.nome},</p>
-        <p>Recebemos uma solicitação para redefinir a sua senha.</p>
-        <p>Clique no link abaixo para criar uma nova senha. O link expira em 1 hora.</p>
-        <a href="${recoveryLink}">Redefinir Senha</a>
-        <p>Se você não solicitou essa redefinição, pode ignorar este e-mail.</p>
+        <p>Recebemos uma solicitação para redefinir sua senha.</p>
+        <p><a href="${recoveryLink}" target="_blank">Clique aqui</a> para criar uma nova senha (link válido por 1 hora).</p>
+        <p>Se não foi você, ignore este e-mail.</p>
       `,
     });
 
-    if (error) {
+    if (error && process.env.NODE_ENV === "development") {
       console.error("Erro ao enviar e-mail:", error);
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Instruções de recuperação enviadas para o e-mail.",
+        message: "Instruções de recuperação enviadas para o e-mail informado.",
       },
       { status: 200 }
     );
   } catch (err) {
     console.error("Erro na recuperação de senha:", err);
     return NextResponse.json(
-      { success: false, message: "Ocorreu um erro interno. Tente novamente." },
+      { success: false, message: "Erro interno. Tente novamente." },
       { status: 500 }
     );
   } finally {

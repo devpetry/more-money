@@ -1,22 +1,22 @@
 import { NextAuthOptions, DefaultUser, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { query } from "./db";
+import { query } from "@/lib/db";
 
-// Define os campos customizados que esperamos do banco de dados
-interface ExtendedUser extends DefaultUser {
+// Tipagem do usuário retornado pelo banco
+export interface ExtendedUser extends DefaultUser {
   id: string;
   tipo_usuario: number;
   empresa_id: number | null;
 }
-// Define a tipagem da sessão (para uso no useSession e getServerSession)
+
+// Extende o Session e JWT do NextAuth
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: ExtendedUser;
   }
 }
 
-// Define os campos que serão incluídos no JWT
 declare module "next-auth/jwt" {
   interface JWT {
     tipo_usuario: number;
@@ -24,62 +24,76 @@ declare module "next-auth/jwt" {
   }
 }
 
+// Função isolada de acesso ao banco (padrão repository)
+async function findUserByEmail(email: string) {
+  const res = await query(
+    `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id" 
+     FROM "Usuario" 
+     WHERE email = $1`,
+    [email]
+  );
+
+  return res[0];
+}
+
 export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Senha", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
+      async authorize(credentials): Promise<ExtendedUser | null> {
+        if (!credentials) return null;
 
         try {
-          // Buscar o usuário pelo email
-          const res = await query(
-            'SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id" FROM "Usuario" WHERE email = $1',
-            [credentials.email]
-          );
-          const usuario = res[0];
+          const usuario = await findUserByEmail(credentials.email);
 
           if (!usuario) {
+            console.error(
+              "[AUTH ERROR] Usuário não encontrado:",
+              credentials.email
+            );
             return null;
           }
 
-          // Comparar a senha
           const senhaValida = await bcrypt.compare(
             credentials.password,
             usuario.senha_hash
           );
 
           if (!senhaValida) {
+            console.error(
+              "[AUTH ERROR] Senha incorreta para:",
+              credentials.email
+            );
             return null;
           }
 
-          // Retorna os dados do usuário
           return {
             id: usuario.id.toString(),
             name: usuario.nome,
             email: usuario.email,
             tipo_usuario: usuario.tipo_usuario,
             empresa_id: usuario.empresa_id,
-          } as ExtendedUser;
+          };
         } catch (error) {
-          console.error("Erro na autenticação:", error);
+          console.error("[AUTH ERROR] Falha na autenticação:", error);
           return null;
         }
       },
     }),
   ],
+
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { RecoverySchema, TRecoverySchema } from "@/schemas/auth";
+import { PasswordRecoverySchema, TPasswordRecoverySchema } from "@/schemas/auth";
 
-type FormErrors = Partial<TRecoverySchema>;
+type FormErrors = Partial<TPasswordRecoverySchema>;
 
 export default function RecoverPasswordForm() {
   const [errors, setErrors] = useState<FormErrors>({});
@@ -21,7 +21,7 @@ export default function RecoverPasswordForm() {
     const data = { email: formData.get("email") };
 
     // Validação com Zod
-    const validation = RecoverySchema.safeParse(data);
+    const validation = PasswordRecoverySchema.safeParse(data);
     if (!validation.success) {
       const fieldErrors: Partial<FormErrors> = {};
       validation.error.issues.forEach((issue) => {
@@ -44,6 +44,10 @@ export default function RecoverPasswordForm() {
       const result = await response.json();
       setMessage(result.message);
       setSuccess(result.success ?? null);
+
+      if (result.success) {
+        (e.target as HTMLFormElement).reset();
+      }
     } catch {
       setMessage(
         "Não foi possível processar sua solicitação. Tente novamente."
@@ -56,14 +60,12 @@ export default function RecoverPasswordForm() {
 
   return (
     <div className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
-      {/* LOGO */}
       <div className="flex justify-center mb-4 bg-[#9E9E9E]/15 rounded-xl">
         <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
           *LOGO*
         </div>
       </div>
 
-      {/* Título */}
       <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
         Recuperação de senha
       </h2>
@@ -71,9 +73,9 @@ export default function RecoverPasswordForm() {
         Insira seu e-mail para recuperar sua senha
       </p>
 
-      {/* Mensagem de feedback */}
       {message && (
         <p
+          aria-live="polite"
           className={`text-center text-sm mb-4 ${
             success ? "text-[#00C853]" : "text-[#FF5252]"
           }`}
@@ -82,7 +84,6 @@ export default function RecoverPasswordForm() {
         </p>
       )}
 
-      {/* Formulário */}
       <form onSubmit={recuperarSenha} className="flex flex-col gap-4">
         <input
           name="email"
@@ -91,12 +92,11 @@ export default function RecoverPasswordForm() {
           disabled={loading}
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
-          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl
-            ${
-              errors.email
-                ? "border-2 border-[#FF5252]"
-                : "focus:ring-2 focus:ring-[#00C853]"
-            }`}
+          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
+            errors.email
+              ? "border-2 border-[#FF5252]"
+              : "focus:ring-2 focus:ring-[#00C853]"
+          }`}
         />
         {errors.email && (
           <p id="email-error" className="text-[#FF5252] text-xs -mt-3">
