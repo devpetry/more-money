@@ -1,4 +1,5 @@
 import ChangePasswordForm from "@/components/ChangePasswordForm";
+import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -7,7 +8,7 @@ interface PageProps {
 }
 
 export default async function AlterarSenhaPage({ searchParams }: PageProps) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
   if (session) {
     if (process.env.NODE_ENV === "development") {

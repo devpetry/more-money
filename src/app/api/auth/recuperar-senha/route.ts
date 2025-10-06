@@ -61,8 +61,8 @@ export async function POST(request: Request) {
 
     await client.query(
       `UPDATE "Usuario" SET 
-        "tokenRecuperacao" = $1, 
-        "expiracaoTokenRecuperacao" = $2 
+        "token_recuperacao" = $1, 
+        "expiracao_token_recuperacao" = $2 
       WHERE id = $3`,
       [hashedToken, expiresAt, usuario.id]
     );

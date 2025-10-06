@@ -104,7 +104,7 @@ export default function LoginForm() {
         )}
         <button
           type="submit"
-          className="bg-[#00C853] hover:bg-[#00E676] text-[#0D1117] font-black py-2 transition rounded-xl"
+          className="bg-[#00C853] hover:bg-[#00C853]/75 text-[#0D1117] font-black py-2 transition rounded-xl"
         >
           {loading ? "ENTRANDO..." : "ENTRAR"}
         </button>

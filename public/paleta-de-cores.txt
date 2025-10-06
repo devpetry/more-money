@@ -1,0 +1,22 @@
+🎨 Paleta de Cores (Dark Theme)
+
+Cor de fundo principal (dark):
+#0D1117 → Preto grafite profundo (base do tema escuro).
+Cor secundária de fundo / painéis:
+#161B22 → Cinza-escuro, para cartões e blocos.
+Verde principal (destaque financeiro):
+#00C853 → Verde vibrante (entradas, crescimento, sucesso).
+Verde secundário (hover/sombra):
+#00E676 → Verde mais claro para realce em botões e gráficos.
+Azul principal (confiança e navegação):
+#2196F3 → Azul médio (botões, links, gráficos de relatórios).
+Azul secundário (detalhes, ícones):
+#64B5F6 → Azul suave, usado em hover, bordas sutis.
+Texto principal:
+#E0E0E0 → Cinza claro (boa legibilidade em fundo escuro).
+Texto secundário:
+#9E9E9E → Cinza médio (labels, descrições).
+
+Alertas:
+Vermelho (#FF5252) → Saídas, erros, caixa negativo.
+Amarelo (#FFC107) → Avisos, vencimentos próximos.

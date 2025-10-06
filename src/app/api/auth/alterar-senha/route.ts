@@ -31,9 +31,9 @@ export async function POST(request: Request) {
 
     // Verifica se o token existe e ainda não expirou
     const res = await client.query(
-      `SELECT "id", "senhaHash" FROM "Usuario" 
-       WHERE "tokenRecuperacao" = $1 
-       AND "expiracaoTokenRecuperacao" > NOW()`,
+      `SELECT "id", "senha_hash" FROM "Usuario" 
+       WHERE "token_recuperacao" = $1 
+       AND "expiracao_token_recuperacao" > NOW()`,
       [hashedToken]
     );
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Verifica se a nova senha é diferente da anterior
-    const isSamePassword = await bcrypt.compare(password, usuario.senhaHash);
+    const isSamePassword = await bcrypt.compare(password, usuario.senha_hash);
     if (isSamePassword) {
       return NextResponse.json(
         {
@@ -62,9 +62,9 @@ export async function POST(request: Request) {
       // Atualiza senha e limpa token
       await client.query(
         `UPDATE "Usuario"
-       SET "senhaHash" = $1,
-           "tokenRecuperacao" = NULL,
-           "expiracaoTokenRecuperacao" = NULL
+       SET "senha_hash" = $1,
+           "token_recuperacao" = NULL,
+           "expiracao_token_recuperacao" = NULL
        WHERE id = $2`,
         [hashedPassword, usuario.id]
       );
