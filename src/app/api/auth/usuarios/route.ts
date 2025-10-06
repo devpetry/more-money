@@ -6,10 +6,9 @@ import bcrypt from "bcryptjs";
 export async function GET() {
   try {
     const result = await query(
-      'SELECT id, nome, email, "tipo_usuario", "empresa_id", "criadoEm" FROM "Usuario" ORDER BY id ASC',
+      'SELECT id, nome, email, "tipo_usuario", "empresa_id", "criado_em" FROM "Usuario" ORDER BY id ASC',
       []
     );
-    // 💡 CORREÇÃO: result já é o array de linhas
     return NextResponse.json(result);
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
@@ -25,16 +24,22 @@ export async function POST(req: Request) {
   try {
     const { nome, email, senha } = await req.json();
 
-    const senhaHash = await bcrypt.hash(senha, 10);
+    const senha_hash = await bcrypt.hash(senha, 10);
+
+    if (!nome || !email || !senha) {
+      return NextResponse.json(
+        { error: "Campos 'nome', 'email' e 'senha' são obrigatórios." },
+        { status: 400 }
+      );
+    }
 
     const result = await query(
-      `INSERT INTO "Usuario" (nome, email, "senhaHash", "criadoEm", "atualizadoEm")
+      `INSERT INTO "Usuario" (nome, email, "senha_hash", "criado_em", "atualizado_em")
        VALUES ($1, $2, $3, NOW(), NOW())
-       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criadoEm"`,
-      [nome, email, senhaHash]
+       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em"`,
+      [nome, email, senha_hash]
     );
 
-    // 💡 CORREÇÃO: result[0] para pegar o primeiro item do array retornado
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
     console.error("Erro ao criar usuário:", error);

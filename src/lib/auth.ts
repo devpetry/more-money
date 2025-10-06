@@ -43,7 +43,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Buscar o usuário pelo email
           const res = await query(
-            'SELECT id, nome, email, "senhaHash", "tipo_usuario", "empresa_id" FROM "Usuario" WHERE email = $1',
+            'SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id" FROM "Usuario" WHERE email = $1',
             [credentials.email]
           );
           const usuario = res[0];
@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           // Comparar a senha
           const senhaValida = await bcrypt.compare(
             credentials.password,
-            usuario.senhaHash
+            usuario.senha_hash
           );
 
           if (!senhaValida) {

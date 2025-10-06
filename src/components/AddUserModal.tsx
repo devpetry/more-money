@@ -19,15 +19,14 @@ export default function AddUserModal({
     const formData = new FormData(e.currentTarget);
     const nome = formData.get("nome");
     const email = formData.get("email");
-    const empresa = formData.get("empresa");
-    const tipo_usuario = formData.get("empresa");
+    const senha = formData.get("senha");
 
     try {
       // Requisição POST
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, empresa, tipo_usuario }),
+        body: JSON.stringify({ nome, email, senha }),
       });
 
       if (res.ok) {
@@ -98,11 +97,28 @@ export default function AddUserModal({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
-              Empresa
+              Senha
             </label>
             <input
-              name="empresa"
-              id="empresa"
+              name="senha"
+              id="senha"
+              type="password"
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+          ${
+            // errors.email
+            //   ? "border-2 border-[#FF5252]"
+               "focus:ring-2 focus:ring-[#2196F3]"
+          }`}
+              required
+            />
+          </div>
+          {/* <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+              Tipo de Usuário
+            </label>
+            <input
+              name="tipo_usuario"
+              id="tipo_usuario"
               type="text"
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
           ${
@@ -113,6 +129,23 @@ export default function AddUserModal({
               required
             />
           </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+              Empresa
+            </label>
+            <input
+              name="empresa_id"
+              id="empresa_id"
+              type="text"
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+          ${
+            // errors.email
+            //   ? "border-2 border-[#FF5252]"
+               "focus:ring-2 focus:ring-[#2196F3]"
+          }`}
+              required
+            />
+          </div> */}
 
           {/* Botões de Ação */}
           <div className="flex justify-end space-x-3">

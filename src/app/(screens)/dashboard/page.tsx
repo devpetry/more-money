@@ -1,10 +1,11 @@
 // import LogoutButton from "@/components/LogoutButton";
 import SidebarToggle from "@/components/SidebarToggle";
+import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
   if (!session) {
     if (process.env.NODE_ENV === "development") {
