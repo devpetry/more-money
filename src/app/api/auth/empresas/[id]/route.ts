@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
-// GET - Obter detalhes de um usuário específico
+// GET - Obter detalhes de uma empresa específica
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> }
@@ -10,8 +10,8 @@ export async function GET(
     const { id } = await context.params;
 
     const rows = await query(
-      `SELECT id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"
-       FROM "Usuario"
+      `SELECT id, nome, cnpj, "criado_em", "atualizado_em"
+       FROM "Empresa"
        WHERE id = $1
        AND data_exclusao IS NULL`,
       [id]
@@ -19,95 +19,95 @@ export async function GET(
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { error: "Usuário não encontrado" },
+        { error: "Empresa não encontrada" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(rows[0]);
   } catch (error) {
-    console.error("Erro ao buscar usuário:", error);
+    console.error("Erro ao buscar empresa:", error);
     return NextResponse.json(
-      { error: "Erro ao buscar usuário" },
+      { error: "Erro ao buscar empresa" },
       { status: 500 }
     );
   }
 }
 
-// PUT - Atualizar usuário
+// PUT - Atualizar empresa
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const { nome, email, empresa_id } = await req.json();
+    const { nome, cnpj } = await req.json();
 
     const rows = await query(
-      `UPDATE "Usuario" 
-       SET nome=$1, email=$2, "empresa_id"=$3, "atualizado_em"=NOW() 
-       WHERE id=$4 
-       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
-      [nome, email, empresa_id, id]
+      `UPDATE "Empresa" 
+       SET nome=$1, cnpj=$2, "atualizado_em"=NOW() 
+       WHERE id=$3 
+       RETURNING id, nome, cnpj, "criado_em", "atualizado_em"`,
+      [nome, cnpj, id]
     );
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { error: "Usuário não encontrado" },
+        { error: "Empresa não encontrada" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(rows[0]);
   } catch (error) {
-    console.error("Erro ao atualizar usuário:", error);
+    console.error("Erro ao atualizar empresa:", error);
     return NextResponse.json(
-      { error: "Erro ao atualizar usuário" },
+      { error: "Erro ao atualizar empresa" },
       { status: 500 }
     );
   }
 }
 
-// DELETE - Remover usuário (soft delete)
+// DELETE - Remover empresa (soft delete)
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const userId = String(id);
+    const empresaId = String(id);
 
-    if (!userId) {
+    if (!empresaId) {
       return NextResponse.json(
-        { error: "ID do usuário ausente na rota." },
+        { error: "ID da empresa ausente na rota." },
         { status: 400 }
       );
     }
 
     const rows = await query(
-      `UPDATE "Usuario"
-       SET data_exclusao = NOW()
-       WHERE id = $1
-       AND data_exclusao IS NULL
+      `UPDATE "Empresa" 
+       SET data_exclusao = NOW() 
+       WHERE id = $1 
+       AND data_exclusao IS NULL 
        RETURNING id`,
-      [userId]
+      [empresaId]
     );
 
     if (rows.length === 0) {
       return NextResponse.json(
-        { error: "Usuário não encontrado ou já excluído" },
+        { error: "Empresa não encontrada ou já excluída" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: "Usuário marcado como excluído com sucesso" },
+      { message: "Empresa marcada como excluída com sucesso" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Erro ao marcar usuário como excluído:", error);
+    console.error("Erro ao marcar empresa como excluída:", error);
     return NextResponse.json(
-      { error: "Erro interno ao marcar usuário como excluído" },
+      { error: "Erro interno ao marcar empresa como excluída" },
       { status: 500 }
     );
   }

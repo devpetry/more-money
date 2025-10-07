@@ -1,7 +1,11 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
+interface Empresa {
+  id: number;
+  nome: string;
+}
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,12 +17,35 @@ export default function AddUserModal({
   onClose,
   onUserAdded,
 }: AddUserModalProps) {
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+
+  // Função para buscar a lista de empresas
+  const carregarEmpresas = async () => {
+    setLoadingEmpresas(true);
+    try {
+      const res = await fetch("/api/auth/empresas");
+      const data = await res.json();
+      setEmpresas(data);
+    } catch (e) {
+      console.error("Erro ao carregar lista de empresas para a combo:", e);
+    }
+    setLoadingEmpresas(false);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      carregarEmpresas();
+    }
+  }, [isOpen]);
+
   // Função para lidar com o envio do formulário de novo usuário
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const nome = formData.get("nome");
     const email = formData.get("email");
+    const empresa_id = formData.get("empresa_id");
     const senha = formData.get("senha");
 
     try {
@@ -26,7 +53,7 @@ export default function AddUserModal({
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({ nome, email, empresa_id, senha }),
       });
 
       if (res.ok) {
@@ -62,7 +89,10 @@ export default function AddUserModal({
         {/* Formulário */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="nome"
+            >
               Nome
             </label>
             <input
@@ -73,13 +103,16 @@ export default function AddUserModal({
           ${
             // errors.email
             //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
+            "focus:ring-2 focus:ring-[#2196F3]"
           }`}
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="email"
+            >
               E-mail
             </label>
             <input
@@ -90,13 +123,54 @@ export default function AddUserModal({
           ${
             // errors.email
             //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
+            "focus:ring-2 focus:ring-[#2196F3]"
           }`}
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="empresa_id"
+            >
+              Empresa
+            </label>
+            <select
+              name="empresa_id"
+              id="empresa_id"
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+          ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              required
+              disabled={loadingEmpresas || empresas.length === 0}
+            >
+              {/* PLACEHOLDER */}
+              {loadingEmpresas ? (
+                <option value="" disabled selected>
+                  Selecione uma empresa
+                </option>
+              ) : empresas.length === 0 ? (
+                <option value="" disabled>
+                  Nenhuma empresa encontrada
+                </option>
+              ) : (
+                <option value="" disabled selected>
+                  Selecione uma empresa
+                </option>
+              )}
+
+              {/* OPÇÕES MAPEADAS DO BANCO */}
+              {empresas.map((empresa) => (
+                <option key={empresa.id} value={empresa.id}>
+                  {empresa.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="senha"
+            >
               Senha
             </label>
             <input
@@ -107,13 +181,16 @@ export default function AddUserModal({
           ${
             // errors.email
             //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
+            "focus:ring-2 focus:ring-[#2196F3]"
           }`}
               required
             />
+            <label className="text-xs text-[#9E9E9E] mt-1">
+              * Recomendamos o novo usuário alterar a senha no primeiro login
+            </label>
           </div>
           {/* <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="tipo_usuario">
               Tipo de Usuário
             </label>
             <input
@@ -128,24 +205,7 @@ export default function AddUserModal({
           }`}
               required
             />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
-              Empresa
-            </label>
-            <input
-              name="empresa_id"
-              id="empresa_id"
-              type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
-              required
-            />
-          </div> */}
+          </div>*/}
 
           {/* Botões de Ação */}
           <div className="flex justify-end space-x-3">

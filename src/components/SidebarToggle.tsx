@@ -54,6 +54,15 @@ export default function SidebarToggle() {
             </li>
             <li>
               <a
+                href="/lista-empresas"
+                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117]"
+                onClick={toggleSidebar}
+              >
+                Empresas
+              </a>
+            </li>
+            <li>
+              <a
                 href="#"
                 className="block p-2 rounded-lg text-[#9E9E9E] hover:text-[#E0E0E0] hover:bg-[#0D1117]"
                 onClick={toggleSidebar}

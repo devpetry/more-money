@@ -2,6 +2,10 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
+interface Empresa {
+  id: number;
+  nome: string;
+}
 interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,11 +22,30 @@ export default function EditUserModal({
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [empresaIdSelecionada, setEmpresaIdSelecionada] = useState<
+    number | string
+  >("");
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+
+  const carregarEmpresas = async () => {
+    setLoadingEmpresas(true);
+    try {
+      const res = await fetch("/api/auth/empresas");
+      const data = await res.json();
+      setEmpresas(data);
+    } catch (e) {
+      console.error("Erro ao carregar lista de empresas para a combo:", e);
+    } finally {
+      setLoadingEmpresas(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && userId) {
+      carregarEmpresas();
       setLoading(true);
       const fetchUser = async () => {
         try {
@@ -31,6 +54,7 @@ export default function EditUserModal({
             const data = await res.json();
             setNome(data.nome || "");
             setEmail(data.email || "");
+            setEmpresaIdSelecionada(data.empresa_id || "");
             setSenha("");
           } else {
             console.error("Erro ao carregar usuário:", res.statusText);
@@ -55,11 +79,13 @@ export default function EditUserModal({
     if (!userId) return;
 
     setSalvando(true);
+    const empresaIdToUpdate = empresaIdSelecionada || null; 
+
     try {
       const res = await fetch(`/api/auth/usuarios/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
+        body: JSON.stringify({ nome, email, empresa_id: empresaIdToUpdate, senha : senha || undefined }),
       });
 
       if (res.ok) {
@@ -138,7 +164,53 @@ export default function EditUserModal({
                   required
                 />
               </div>
-
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+                  htmlFor="empresa_id"
+                >
+                  Empresa
+                </label>
+                <select
+                  name="empresa_id"
+                  id="empresa_id"
+                  value={empresaIdSelecionada}
+                  onChange={(e) => setEmpresaIdSelecionada(e.target.value)}
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+          ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+                  required
+                  disabled={loadingEmpresas || empresas.length === 0}
+                >
+                  {/* PLACEHOLDER */}
+                  {loadingEmpresas && (
+                    <option 
+                    value="" 
+                    disabled 
+                    hidden={!!empresaIdSelecionada}
+                  >
+                    Selecione uma empresa
+                  </option>
+                  )}
+                  {!loadingEmpresas && empresas.length === 0 && (
+                    <option value="" disabled>
+                      Nenhuma empresa encontrada
+                    </option>
+                  )}
+                  <option 
+                    value="" 
+                    disabled 
+                    hidden={!!empresaIdSelecionada}
+                  >
+                    Selecione uma empresa
+                  </option>
+                  {/* OPÇÕES MAPEADAS DO BANCO */}
+                  {empresas.map((empresa) => (
+                    <option key={empresa.id} value={empresa.id}>
+                      {empresa.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"

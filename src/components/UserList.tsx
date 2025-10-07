@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
+import { Edit, Plus, Trash2 } from "lucide-react";
 
 interface Usuario {
   id: number;
   nome: string;
   email: string;
+  empresa_id: number | null;
   criado_em: string;
+}
+interface Empresa {
+  id: number;
+  nome: string;
 }
 
 export default function UserList() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -20,6 +27,20 @@ export default function UserList() {
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(
     null
   );
+
+  async function carregarEmpresas() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/empresas");
+      const text = await res.text();
+      const data = JSON.parse(text);
+      setEmpresas(data);
+    } catch (e) {
+      console.error("Erro ao carregar empresas:", e);
+      alert("Falha ao carregar lista de empresas.");
+    }
+    setLoading(false);
+  }
 
   async function carregarUsuarios() {
     setLoading(true);
@@ -62,6 +83,7 @@ export default function UserList() {
   // Carregar usuários ao montar o componente
   useEffect(() => {
     carregarUsuarios();
+    carregarEmpresas();
   }, []);
 
   if (loading)
@@ -76,8 +98,9 @@ export default function UserList() {
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
+          className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
+          <Plus size={16} />
           Adicionar
         </button>
 
@@ -88,34 +111,43 @@ export default function UserList() {
               <th className="px-3 py-2">ID</th>
               <th className="px-3 py-2">Nome</th>
               <th className="px-3 py-2">E-mail</th>
+              <th className="px-3 py-2">Empresa</th>
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((u) => (
-              <tr
-                key={u.id}
-                className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-              >
-                <td className="px-3 py-2">{u.id}</td>
-                <td className="px-3 py-2">{u.nome}</td>
-                <td className="px-3 py-2">{u.email}</td>
-                <td className="px-3 py-2 text-center">
-                  <button
-                    onClick={() => editarUsuario(u.id)}
-                    className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] px-3 py-1 rounded-xl text-sm font-semibold mr-2 transition"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => deletarUsuario(u.id)}
-                    className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] px-3 py-1 rounded-xl text-sm font-semibold transition"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {usuarios.map((u) => {
+              const empresa = empresas.find((e) => e.id === u.empresa_id);
+              const nomeDaEmpresa = empresa ? empresa.nome : "N/A";
+
+              return (
+                <tr
+                  key={u.id}
+                  className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
+                >
+                  <td className="px-3 py-2">{u.id}</td>
+                  <td className="px-3 py-2">{u.nome}</td>
+                  <td className="px-3 py-2">{u.email}</td>
+                  <td className="px-3 py-2">{nomeDaEmpresa}</td>
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      onClick={() => editarUsuario(u.id)}
+                      className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
+                      title="Editar"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => deletarUsuario(u.id)}
+                      className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
