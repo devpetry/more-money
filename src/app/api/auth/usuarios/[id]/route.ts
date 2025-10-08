@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import bcrypt from "bcryptjs";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
@@ -50,7 +49,7 @@ export async function PUT(
     const { id } = await context.params;
     const body = await req.json();
 
-    const { nome, email, empresa_id, tipo_usuario, senha } = body;
+    const { nome, email, empresa_id, tipo_usuario } = body;
 
     const enum_tipo_usuario =
       TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
@@ -64,25 +63,13 @@ export async function PUT(
 
     const empresaId = empresa_id === "" ? null : empresa_id;
 
-    let rows;
-    if (senha && senha.trim() !== "") {
-      const senha_hash = await bcrypt.hash(senha, 10);
-      rows = await query(
-        `UPDATE "Usuario" 
-         SET nome=$1, email=$2, "empresa_id"=$3, "tipo_usuario"=$4, "senha_hash"=$5, "atualizado_em"=NOW() 
-         WHERE id=$6 
-         RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
-        [nome, email, empresaId, enum_tipo_usuario, senha_hash, id]
-      );
-    } else {
-      rows = await query(
-        `UPDATE "Usuario" 
-         SET nome=$1, email=$2, "empresa_id"=$3, "tipo_usuario"=$4, "atualizado_em"=NOW() 
-         WHERE id=$5 
-         RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
-        [nome, email, empresaId, enum_tipo_usuario, id]
-      );
-    }
+    const rows = await query(
+      `UPDATE "Usuario" 
+       SET nome=$1, email=$2, "empresa_id"=$3, "tipo_usuario"=$4, "atualizado_em"=NOW() 
+       WHERE id=$5 
+       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
+      [nome, email, empresaId, enum_tipo_usuario, id]
+    );
 
     if (rows.length === 0) {
       return NextResponse.json(

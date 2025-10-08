@@ -33,7 +33,6 @@ export default function EditUserModal({
 }: EditUserModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
 
   const [empresaIdSelecionada, setEmpresaIdSelecionada] = useState<string>("");
   const [tipoUsuarioSelecionado, setTipoUsuarioSelecionado] =
@@ -61,7 +60,6 @@ export default function EditUserModal({
     if (isOpen && userId) {
       setNome("");
       setEmail("");
-      setSenha("");
       setEmpresaIdSelecionada("");
       setTipoUsuarioSelecionado("");
 
@@ -79,7 +77,6 @@ export default function EditUserModal({
             );
             const tipoId = getTipoIdByNome(data.tipo_usuario);
             setTipoUsuarioSelecionado(tipoId);
-            setSenha("");
           } else {
             console.error("Erro ao carregar usuário:", res.statusText);
             alert("Erro ao carregar informações do usuário.");
@@ -119,7 +116,6 @@ export default function EditUserModal({
           email,
           empresa_id: empresaIdToUpdate,
           tipo_usuario: tipoUsuarioToUpdate,
-          senha: senha || undefined,
         }),
       });
 
@@ -256,23 +252,6 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-                  htmlFor="senha"
-                >
-                  Nova Senha (opcional)
-                </label>
-                <input
-                  id="senha"
-                  name="senha"
-                  type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  placeholder="Deixe em branco para manter a atual"
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl focus:ring-2 focus:ring-[#2196F3]"
-                />
               </div>
 
               <div className="flex justify-end space-x-3">
