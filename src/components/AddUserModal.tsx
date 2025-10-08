@@ -12,6 +12,12 @@ interface AddUserModalProps {
   onUserAdded: () => void;
 }
 
+const TIPOS_USUARIO = [
+  { id: 1, nome: "ADMIN" },
+  { id: 2, nome: "GERENTE" },
+  { id: 3, nome: "COLABORADOR" },
+];
+
 export default function AddUserModal({
   isOpen,
   onClose,
@@ -46,6 +52,7 @@ export default function AddUserModal({
     const nome = formData.get("nome");
     const email = formData.get("email");
     const empresa_id = formData.get("empresa_id");
+    const tipo_usuario = formData.get("tipo_usuario");
     const senha = formData.get("senha");
 
     try {
@@ -53,7 +60,7 @@ export default function AddUserModal({
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, empresa_id, senha }),
+        body: JSON.stringify({ nome, email, empresa_id, tipo_usuario, senha }),
       });
 
       if (res.ok) {
@@ -149,12 +156,37 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   ? "Carregando empresas..."
                   : empresas.length === 0
                     ? "Nenhuma empresa encontrada"
-                    : "Selecione uma empresa"}
+                    : "Selecione a empresa"}
               </option>
 
               {empresas.map((empresa) => (
                 <option key={empresa.id} value={empresa.id}>
                   {empresa.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="tipo_usuario"
+            >
+              Tipo de Usuário
+            </label>
+            <select
+              name="tipo_usuario"
+              id="tipo_usuario"
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              required
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Selecione o tipo de usuário
+              </option>
+              {TIPOS_USUARIO.map((tipo) => (
+                <option key={tipo.id} value={tipo.id}>
+                  {tipo.nome}
                 </option>
               ))}
             </select>
@@ -182,23 +214,6 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
               * Recomendamos o novo usuário alterar a senha no primeiro login
             </label>
           </div>
-          {/* <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="tipo_usuario">
-              Tipo de Usuário
-            </label>
-            <input
-              name="tipo_usuario"
-              id="tipo_usuario"
-              type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
-              required
-            />
-          </div>*/}
 
           {/* Botões de Ação */}
           <div className="flex justify-end space-x-3">

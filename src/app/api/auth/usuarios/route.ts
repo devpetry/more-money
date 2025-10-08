@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
+const TIPO_USUARIO_MAP = {
+  '1': 'ADMIN',
+  '2': 'GERENTE',
+  '3': 'COLABORADOR',
+};
+
 // GET - Listar todos os usuários
 export async function GET() {
   try {
@@ -25,22 +31,26 @@ export async function GET() {
 // POST - Criar novo usuário
 export async function POST(req: Request) {
   try {
-    const { nome, email, empresa_id, senha } = await req.json();
+    const body = await req.json();
+    const { nome, email, tipo_usuario, senha } = body;
 
+    const empresa_id = body.empresa_id === "" ? null : body.empresa_id;
     const senha_hash = await bcrypt.hash(senha, 10);
 
-    if (!nome || !email || !empresa_id || !senha) {
+    if (!nome || !email  || !tipo_usuario || !senha) {
       return NextResponse.json(
-        { error: "Campos 'nome', 'email', 'empresa_id' e 'senha' são obrigatórios." },
+        { error: "Campos 'nome', 'email', 'tipo_usuario' e 'senha' são obrigatórios." },
         { status: 400 }
       );
     }
 
+    const enum_tipo_usuario = TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+
     const result = await query(
-      `INSERT INTO "Usuario" (nome, email, "empresa_id", "senha_hash", "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, NOW(), NOW())
+      `INSERT INTO "Usuario" (nome, email, "empresa_id", "tipo_usuario", "senha_hash", "criado_em", "atualizado_em")
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
        RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em"`,
-      [nome, email, empresa_id, senha_hash]
+      [nome, email, empresa_id, enum_tipo_usuario, senha_hash]
     );
 
     return NextResponse.json(result[0], { status: 201 });

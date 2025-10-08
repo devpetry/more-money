@@ -13,6 +13,18 @@ interface EditUserModalProps {
   userId: number | null;
 }
 
+const TIPOS_USUARIO = [
+  { id: 1, nome: "ADMIN" },
+  { id: 2, nome: "GERENTE" },
+  { id: 3, nome: "COLABORADOR" },
+];
+
+const getTipoIdByNome = (nome?: string | null): string => {
+  if (!nome) return "";
+  const tipo = TIPOS_USUARIO.find((t) => t.nome === nome.toUpperCase());
+  return tipo ? String(tipo.id) : "";
+};
+
 export default function EditUserModal({
   isOpen,
   onClose,
@@ -22,9 +34,11 @@ export default function EditUserModal({
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [empresaIdSelecionada, setEmpresaIdSelecionada] = useState<
-    number | string
-  >("");
+
+  const [empresaIdSelecionada, setEmpresaIdSelecionada] = useState<string>("");
+  const [tipoUsuarioSelecionado, setTipoUsuarioSelecionado] =
+    useState<string>("");
+
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -45,6 +59,12 @@ export default function EditUserModal({
 
   useEffect(() => {
     if (isOpen && userId) {
+      setNome("");
+      setEmail("");
+      setSenha("");
+      setEmpresaIdSelecionada("");
+      setTipoUsuarioSelecionado("");
+
       carregarEmpresas();
       setLoading(true);
       const fetchUser = async () => {
@@ -54,7 +74,11 @@ export default function EditUserModal({
             const data = await res.json();
             setNome(data.nome || "");
             setEmail(data.email || "");
-            setEmpresaIdSelecionada(data.empresa_id || "");
+            setEmpresaIdSelecionada(
+              data.empresa_id != null ? String(data.empresa_id) : ""
+            );
+            const tipoId = getTipoIdByNome(data.tipo_usuario);
+            setTipoUsuarioSelecionado(tipoId);
             setSenha("");
           } else {
             console.error("Erro ao carregar usuário:", res.statusText);
@@ -73,13 +97,18 @@ export default function EditUserModal({
     }
   }, [isOpen, userId, onClose]);
 
-  // Enviar dados atualizados
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!userId) return;
 
     setSalvando(true);
-    const empresaIdToUpdate = empresaIdSelecionada || null;
+
+    const empresaIdToUpdate =
+      empresaIdSelecionada !== "" ? Number(empresaIdSelecionada) : null;
+    const tipoUsuarioToUpdate =
+      tipoUsuarioSelecionado !== ""
+        ? Number(tipoUsuarioSelecionado)
+        : undefined;
 
     try {
       const res = await fetch(`/api/auth/usuarios/${userId}`, {
@@ -89,6 +118,7 @@ export default function EditUserModal({
           nome,
           email,
           empresa_id: empresaIdToUpdate,
+          tipo_usuario: tipoUsuarioToUpdate,
           senha: senha || undefined,
         }),
       });
@@ -191,12 +221,38 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                       ? "Carregando empresas..."
                       : empresas.length === 0
                         ? "Nenhuma empresa encontrada"
-                        : "Selecione uma empresa"}
+                        : "Selecione a empresa"}
                   </option>
 
                   {empresas.map((empresa) => (
-                    <option key={empresa.id} value={empresa.id}>
+                    <option key={empresa.id} value={String(empresa.id)}>
                       {empresa.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+                  htmlFor="tipo_usuario"
+                >
+                  Tipo de Usuário
+                </label>
+                <select
+                  name="tipo_usuario"
+                  id="tipo_usuario"
+                  value={tipoUsuarioSelecionado}
+                  onChange={(e) => setTipoUsuarioSelecionado(e.target.value)}
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+${"focus:ring-2 focus:ring-[#2196F3]"}`}
+                  required
+                >
+                  <option value="" disabled>
+                    Selecione o tipo de usuário
+                  </option>
+                  {TIPOS_USUARIO.map((tipo) => (
+                    <option key={tipo.id} value={String(tipo.id)}>
+                      {tipo.nome}
                     </option>
                   ))}
                 </select>
