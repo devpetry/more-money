@@ -10,6 +10,7 @@ interface Usuario {
   nome: string;
   email: string;
   empresa_id: number | null;
+  tipo_usuario: string;
   criado_em: string;
 }
 interface Empresa {
@@ -112,6 +113,7 @@ export default function UserList() {
               <th className="px-3 py-2">Nome</th>
               <th className="px-3 py-2">E-mail</th>
               <th className="px-3 py-2">Empresa</th>
+              <th className="px-3 py-2">Tipo</th>
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>
           </thead>
@@ -129,6 +131,7 @@ export default function UserList() {
                   <td className="px-3 py-2">{u.nome}</td>
                   <td className="px-3 py-2">{u.email}</td>
                   <td className="px-3 py-2">{nomeDaEmpresa}</td>
+                  <td className="px-3 py-2">{u.tipo_usuario}</td>
                   <td className="px-3 py-2 text-center">
                     <button
                       onClick={() => editarUsuario(u.id)}

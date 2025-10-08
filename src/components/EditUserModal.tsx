@@ -79,13 +79,18 @@ export default function EditUserModal({
     if (!userId) return;
 
     setSalvando(true);
-    const empresaIdToUpdate = empresaIdSelecionada || null; 
+    const empresaIdToUpdate = empresaIdSelecionada || null;
 
     try {
       const res = await fetch(`/api/auth/usuarios/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, empresa_id: empresaIdToUpdate, senha : senha || undefined }),
+        body: JSON.stringify({
+          nome,
+          email,
+          empresa_id: empresaIdToUpdate,
+          senha: senha || undefined,
+        }),
       });
 
       if (res.ok) {
@@ -177,33 +182,18 @@ export default function EditUserModal({
                   value={empresaIdSelecionada}
                   onChange={(e) => setEmpresaIdSelecionada(e.target.value)}
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-          ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   required
                   disabled={loadingEmpresas || empresas.length === 0}
                 >
-                  {/* PLACEHOLDER */}
-                  {loadingEmpresas && (
-                    <option 
-                    value="" 
-                    disabled 
-                    hidden={!!empresaIdSelecionada}
-                  >
-                    Selecione uma empresa
+                  <option value="" disabled hidden={!!empresaIdSelecionada}>
+                    {loadingEmpresas
+                      ? "Carregando empresas..."
+                      : empresas.length === 0
+                        ? "Nenhuma empresa encontrada"
+                        : "Selecione uma empresa"}
                   </option>
-                  )}
-                  {!loadingEmpresas && empresas.length === 0 && (
-                    <option value="" disabled>
-                      Nenhuma empresa encontrada
-                    </option>
-                  )}
-                  <option 
-                    value="" 
-                    disabled 
-                    hidden={!!empresaIdSelecionada}
-                  >
-                    Selecione uma empresa
-                  </option>
-                  {/* OPÇÕES MAPEADAS DO BANCO */}
+
                   {empresas.map((empresa) => (
                     <option key={empresa.id} value={empresa.id}>
                       {empresa.nome}

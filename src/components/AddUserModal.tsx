@@ -139,26 +139,19 @@ export default function AddUserModal({
               name="empresa_id"
               id="empresa_id"
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-          ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+${"focus:ring-2 focus:ring-[#2196F3]"}`}
               required
               disabled={loadingEmpresas || empresas.length === 0}
+              defaultValue=""
             >
-              {/* PLACEHOLDER */}
-              {loadingEmpresas ? (
-                <option value="" disabled selected>
-                  Selecione uma empresa
-                </option>
-              ) : empresas.length === 0 ? (
-                <option value="" disabled>
-                  Nenhuma empresa encontrada
-                </option>
-              ) : (
-                <option value="" disabled selected>
-                  Selecione uma empresa
-                </option>
-              )}
+              <option value="" disabled>
+                {loadingEmpresas
+                  ? "Carregando empresas..."
+                  : empresas.length === 0
+                    ? "Nenhuma empresa encontrada"
+                    : "Selecione uma empresa"}
+              </option>
 
-              {/* OPÇÕES MAPEADAS DO BANCO */}
               {empresas.map((empresa) => (
                 <option key={empresa.id} value={empresa.id}>
                   {empresa.nome}
