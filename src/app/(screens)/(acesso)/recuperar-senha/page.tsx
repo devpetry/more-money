@@ -8,7 +8,7 @@ export default async function RecuperarSenhaPage() {
 
   if (session) {
     if (process.env.NODE_ENV === "development") {
-      console.log("⚠️ Já existe sessão:", session);
+      console.log("⚠️   Já existe sessão: ", session);
     }
     redirect("/dashboard");
   }

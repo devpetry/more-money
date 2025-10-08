@@ -3,14 +3,16 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { query } from "@/lib/db";
 
-// Tipagem do usuário retornado pelo banco
+export type TipoUsuario = "ADMIN" | "EMPRESA" | "CLIENTE";
+
+// Tipagem do usuário retornado pelo banco de dados
 export interface ExtendedUser extends DefaultUser {
   id: string;
-  tipo_usuario: number;
+  tipo_usuario: TipoUsuario;
   empresa_id: number | null;
 }
 
-// Extende o Session e JWT do NextAuth
+// Extende os tipos padrão do NextAuth para incluir nosso ExtendedUser
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: ExtendedUser;
@@ -19,21 +21,23 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    tipo_usuario: number;
+    tipo_usuario: TipoUsuario;
     empresa_id: number | null;
   }
 }
 
-// Função isolada de acesso ao banco (padrão repository)
+// Função isolada para buscar um usuário por e-mail no banco de dados
 async function findUserByEmail(email: string) {
   const res = await query(
-    `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id" 
-     FROM "Usuario" 
+    `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id"
+     FROM "Usuario"
      WHERE email = $1`,
     [email]
   );
 
-  return res[0];
+  const usuario = res[0];
+
+  return usuario;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -48,6 +52,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
       },
+
       async authorize(credentials): Promise<ExtendedUser | null> {
         if (!credentials) return null;
 
@@ -79,7 +84,7 @@ export const authOptions: NextAuthOptions = {
             id: usuario.id.toString(),
             name: usuario.nome,
             email: usuario.email,
-            tipo_usuario: usuario.tipo_usuario,
+            tipo_usuario: usuario.tipo_usuario as TipoUsuario,
             empresa_id: usuario.empresa_id,
           };
         } catch (error) {
@@ -102,9 +107,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.tipo_usuario = token.tipo_usuario;
+        session.user.tipo_usuario = token.tipo_usuario as TipoUsuario;
         session.user.empresa_id = token.empresa_id;
       }
       return session;
