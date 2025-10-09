@@ -41,14 +41,16 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
+    const empresaId = Number(id);
+
     const { nome, cnpj } = await req.json();
 
     const rows = await query(
-      `UPDATE "Empresa" 
-       SET nome=$1, cnpj=$2, "atualizado_em"=NOW() 
-       WHERE id=$3 
+      `UPDATE "Empresa"
+       SET nome=$1, cnpj=$2, "atualizado_em"=NOW()
+       WHERE id=$3
        RETURNING id, nome, cnpj, "criado_em", "atualizado_em"`,
-      [nome, cnpj, id]
+      [nome, cnpj, empresaId]
     );
 
     if (rows.length === 0) {

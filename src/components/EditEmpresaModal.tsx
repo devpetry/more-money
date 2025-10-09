@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import CnpjInput from "./CnpjInput";
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -120,20 +121,13 @@ export default function EditEmpresaModal({
               </div>
 
               <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-                  htmlFor="cnpj"
-                >
-                  CNPJ
-                </label>
-                <input
-                  id="cnpj"
+                <CnpjInput
                   name="cnpj"
-                  type="cnpj"
+                  label="CNPJ"
                   value={cnpj}
                   onChange={(e) => setCnpj(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl focus:ring-2 focus:ring-[#2196F3]"
                   required
+                  className="focus:ring-2 focus:ring-[#2196F3]"
                 />
               </div>
 

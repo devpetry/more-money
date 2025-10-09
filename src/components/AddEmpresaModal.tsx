@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
+import CnpjInput from "./CnpjInput";
 
 interface AddEmpresaModalProps {
   isOpen: boolean;
@@ -13,15 +14,14 @@ export default function AddEmpresaModal({
   onClose,
   onEmpresaAdded,
 }: AddEmpresaModalProps) {
+  const [nome, setNome] = useState("");
+  const [cnpj, setCnpj] = useState("");
+
   // Função para lidar com o envio do formulário de nova empresa
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const nome = formData.get("nome");
-    const cnpj = formData.get("cnpj");
 
     try {
-      // Requisição POST
       const res = await fetch("/api/auth/empresas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,11 +33,10 @@ export default function AddEmpresaModal({
         onClose();
       } else {
         const errorData = await res.json();
-        console.error("Erro ao salvar empresa:", errorData);
         alert(`Erro ao criar empresa: ${errorData.error || res.statusText}`);
       }
     } catch (error) {
-      console.error("Erro na requisição POST:", error);
+      console.error(error);
       alert("Erro de conexão ao criar empresa.");
     }
   };
@@ -61,40 +60,38 @@ export default function AddEmpresaModal({
         {/* Formulário */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="nome">
+            <label
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              htmlFor="nome"
+            >
               Nome
             </label>
             <input
               name="nome"
               id="nome"
               type="text"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
           ${
             // errors.email
             //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
+            "focus:ring-2 focus:ring-[#2196F3]"
           }`}
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]" htmlFor="cnpj">
-              CNPJ
-            </label>
-            <input
+            <CnpjInput
               name="cnpj"
-              id="cnpj"
-              type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-               "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
+              label="CNPJ"
+              value={cnpj}
+              onChange={(e) => setCnpj(e.target.value)}
               required
+              className="focus:ring-2 focus:ring-[#2196F3]"
             />
           </div>
-          
+
           {/* Botões de Ação */}
           <div className="flex justify-end space-x-3">
             <button

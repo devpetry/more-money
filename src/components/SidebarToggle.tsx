@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard, LogOut, Menu, Settings, Users, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export default function SidebarToggle() {
@@ -20,7 +20,7 @@ export default function SidebarToggle() {
         aria-controls="sidebar-menu"
         title={isOpen ? "Fechar Menu" : "Abrir Menu"}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <nav
@@ -29,7 +29,7 @@ export default function SidebarToggle() {
           ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="p-6 mt-10">
-          <h3 className="text-2xl font-semibold mb-4 border-b border-[#9E9E9E]/30 pb-2">
+          <h3 className="text-2xl text-[#E0E0E0] font-semibold mb-4 border-b border-[#9E9E9E]/30 pb-2">
             Navegação
           </h3>
 
@@ -37,44 +37,49 @@ export default function SidebarToggle() {
             <li>
               <a
                 href="/dashboard"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117]"
+                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={toggleSidebar}
               >
+                <LayoutDashboard size={16} />
                 Dashboard
               </a>
             </li>
             <li>
               <a
                 href="/lista-usuarios"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117]"
+                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={toggleSidebar}
               >
+                <Users size={16}/>
                 Usuários
               </a>
             </li>
             <li>
               <a
                 href="/lista-empresas"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117]"
+                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={toggleSidebar}
               >
+                <BriefcaseBusiness size={16}/>
                 Empresas
               </a>
             </li>
             <li>
               <a
                 href="#"
-                className="block p-2 rounded-lg text-[#9E9E9E] hover:text-[#E0E0E0] hover:bg-[#0D1117]"
+                className="block p-2 rounded-lg text-[#9E9E9E] hover:text-[#E0E0E0] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={toggleSidebar}
               >
+                <Settings size={16}/>
                 Configurações
               </a>
             </li>
             <li>
               <a
-                className="block p-2 rounded-lg cursor-pointer text-[#9E9E9E] hover:text-[#FF5252] hover:bg-[#0D1117]"
+                className="block p-2 rounded-lg cursor-pointer text-[#9E9E9E] hover:text-[#FF5252] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={() => signOut()}
               >
+                <LogOut size={16}/>
                 Sair
               </a>
             </li>
