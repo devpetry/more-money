@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       .update(recoveryToken)
       .digest("hex");
 
-    // Token expira em 1 hora
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    // Token expira em 10 minutos
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     // Atualiza o usuário com o token e data de expiração
     await client.query(
