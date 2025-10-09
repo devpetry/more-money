@@ -1,4 +1,3 @@
-// import LogoutButton from "@/components/LogoutButton";
 import SidebarToggle from "@/components/SidebarToggle";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
@@ -19,7 +18,6 @@ export default async function DashboardPage() {
       <main>
         <h1 className="text-3xl font-black mt-4">Olá, {session.user?.name}</h1>
         <SidebarToggle />
-        {/* <LogoutButton /> */}
       </main>
     </div>
   );

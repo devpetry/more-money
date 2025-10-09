@@ -26,7 +26,6 @@ export default function AddUserModal({
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
 
-  // Função para buscar a lista de empresas
   const carregarEmpresas = async () => {
     setLoadingEmpresas(true);
     try {
@@ -45,7 +44,6 @@ export default function AddUserModal({
     }
   }, [isOpen]);
 
-  // Função para lidar com o envio do formulário de novo usuário
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -56,7 +54,6 @@ export default function AddUserModal({
     const senha = formData.get("senha");
 
     try {
-      // Requisição POST
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

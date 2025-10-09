@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const client = await pool.connect();
 
   try {
-    // Verificar se o usuário existe
+    // Verifica se o e-mail pertence a um usuário existente
     const res = await client.query(
       'SELECT id, nome FROM "Usuario" WHERE email = $1',
       [email]
@@ -40,15 +40,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Gerar token de recuperação e salvar hash
+    // Gera token único e cria seu hash para armazenar no banco
     const recoveryToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
       .createHash("sha256")
       .update(recoveryToken)
       .digest("hex");
 
+    // Token expira em 1 hora
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
+    // Atualiza o usuário com o token e data de expiração
     await client.query(
       `UPDATE "Usuario" SET 
         "token_recuperacao" = $1, 
@@ -57,10 +59,10 @@ export async function POST(request: Request) {
       [hashedToken, expiresAt, usuario.id]
     );
 
-    // Link de recuperação
+    // Monta o link de recuperação
     const recoveryLink = `${process.env.NEXTAUTH_URL}/alterar-senha?token=${recoveryToken}`;
 
-    // Enviar e-mail
+    // Envia o e-mail com o link
     const { error } = await resend.emails.send({
       from: "More Money <onboarding@resend.dev>",
       to: [email],
@@ -77,6 +79,7 @@ export async function POST(request: Request) {
       console.error("Erro ao enviar e-mail:", error);
     }
 
+    // Retorna resposta genérica de sucesso (independente de o e-mail existir)
     return NextResponse.json(
       {
         success: true,

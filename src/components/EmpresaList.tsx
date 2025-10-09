@@ -13,15 +13,12 @@ interface Empresa {
 }
 
 const formatarCnpj = (cnpj: string): string => {
-  // Remove qualquer coisa que não seja dígito
   const numeros = cnpj.replace(/\D/g, "");
 
-  // Verifica se tem 14 dígitos
   if (numeros.length !== 14) {
     return cnpj;
   }
 
-  // Aplica a máscara
   return numeros.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
     "$1.$2.$3/$4-$5"
@@ -76,7 +73,6 @@ export default function EmpresaList() {
       alert("Erro de conexão ao tentar excluir a empresa.");
     }
   }
-  // Carregar empresas ao montar o componente
   useEffect(() => {
     carregarEmpresas();
   }, []);
@@ -139,7 +135,6 @@ export default function EmpresaList() {
           </tbody>
         </table>
 
-        {/* Caso não haja empresas */}
         {empresas.length === 0 && (
           <p className="text-center text-gray-400 mt-6">
             Nenhuma empresa encontrada.

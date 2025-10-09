@@ -81,7 +81,6 @@ export default function UserList() {
       alert("Erro de conexão ao tentar excluir o usuário.");
     }
   }
-  // Carregar usuários ao montar o componente
   useEffect(() => {
     carregarUsuarios();
     carregarEmpresas();
@@ -154,7 +153,6 @@ export default function UserList() {
           </tbody>
         </table>
 
-        {/* Caso não haja usuários */}
         {usuarios.length === 0 && (
           <p className="text-center text-gray-400 mt-6">
             Nenhum usuário encontrado.

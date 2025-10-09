@@ -48,7 +48,6 @@ export default function EditEmpresaModal({
     }
   }, [isOpen, empresaId, onClose]);
 
-  // Enviar dados atualizados
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!empresaId) return;

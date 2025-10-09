@@ -23,7 +23,6 @@ export default function LoginForm() {
       password: formData.get("password"),
     };
 
-    // Validação com Zod
     const validation = LoginSchema.safeParse(data);
 
     if (!validation.success) {
@@ -60,14 +59,14 @@ export default function LoginForm() {
 
   return (
     <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
-      {/* logo */}
+      {/* Logo */}
       <div className="flex justify-center mb-6 bg-[#9E9E9E]/15 rounded-xl">
         <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
           *LOGO*
         </div>
       </div>
 
-      {/* título */}
+      {/* Título */}
       <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
         Acesse sua conta
       </h2>
@@ -75,7 +74,7 @@ export default function LoginForm() {
         Preencha os campos abaixo para seguir
       </p>
 
-      {/* formulário */}
+      {/* Formulário */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <input

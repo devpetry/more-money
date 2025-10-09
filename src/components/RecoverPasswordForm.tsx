@@ -1,7 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { PasswordRecoverySchema, TPasswordRecoverySchema } from "@/schemas/auth";
+import {
+  PasswordRecoverySchema,
+  TPasswordRecoverySchema,
+} from "@/schemas/auth";
 
 type FormErrors = Partial<TPasswordRecoverySchema>;
 
@@ -20,7 +23,6 @@ export default function RecoverPasswordForm() {
     const formData = new FormData(e.currentTarget);
     const data = { email: formData.get("email") };
 
-    // Validação com Zod
     const validation = PasswordRecoverySchema.safeParse(data);
     if (!validation.success) {
       const fieldErrors: Partial<FormErrors> = {};
@@ -60,12 +62,14 @@ export default function RecoverPasswordForm() {
 
   return (
     <div className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
+      {/* Logo */}
       <div className="flex justify-center mb-4 bg-[#9E9E9E]/15 rounded-xl">
         <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
           *LOGO*
         </div>
       </div>
 
+      {/* Título */}
       <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
         Recuperação de senha
       </h2>
@@ -84,6 +88,7 @@ export default function RecoverPasswordForm() {
         </p>
       )}
 
+      {/* Formulário */}
       <form onSubmit={recuperarSenha} className="flex flex-col gap-4">
         <input
           name="email"

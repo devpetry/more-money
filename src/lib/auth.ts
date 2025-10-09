@@ -3,16 +3,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { query } from "@/lib/db";
 
-export type TipoUsuario = "ADMIN" | "EMPRESA" | "CLIENTE";
+export type TipoUsuario = "ADMIN" | "GERENTE" | "COLABORADOR";
 
-// Tipagem do usuário retornado pelo banco de dados
 export interface ExtendedUser extends DefaultUser {
   id: string;
   tipo_usuario: TipoUsuario;
   empresa_id: number | null;
 }
 
-// Extende os tipos padrão do NextAuth para incluir nosso ExtendedUser
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: ExtendedUser;
@@ -26,7 +24,6 @@ declare module "next-auth/jwt" {
   }
 }
 
-// Função isolada para buscar um usuário por e-mail no banco de dados
 async function findUserByEmail(email: string) {
   const res = await query(
     `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id"

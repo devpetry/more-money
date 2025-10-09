@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   try {
     await client.query("BEGIN");
 
+    // Cria o hash do token recebido para comparar com o armazenado no banco
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     // Verifica se o token existe e ainda não expirou
@@ -30,6 +31,8 @@ export async function POST(request: Request) {
     );
 
     const usuario = res.rows[0];
+
+    // Se não encontrou ou o token expirou, interrompe a operação
     if (!usuario) {
       await client.query("ROLLBACK");
       return NextResponse.json(
@@ -38,8 +41,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // Gera o hash da nova senha
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Verifica se a nova senha é diferente da anterior
+
+    // Impede o uso da mesma senha anterior
     const same = await bcrypt.compare(password, usuario.senha_hash);
 
     if (same) {
@@ -53,6 +58,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Atualiza a senha e remove o token de recuperação
     await client.query(
       `UPDATE "Usuario"
        SET "senha_hash" = $1,

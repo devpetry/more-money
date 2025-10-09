@@ -17,7 +17,6 @@ export default function AddEmpresaModal({
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
 
-  // Função para lidar com o envio do formulário de nova empresa
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 

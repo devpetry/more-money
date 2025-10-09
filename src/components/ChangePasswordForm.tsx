@@ -27,7 +27,6 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
       confirmPassword: formData.get("confirmPassword"),
     };
 
-    // Validação com Zod
     const validation = PasswordChangeSchema.safeParse(data);
     if (!validation.success) {
       const fieldErrors: Partial<FormErrors> = {};
