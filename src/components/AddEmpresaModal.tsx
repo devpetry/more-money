@@ -2,6 +2,9 @@
 
 import { FormEvent, useState } from "react";
 import CnpjInput from "./CnpjInput";
+import { EmpresaSchema, TEmpresaSchema } from "@/schemas/auth";
+
+type FormErrors = Partial<TEmpresaSchema>;
 
 interface AddEmpresaModalProps {
   isOpen: boolean;
@@ -16,9 +19,29 @@ export default function AddEmpresaModal({
 }: AddEmpresaModalProps) {
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      nome: formData.get("nome"),
+      cnpj: formData.get("cnpj"),
+    };
+
+    const validation = EmpresaSchema.safeParse(data);
+
+    if (!validation.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of validation.error.issues) {
+        const key = issue.path[0] as keyof FormErrors;
+        fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/empresas", {
@@ -71,13 +94,13 @@ export default function AddEmpresaModal({
               type="text"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-            "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
               required
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+              ${
+                errors.nome
+                  ? "border-2 border-[#FF5252]"
+                  : "focus:ring-2 focus:ring-[#2196F3]"
+              }`}
             />
           </div>
           <div className="mb-4">
@@ -87,7 +110,11 @@ export default function AddEmpresaModal({
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               required
-              className="focus:ring-2 focus:ring-[#2196F3]"
+              className={
+                errors.cnpj
+                  ? "border-2 border-[#FF5252]"
+                  : "focus:ring-2 focus:ring-[#2196F3]"
+              }
             />
           </div>
 

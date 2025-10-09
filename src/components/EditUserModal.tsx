@@ -1,6 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { UsuarioSchema, TUsuarioSchema } from "@/schemas/auth";
+
+type FormErrors = Partial<Record<keyof TUsuarioSchema, string>>;
 
 interface Empresa {
   id: number;
@@ -33,6 +36,7 @@ export default function EditUserModal({
 }: EditUserModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const [empresaIdSelecionada, setEmpresaIdSelecionada] = useState<string>("");
   const [tipoUsuarioSelecionado, setTipoUsuarioSelecionado] =
@@ -96,6 +100,35 @@ export default function EditUserModal({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const nome = formData.get("nome");
+    const email = formData.get("email");
+    const empresa_id = formData.get("empresa_id");
+    const tipo_usuario = formData.get("tipo_usuario");
+    const senha = formData.get("senha");
+
+    const data = {
+      nome,
+      email,
+      empresa_id,
+      tipo_usuario,
+      senha,
+    };
+
+    const validation = UsuarioSchema.safeParse(data);
+
+    if (!validation.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of validation.error.issues) {
+        const key = issue.path[0] as keyof FormErrors;
+        fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
     if (!userId) return;
 
     setSalvando(true);
@@ -103,9 +136,7 @@ export default function EditUserModal({
     const empresaIdToUpdate =
       empresaIdSelecionada !== "" ? Number(empresaIdSelecionada) : null;
     const tipoUsuarioToUpdate =
-      tipoUsuarioSelecionado !== ""
-        ? Number(tipoUsuarioSelecionado)
-        : undefined;
+      tipoUsuarioSelecionado !== "" ? tipoUsuarioSelecionado : "";
 
     try {
       const res = await fetch(`/api/auth/usuarios/${userId}`, {
@@ -173,9 +204,17 @@ export default function EditUserModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl focus:ring-2 focus:ring-[#2196F3]"
                   required
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+                  ${
+                    errors.nome
+                      ? "border-2 border-[#FF5252]"
+                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  }`}
                 />
+                {errors.nome && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.nome}</p>
+                )}
               </div>
 
               <div className="mb-4">
@@ -191,9 +230,17 @@ export default function EditUserModal({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl focus:ring-2 focus:ring-[#2196F3]"
                   required
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+                  ${
+                    errors.email
+                      ? "border-2 border-[#FF5252]"
+                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  }`}
                 />
+                {errors.email && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.email}</p>
+                )}
               </div>
               <div className="mb-4">
                 <label
@@ -208,8 +255,7 @@ export default function EditUserModal({
                   value={empresaIdSelecionada}
                   onChange={(e) => setEmpresaIdSelecionada(e.target.value)}
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-${"focus:ring-2 focus:ring-[#2196F3]"}`}
-                  required
+                  ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   disabled={loadingEmpresas || empresas.length === 0}
                 >
                   <option value="" disabled hidden={!!empresaIdSelecionada}>
@@ -239,9 +285,9 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   id="tipo_usuario"
                   value={tipoUsuarioSelecionado}
                   onChange={(e) => setTipoUsuarioSelecionado(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   required
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                 >
                   <option value="" disabled>
                     Selecione o tipo de usuário

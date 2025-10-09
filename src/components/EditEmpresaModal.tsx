@@ -2,6 +2,9 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import CnpjInput from "./CnpjInput";
+import { EmpresaSchema, TEmpresaSchema } from "@/schemas/auth";
+
+type FormErrors = Partial<TEmpresaSchema>;
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -18,6 +21,7 @@ export default function EditEmpresaModal({
 }: EditUserModalProps) {
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
@@ -50,6 +54,26 @@ export default function EditEmpresaModal({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      nome: formData.get("nome"),
+      cnpj: formData.get("cnpj"),
+    };
+
+    const validation = EmpresaSchema.safeParse(data);
+
+    if (!validation.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of validation.error.issues) {
+        const key = issue.path[0] as keyof FormErrors;
+        fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
     if (!empresaId) return;
 
     setSalvando(true);
@@ -114,8 +138,13 @@ export default function EditEmpresaModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl focus:ring-2 focus:ring-[#2196F3]"
                   required
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+                  ${
+                    errors.nome
+                      ? "border-2 border-[#FF5252]"
+                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  }`}
                 />
               </div>
 
@@ -126,7 +155,11 @@ export default function EditEmpresaModal({
                   value={cnpj}
                   onChange={(e) => setCnpj(e.target.value)}
                   required
-                  className="focus:ring-2 focus:ring-[#2196F3]"
+                  className={
+                    errors.cnpj
+                      ? "border-2 border-[#FF5252]"
+                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  }
                 />
               </div>
 

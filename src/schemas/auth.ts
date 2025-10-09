@@ -46,15 +46,55 @@ export const PasswordChangeSchema = z
 
 export type TPasswordChangeSchema = z.infer<typeof PasswordChangeSchema>;
 
+/* --------------------------- EMPRESA --------------------------- */
+export const EmpresaSchema = z.object({
+  nome: z
+    .string()
+    .nonempty("O nome da empresa é obrigatório.")
+    .trim()
+    .min(3, "O nome deve ter pelo menos 3 caracteres.")
+    .max(100, "O nome é muito longo."),
+  cnpj: z
+    .string()
+    .nonempty("O CNPJ é obrigatório.")
+    .min(14, "O CNPJ deve ter pelo menos 14 caracteres.")
+});
+
+export type TEmpresaSchema = z.infer<typeof EmpresaSchema>;
+
+/* ---------------------------- USUÁRIO ---------------------------- */
+export const UsuarioSchema = z.object({
+  nome: z
+    .string()
+    .nonempty("O nome é obrigatório.")
+    .trim()
+    .min(3, "O nome deve ter pelo menos 3 caracteres."),
+  email: z
+    .string()
+    .nonempty("O e-mail é obrigatório.")
+    .trim()
+    .email("Digite um e-mail válido."),
+  senha: z
+    .string()
+    .nonempty("A senha é obrigatória.")
+    .min(6, "A senha deve ter pelo menos 6 caracteres."),
+});
+
+export type TUsuarioSchema = z.infer<typeof UsuarioSchema>;
+
 /* -------------------------- EXPORTS ÚNICOS ------------------------ */
 export const Schemas = {
   login: LoginSchema,
   recovery: PasswordRecoverySchema,
   passwordChange: PasswordChangeSchema,
+  empresa: EmpresaSchema,
+  usuario: UsuarioSchema,
 };
 
 export type {
   TLoginSchema as LoginData,
   TPasswordRecoverySchema as RecoveryData,
   TPasswordChangeSchema as PasswordChangeData,
+  TEmpresaSchema as EmpresaData,
+  TUsuarioSchema as UsuarioData,
 };

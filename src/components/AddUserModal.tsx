@@ -1,6 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { UsuarioSchema, TUsuarioSchema } from "@/schemas/auth";
+
+type FormErrors = Partial<Record<keyof TUsuarioSchema, string>>;
 
 interface Empresa {
   id: number;
@@ -24,6 +27,7 @@ export default function AddUserModal({
   onUserAdded,
 }: AddUserModalProps) {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
 
   const carregarEmpresas = async () => {
@@ -46,6 +50,8 @@ export default function AddUserModal({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+
     const formData = new FormData(e.currentTarget);
     const nome = formData.get("nome");
     const email = formData.get("email");
@@ -53,11 +59,31 @@ export default function AddUserModal({
     const tipo_usuario = formData.get("tipo_usuario");
     const senha = formData.get("senha");
 
+    const data = {
+      nome,
+      email,
+      empresa_id,
+      tipo_usuario,
+      senha,
+    };
+
+    const validation = UsuarioSchema.safeParse(data);
+
+    if (!validation.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of validation.error.issues) {
+        const key = issue.path[0] as keyof FormErrors;
+        fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, empresa_id, tipo_usuario, senha }),
+        body: JSON.stringify({ data }),
       });
 
       if (res.ok) {
@@ -103,13 +129,13 @@ export default function AddUserModal({
               name="nome"
               id="nome"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-            "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
               required
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+              ${
+                errors.nome
+                  ? "border-2 border-[#FF5252]"
+                  : "focus:ring-2 focus:ring-[#2196F3]"
+              }`}
             />
           </div>
           <div className="mb-4">
@@ -123,13 +149,13 @@ export default function AddUserModal({
               name="email"
               id="email"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-            "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
               required
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+              ${
+                errors.email
+                  ? "border-2 border-[#FF5252]"
+                  : "focus:ring-2 focus:ring-[#2196F3]"
+              }`}
             />
           </div>
           <div className="mb-4">
@@ -143,8 +169,7 @@ export default function AddUserModal({
               name="empresa_id"
               id="empresa_id"
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-${"focus:ring-2 focus:ring-[#2196F3]"}`}
-              required
+              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
               disabled={loadingEmpresas || empresas.length === 0}
               defaultValue=""
             >
@@ -173,9 +198,9 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
             <select
               name="tipo_usuario"
               id="tipo_usuario"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-${"focus:ring-2 focus:ring-[#2196F3]"}`}
               required
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
+              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
               defaultValue=""
             >
               <option value="" disabled>
@@ -199,13 +224,13 @@ ${"focus:ring-2 focus:ring-[#2196F3]"}`}
               name="senha"
               id="senha"
               type="password"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-          ${
-            // errors.email
-            //   ? "border-2 border-[#FF5252]"
-            "focus:ring-2 focus:ring-[#2196F3]"
-          }`}
               required
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+              ${
+                errors.senha
+                  ? "border-2 border-[#FF5252]"
+                  : "focus:ring-2 focus:ring-[#2196F3]"
+              }`}
             />
             <label className="text-xs text-[#9E9E9E] mt-1">
               * Recomendamos o novo usuário alterar a senha no primeiro login

@@ -32,17 +32,18 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { nome, email, tipo_usuario, senha } = body;
+    const { nome, email, tipo_usuario, senha } = body.data;
 
     const empresa_id = body.empresa_id === "" ? null : body.empresa_id;
-    const senha_hash = await bcrypt.hash(senha, 10);
-
+    
     if (!nome || !email  || !tipo_usuario || !senha) {
       return NextResponse.json(
         { error: "Campos 'nome', 'email', 'tipo_usuario' e 'senha' são obrigatórios." },
         { status: 400 }
       );
     }
+
+    const senha_hash = await bcrypt.hash(String(senha), 10);
 
     const enum_tipo_usuario = TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
 
