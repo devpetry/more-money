@@ -57,7 +57,7 @@ export const EmpresaSchema = z.object({
   cnpj: z
     .string()
     .nonempty("O CNPJ é obrigatório.")
-    .min(14, "O CNPJ deve ter pelo menos 14 caracteres.")
+    .min(18, "O CNPJ deve ter pelo menos 14 caracteres."),
 });
 
 export type TEmpresaSchema = z.infer<typeof EmpresaSchema>;

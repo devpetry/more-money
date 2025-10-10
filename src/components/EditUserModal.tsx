@@ -95,6 +95,8 @@ export default function EditUserModal({
         }
       };
       fetchUser();
+    } else if (!isOpen){
+      setErrors({});
     }
   }, [isOpen, userId, onClose]);
 
@@ -204,7 +206,6 @@ export default function EditUserModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  required
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
                   ${
                     errors.nome
@@ -230,7 +231,6 @@ export default function EditUserModal({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
                   ${
                     errors.email
@@ -285,7 +285,6 @@ export default function EditUserModal({
                   id="tipo_usuario"
                   value={tipoUsuarioSelecionado}
                   onChange={(e) => setTipoUsuarioSelecionado(e.target.value)}
-                  required
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
               ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                 >

@@ -45,6 +45,8 @@ export default function AddUserModal({
   useEffect(() => {
     if (isOpen) {
       carregarEmpresas();
+    } else if (!isOpen){
+      setErrors({});
     }
   }, [isOpen]);
 
@@ -129,7 +131,6 @@ export default function AddUserModal({
               name="nome"
               id="nome"
               type="text"
-              required
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
               ${
                 errors.nome
@@ -137,6 +138,9 @@ export default function AddUserModal({
                   : "focus:ring-2 focus:ring-[#2196F3]"
               }`}
             />
+            {errors.nome && (
+              <p className="text-[#FF5252] text-xs mt-1">{errors.nome}</p>
+            )}
           </div>
           <div className="mb-4">
             <label
@@ -149,7 +153,6 @@ export default function AddUserModal({
               name="email"
               id="email"
               type="text"
-              required
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
               ${
                 errors.email
@@ -157,6 +160,9 @@ export default function AddUserModal({
                   : "focus:ring-2 focus:ring-[#2196F3]"
               }`}
             />
+            {errors.email && (
+              <p className="text-[#FF5252] text-xs mt-1">{errors.email}</p>
+            )}
           </div>
           <div className="mb-4">
             <label
@@ -198,7 +204,6 @@ export default function AddUserModal({
             <select
               name="tipo_usuario"
               id="tipo_usuario"
-              required
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
               ${"focus:ring-2 focus:ring-[#2196F3]"}`}
               defaultValue=""
@@ -212,6 +217,9 @@ export default function AddUserModal({
                 </option>
               ))}
             </select>
+            {/* {errors.tipo_usuario && (
+              <p className="text-[#FF5252] text-xs mt-1">{errors.tipo_usuario}</p>
+            )} */}
           </div>
           <div className="mb-4">
             <label
@@ -224,7 +232,6 @@ export default function AddUserModal({
               name="senha"
               id="senha"
               type="password"
-              required
               className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
               ${
                 errors.senha
@@ -232,6 +239,9 @@ export default function AddUserModal({
                   : "focus:ring-2 focus:ring-[#2196F3]"
               }`}
             />
+            {errors.senha && (
+              <p className="text-[#FF5252] text-xs mt-1">{errors.senha}</p>
+            )}
             <label className="text-xs text-[#9E9E9E] mt-1">
               * Recomendamos o novo usuário alterar a senha no primeiro login
             </label>

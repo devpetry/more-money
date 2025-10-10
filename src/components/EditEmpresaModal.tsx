@@ -49,6 +49,8 @@ export default function EditEmpresaModal({
         }
       };
       fetchEmpresa();
+    } else if (!isOpen) {
+      setErrors({});
     }
   }, [isOpen, empresaId, onClose]);
 
@@ -138,7 +140,6 @@ export default function EditEmpresaModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  required
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
                   ${
                     errors.nome
@@ -146,6 +147,9 @@ export default function EditEmpresaModal({
                       : "focus:ring-2 focus:ring-[#2196F3]"
                   }`}
                 />
+                {errors.nome && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.nome}</p>
+                )}
               </div>
 
               <div className="mb-4">
@@ -154,13 +158,15 @@ export default function EditEmpresaModal({
                   label="CNPJ"
                   value={cnpj}
                   onChange={(e) => setCnpj(e.target.value)}
-                  required
                   className={
                     errors.cnpj
                       ? "border-2 border-[#FF5252]"
                       : "focus:ring-2 focus:ring-[#2196F3]"
                   }
                 />
+                {errors.cnpj && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.cnpj}</p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3">
