@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { UsuarioSchema, TUsuarioSchema } from "@/schemas/auth";
+import { UsuarioEditSchema, TUsuarioEditSchema } from "@/schemas/auth";
 
-type FormErrors = Partial<Record<keyof TUsuarioSchema, string>>;
+type FormErrors = Partial<Record<keyof TUsuarioEditSchema, string>>;
 
 interface Empresa {
   id: number;
@@ -117,7 +117,7 @@ export default function EditUserModal({
       senha,
     };
 
-    const validation = UsuarioSchema.safeParse(data);
+    const validation = UsuarioEditSchema.safeParse(data);
 
     if (!validation.success) {
       const fieldErrors: FormErrors = {};

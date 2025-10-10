@@ -82,6 +82,22 @@ export const UsuarioSchema = z.object({
 
 export type TUsuarioSchema = z.infer<typeof UsuarioSchema>;
 
+/* ---------------------------- EDIÇÃO DE USUÁRIO ---------------------------- */
+export const UsuarioEditSchema = z.object({
+  nome: z
+    .string()
+    .nonempty("O nome é obrigatório.")
+    .trim()
+    .min(3, "O nome deve ter pelo menos 3 caracteres."),
+  email: z
+    .string()
+    .nonempty("O e-mail é obrigatório.")
+    .trim()
+    .email("Digite um e-mail válido."),
+});
+
+export type TUsuarioEditSchema = z.infer<typeof UsuarioEditSchema>;
+
 /* -------------------------- EXPORTS ÚNICOS ------------------------ */
 export const Schemas = {
   login: LoginSchema,
@@ -89,6 +105,7 @@ export const Schemas = {
   passwordChange: PasswordChangeSchema,
   empresa: EmpresaSchema,
   usuario: UsuarioSchema,
+  usuarioEdit: UsuarioEditSchema,
 };
 
 export type {
@@ -97,4 +114,5 @@ export type {
   TPasswordChangeSchema as PasswordChangeData,
   TEmpresaSchema as EmpresaData,
   TUsuarioSchema as UsuarioData,
+  TUsuarioEditSchema as UsuarioEditData,
 };
