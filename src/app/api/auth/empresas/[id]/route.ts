@@ -11,7 +11,7 @@ export async function GET(
 
     const rows = await query(
       `SELECT id, nome, cnpj, "criado_em", "atualizado_em"
-       FROM "Empresa"
+       FROM "Empresas"
        WHERE id = $1
        AND data_exclusao IS NULL`,
       [id]
@@ -46,7 +46,7 @@ export async function PUT(
     const { nome, cnpj } = await req.json();
 
     const rows = await query(
-      `UPDATE "Empresa"
+      `UPDATE "Empresas"
        SET nome=$1, cnpj=$2, "atualizado_em"=NOW()
        WHERE id=$3
        RETURNING id, nome, cnpj, "criado_em", "atualizado_em"`,
@@ -87,7 +87,7 @@ export async function DELETE(
     }
 
     const rows = await query(
-      `UPDATE "Empresa" 
+      `UPDATE "Empresas" 
        SET data_exclusao = NOW() 
        WHERE id = $1 
        AND data_exclusao IS NULL 

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     // Verifica se o token existe e ainda não expirou
     const res = await client.query(
-      `SELECT "id", "senha_hash" FROM "Usuario" 
+      `SELECT "id", "senha_hash" FROM "Usuarios" 
        WHERE "token_recuperacao" = $1 
        AND "expiracao_token_recuperacao" > NOW()`,
       [hashedToken]
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     // Atualiza a senha e remove o token de recuperação
     await client.query(
-      `UPDATE "Usuario"
+      `UPDATE "Usuarios"
        SET "senha_hash" = $1,
            "token_recuperacao" = NULL,
            "expiracao_token_recuperacao" = NULL

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   try {
     // Verifica se o e-mail pertence a um usuário existente
     const res = await client.query(
-      'SELECT id, nome FROM "Usuario" WHERE email = $1',
+      'SELECT id, nome FROM "Usuarios" WHERE email = $1',
       [email]
     );
     const usuario = res.rows[0];
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     // Atualiza o usuário com o token e data de expiração
     await client.query(
-      `UPDATE "Usuario" SET 
+      `UPDATE "Usuarios" SET 
         "token_recuperacao" = $1, 
         "expiracao_token_recuperacao" = $2 
       WHERE id = $3`,
