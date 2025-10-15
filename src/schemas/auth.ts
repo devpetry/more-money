@@ -98,6 +98,16 @@ export const UsuarioEditSchema = z.object({
 
 export type TUsuarioEditSchema = z.infer<typeof UsuarioEditSchema>;
 
+/* ---------------------------- CATEGORIA ---------------------------- */
+export const CategoriaSchema = z.object({
+  nome: z.string().min(2, "O nome é obrigatório."),
+  tipo: z.string().refine((val) => val === "receita" || val === "despesa", {
+    message: "Selecione o tipo da categoria.",
+  }),
+});
+
+export type TCategoriaSchema = z.infer<typeof CategoriaSchema>;
+
 /* -------------------------- EXPORTS ÚNICOS ------------------------ */
 export const Schemas = {
   login: LoginSchema,
@@ -106,6 +116,7 @@ export const Schemas = {
   empresa: EmpresaSchema,
   usuario: UsuarioSchema,
   usuarioEdit: UsuarioEditSchema,
+  categora: CategoriaSchema,
 };
 
 export type {
@@ -115,4 +126,5 @@ export type {
   TEmpresaSchema as EmpresaData,
   TUsuarioSchema as UsuarioData,
   TUsuarioEditSchema as UsuarioEditData,
+  TCategoriaSchema as CategoriaData,
 };
