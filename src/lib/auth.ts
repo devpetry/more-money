@@ -27,7 +27,7 @@ declare module "next-auth/jwt" {
 async function findUserByEmail(email: string) {
   const res = await query(
     `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id"
-     FROM "Usuario"
+     FROM "Usuarios"
      WHERE email = $1`,
     [email]
   );
