@@ -105,7 +105,7 @@ export default function UserList() {
         </button>
 
         {/* Tabela de usuários */}
-        <table className="w-full text-left border-collapse mt-6">
+        <table className="w-full text-center border-collapse mt-6">
           <thead>
             <tr className="border-b border-gray-700 text-[#E0E0E0]">
               <th className="px-3 py-2">ID</th>

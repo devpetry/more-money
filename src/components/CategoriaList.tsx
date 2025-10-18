@@ -24,16 +24,32 @@ export default function CategoriaList() {
 
   async function carregarCategorias() {
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/categorias");
-      const text = await res.text();
-      const data = JSON.parse(text);
-      setCategorias(data);
+
+      if (!res.ok) {
+        console.error("Erro na requisição:", res.status, await res.text());
+        alert("Falha ao carregar lista de categorias.");
+        setCategorias([]);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setCategorias(data);
+      } else {
+        console.error("Formato inesperado de resposta:", data);
+        setCategorias([]);
+      }
     } catch (e) {
       console.error("Erro ao carregar categorias:", e);
       alert("Falha ao carregar lista de categorias.");
+      setCategorias([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function editarCategoria(id: number) {
@@ -86,10 +102,9 @@ export default function CategoriaList() {
         </button>
 
         {/* Tabela de categorias */}
-        <table className="w-full text-left border-collapse mt-6">
+        <table className="w-full text-center border-collapse mt-6">
           <thead>
             <tr className="border-b border-gray-700 text-[#E0E0E0]">
-              <th className="px-3 py-2">ID</th>
               <th className="px-3 py-2">Nome</th>
               <th className="px-3 py-2">Tipo</th>
               <th className="px-3 py-2 text-center">Ações</th>
@@ -101,7 +116,6 @@ export default function CategoriaList() {
                 key={c.id}
                 className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
               >
-                <td className="px-3 py-2">{c.id}</td>
                 <td className="px-3 py-2">{c.nome}</td>
                 <td className="px-3 py-2 capitalize">{c.tipo}</td>
                 <td className="px-3 py-2 text-center">

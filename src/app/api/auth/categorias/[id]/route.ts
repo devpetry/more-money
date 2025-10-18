@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET - Obter detalhes de uma categoria específica
 export async function GET(
@@ -33,16 +35,47 @@ export async function GET(
   }
 }
 
-// PUT - Atualizar categoria
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user.id) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    const usuarioId = parseInt(session.user.id, 10);
+    if (isNaN(usuarioId)) {
+      return NextResponse.json(
+        { error: "ID do usuário inválido" },
+        { status: 400 }
+      );
+    }
+
     const { id } = await context.params;
     const categoriaId = Number(id);
+    if (isNaN(categoriaId)) {
+      return NextResponse.json(
+        { error: "ID da categoria inválido" },
+        { status: 400 }
+      );
+    }
 
-    const { nome, tipo, empresa_id, usuario_id } = await req.json();
+    const { nome, tipo, empresa_id } = await req.json();
+
+    if (!nome || !tipo) {
+      return NextResponse.json(
+        { error: "Campos 'nome' e 'tipo' são obrigatórios." },
+        { status: 400 }
+      );
+    }
+
+    if (!["receita", "despesa"].includes(tipo)) {
+      return NextResponse.json(
+        { error: "O campo 'tipo' deve ser 'receita' ou 'despesa'." },
+        { status: 400 }
+      );
+    }
 
     const rows = await query(
       `UPDATE "Categorias"
@@ -54,7 +87,7 @@ export async function PUT(
          "atualizado_em" = NOW()
        WHERE id = $5
        RETURNING id, nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em"`,
-      [nome, tipo, empresa_id, usuario_id, categoriaId]
+      [nome, tipo, empresa_id || null, usuarioId, categoriaId]
     );
 
     if (rows.length === 0) {

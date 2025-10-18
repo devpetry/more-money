@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BriefcaseBusiness, LayoutDashboard, LogOut, Menu, Settings, Users, X } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard, LogOut, Menu, Settings, Tag, Users, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export default function SidebarToggle() {
@@ -62,6 +62,16 @@ export default function SidebarToggle() {
               >
                 <BriefcaseBusiness size={16}/>
                 Empresas
+              </a>
+            </li>
+            <li>
+              <a
+                href="/lista-categorias"
+                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                onClick={toggleSidebar}
+              >
+                <Tag size={16}/>
+                Categorias
               </a>
             </li>
             <li>

@@ -19,6 +19,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
+    id?: string;
     tipo_usuario: TipoUsuario;
     empresa_id: number | null;
   }
@@ -53,41 +54,41 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials): Promise<ExtendedUser | null> {
         if (!credentials) return null;
 
-        try {
-          const usuario = await findUserByEmail(credentials.email);
+        const usuario = await findUserByEmail(credentials.email);
 
-          if (!usuario) {
-            console.error(
-              "[AUTH ERROR] Usuário não encontrado:",
-              credentials.email
-            );
-            return null;
-          }
-
-          const senhaValida = await bcrypt.compare(
-            credentials.password,
-            usuario.senha_hash
+        if (!usuario) {
+          console.error(
+            "[AUTH ERROR] Usuário não encontrado:",
+            credentials.email
           );
-
-          if (!senhaValida) {
-            console.error(
-              "[AUTH ERROR] Senha incorreta para:",
-              credentials.email
-            );
-            return null;
-          }
-
-          return {
-            id: usuario.id.toString(),
-            name: usuario.nome,
-            email: usuario.email,
-            tipo_usuario: usuario.tipo_usuario as TipoUsuario,
-            empresa_id: usuario.empresa_id,
-          };
-        } catch (error) {
-          console.error("[AUTH ERROR] Falha na autenticação:", error);
           return null;
         }
+
+        if (!usuario.id) {
+          console.error("[AUTH ERROR] Usuário sem ID válido:", usuario);
+          return null;
+        }
+
+        const senhaValida = await bcrypt.compare(
+          credentials.password,
+          usuario.senha_hash
+        );
+
+        if (!senhaValida) {
+          console.error(
+            "[AUTH ERROR] Senha incorreta para:",
+            credentials.email
+          );
+          return null;
+        }
+
+        return {
+          id: usuario.id.toString(),
+          name: usuario.nome,
+          email: usuario.email,
+          tipo_usuario: usuario.tipo_usuario as TipoUsuario,
+          empresa_id: usuario.empresa_id,
+        };
       },
     }),
   ],
@@ -99,17 +100,19 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.tipo_usuario = (user as ExtendedUser).tipo_usuario;
-        token.empresa_id = (user as ExtendedUser).empresa_id;
+        const extendedUser = user as ExtendedUser;
+        if (!extendedUser.id) throw new Error("Usuario sem ID no JWT");
+        token.id = extendedUser.id;
+        token.tipo_usuario = extendedUser.tipo_usuario;
+        token.empresa_id = extendedUser.empresa_id ?? null;
       }
       return token;
     },
-
     async session({ session, token }) {
-      if (session.user) {
-        session.user.tipo_usuario = token.tipo_usuario as TipoUsuario;
-        session.user.empresa_id = token.empresa_id;
-      }
+      if (!token.id) throw new Error("JWT não possui ID do usuário");
+      session.user.id = token.id;
+      session.user.tipo_usuario = token.tipo_usuario;
+      session.user.empresa_id = token.empresa_id ?? null;
       return session;
     },
   },
