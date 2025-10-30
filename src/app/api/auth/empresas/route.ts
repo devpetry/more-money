@@ -33,6 +33,20 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    
+    const existingUser = await query(
+      `SELECT id FROM "Empresas" 
+      WHERE cnpj = $1 AND data_exclusao IS NULL 
+      LIMIT 1`,
+      [cnpj]
+    );
+
+    if (existingUser.length > 0) {
+      return NextResponse.json(
+        { error: "Já existe uma empresa ativa com este CNPJ." },
+        { status: 409 }
+      );
+    }
 
     const result = await query(
       `INSERT INTO "Empresas" (nome, cnpj, "criado_em", "atualizado_em")

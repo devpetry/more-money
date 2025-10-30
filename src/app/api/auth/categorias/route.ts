@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { nome, tipo, empresa_id } = await req.json();
+    const { nome, tipo } = await req.json();
 
     if (!nome || !tipo) {
       return NextResponse.json(
@@ -69,6 +69,20 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const empresaResult = await query(
+      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
+      [usuarioId]
+    );
+
+    if (empresaResult.length === 0) {
+      return NextResponse.json(
+        { error: "Usuário não encontrado." },
+        { status: 404 }
+      );
+    }
+
+    const empresa_id = empresaResult[0].empresa_id;
 
     const result = await query(
       `INSERT INTO "Categorias" (nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em")

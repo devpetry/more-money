@@ -3,9 +3,9 @@ import { query } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 const TIPO_USUARIO_MAP = {
-  '1': 'ADMIN',
-  '2': 'GERENTE',
-  '3': 'COLABORADOR',
+  "1": "ADMIN",
+  "2": "GERENTE",
+  "3": "COLABORADOR",
 };
 
 // GET - Listar todos os usuários
@@ -32,25 +32,43 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { nome, email, tipo_usuario, senha } = body.data;
+    const { nome, email, tipo_usuario, senha, empresa_id: empresaRaw } = body.data;
+    const empresa_id = !empresaRaw || empresaRaw === "" ? null : empresaRaw;
 
-    const empresa_id = body.empresa_id === "" ? null : body.empresa_id;
-    
-    if (!nome || !email  || !tipo_usuario || !senha) {
+    if (!nome || !email || !tipo_usuario || !senha) {
       return NextResponse.json(
-        { error: "Campos 'nome', 'email', 'tipo_usuario' e 'senha' são obrigatórios." },
+        {
+          error:
+            "Campos 'nome', 'email', 'tipo_usuario' e 'senha' são obrigatórios.",
+        },
         { status: 400 }
+      );
+    }
+
+    const existingUser = await query(
+      `SELECT id FROM "Usuarios" 
+      WHERE email = $1 AND data_exclusao IS NULL 
+      LIMIT 1`,
+      [email]
+    );
+
+    if (existingUser.length > 0) {
+      return NextResponse.json(
+        { error: "Já existe um usuário ativo com este e-mail." },
+        { status: 409 }
       );
     }
 
     const senha_hash = await bcrypt.hash(String(senha), 10);
 
-    const enum_tipo_usuario = TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+    const enum_tipo_usuario =
+      TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
 
     const result = await query(
-      `INSERT INTO "Usuarios" (nome, email, "empresa_id", "tipo_usuario", "senha_hash", "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em"`,
+      `INSERT INTO "Usuarios" 
+      (nome, email, "empresa_id", "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em"`,
       [nome, email, empresa_id, enum_tipo_usuario, senha_hash]
     );
 
