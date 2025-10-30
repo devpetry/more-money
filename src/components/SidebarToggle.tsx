@@ -1,11 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { BriefcaseBusiness, LayoutDashboard, LogOut, Menu, Settings, Tag, Users, X } from "lucide-react";
-import { signOut } from "next-auth/react";
+import {
+  BriefcaseBusiness,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Menu,
+  Settings,
+  Tag,
+  Users,
+  X,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 
 export default function SidebarToggle() {
   const [isOpen, setIsOpen] = useState(false);
+  const { data: session, status } = useSession();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -34,65 +45,86 @@ export default function SidebarToggle() {
           </h3>
 
           <ul className="space-y-1">
-            <li>
-              <a
-                href="/dashboard"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={toggleSidebar}
-              >
-                <LayoutDashboard size={16} />
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a
-                href="/lista-usuarios"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={toggleSidebar}
-              >
-                <Users size={16}/>
-                Usuários
-              </a>
-            </li>
-            <li>
-              <a
-                href="/lista-empresas"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={toggleSidebar}
-              >
-                <BriefcaseBusiness size={16}/>
-                Empresas
-              </a>
-            </li>
-            <li>
-              <a
-                href="/lista-categorias"
-                className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={toggleSidebar}
-              >
-                <Tag size={16}/>
-                Categorias
-              </a>
-            </li>
+            {session ? (
+              <li>
+                <a
+                  href="/dashboard"
+                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <LayoutDashboard size={16} />
+                  Dashboard
+                </a>
+              </li>
+            ) : null}
+            {session ? (
+              <li>
+                <a
+                  href="/lista-usuarios"
+                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <Users size={16} />
+                  Usuários
+                </a>
+              </li>
+            ) : null}
+            {session ? (
+              <li>
+                <a
+                  href="/lista-empresas"
+                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <BriefcaseBusiness size={16} />
+                  Empresas
+                </a>
+              </li>
+            ) : null}
+            {session ? (
+              <li>
+                <a
+                  href="/lista-categorias"
+                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <Tag size={16} />
+                  Categorias
+                </a>
+              </li>
+            ) : null}
             <li>
               <a
                 href="#"
                 className="block p-2 rounded-lg text-[#9E9E9E] hover:text-[#E0E0E0] hover:bg-[#0D1117] flex items-center gap-1"
                 onClick={toggleSidebar}
               >
-                <Settings size={16}/>
+                <Settings size={16} />
                 Configurações
               </a>
             </li>
-            <li>
-              <a
-                className="block p-2 rounded-lg cursor-pointer text-[#9E9E9E] hover:text-[#FF5252] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={() => signOut()}
-              >
-                <LogOut size={16}/>
-                Sair
-              </a>
-            </li>
+            {session ? (
+              <li>
+                <a
+                  className="block p-2 rounded-lg cursor-pointer text-[#9E9E9E] hover:text-[#FF5252] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={() => signOut()}
+                >
+                  <LogOut size={16} />
+                  Sair
+                </a>
+              </li>
+            ) : (
+              <li>
+                <a
+                  href="/login"
+                  className="block p-2 rounded-lg cursor-pointer text-[#9E9E9E] hover:text-[#00C853] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <LogIn size={16} />
+                  Entrar
+                </a>
+              </li>
+            )}
           </ul>
         </div>
       </nav>
