@@ -18,7 +18,7 @@ interface Empresa {
   nome: string;
 }
 
-export default function UserList() {
+export default function ListUsers() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);

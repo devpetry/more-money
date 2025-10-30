@@ -12,7 +12,7 @@ interface Categoria {
   criado_em: string;
 }
 
-export default function CategoriaList() {
+export default function ListCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
 

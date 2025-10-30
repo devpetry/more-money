@@ -25,7 +25,7 @@ const formatarCnpj = (cnpj: string): string => {
   );
 };
 
-export default function EmpresaList() {
+export default function ListEmpresas() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 

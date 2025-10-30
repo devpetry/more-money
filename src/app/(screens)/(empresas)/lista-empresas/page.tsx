@@ -1,5 +1,5 @@
 import SidebarToggle from "@/components/SidebarToggle";
-import EmpresaList from "@/components/EmpresaList";
+import ListEmpresas from "@/components/ListEmpresas";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -19,7 +19,7 @@ export default async function EmpresasPage() {
       <main className="w-full max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-black mt-4 text-left">Empresas</h1>
         <SidebarToggle />
-        <EmpresaList />
+        <ListEmpresas />
       </main>
     </div>
   );
