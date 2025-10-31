@@ -108,6 +108,21 @@ export const CategoriaSchema = z.object({
 
 export type TCategoriaSchema = z.infer<typeof CategoriaSchema>;
 
+/* ---------------------------- LANÇAMENTO ---------------------------- */
+export const LancamentoSchema = z.object({
+  descricao: z.string().min(1, "A descrição é obrigatória."),
+  valor: z.number().positive("O valor deve ser maior que zero."),
+  tipo: z
+    .enum(["receita", "despesa"])
+    .refine((val) => ["receita", "despesa"].includes(val), {
+      message: "Tipo inválido.",
+    }),
+  data: z.string().min(1, "A data é obrigatória."),
+  categoria_id: z.string().optional(),
+});
+
+export type TLancamentoSchema = z.infer<typeof LancamentoSchema>;
+
 /* -------------------------- EXPORTS ÚNICOS ------------------------ */
 export const Schemas = {
   login: LoginSchema,
@@ -117,6 +132,7 @@ export const Schemas = {
   usuario: UsuarioSchema,
   usuarioEdit: UsuarioEditSchema,
   categora: CategoriaSchema,
+  lancamento: LancamentoSchema,
 };
 
 export type {
@@ -127,4 +143,5 @@ export type {
   TUsuarioSchema as UsuarioData,
   TUsuarioEditSchema as UsuarioEditData,
   TCategoriaSchema as CategoriaData,
+  TLancamentoSchema as LancamentoData,
 };

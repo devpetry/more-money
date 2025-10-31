@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   BriefcaseBusiness,
+  CircleDollarSign,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -90,6 +91,18 @@ export default function SidebarToggle() {
                 >
                   <Tag size={16} />
                   Categorias
+                </a>
+              </li>
+            ) : null}
+            {session ? (
+              <li>
+                <a
+                  href="/lista-lancamentos"
+                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
+                  onClick={toggleSidebar}
+                >
+                  <CircleDollarSign size={16} />
+                  Lançamentos
                 </a>
               </li>
             ) : null}
