@@ -15,10 +15,13 @@ export default async function UsersPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="w-full max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-black mt-4 text-left">Usuários</h1>
-        <SidebarToggle />
+    <div>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-black mt-4 text-left">Usuários</h1>
+          <SidebarToggle />
+        </div>
+
         <ListUsers />
       </main>
     </div>
