@@ -61,7 +61,7 @@ export default function RecoverPasswordForm() {
   }
 
   return (
-    <div className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
+    <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
       {/* Logo */}
       <div className="flex justify-center mb-4 bg-[#9E9E9E]/15 rounded-xl">
         <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
@@ -116,6 +116,14 @@ export default function RecoverPasswordForm() {
           {loading ? "ENVIANDO..." : "ENVIAR E-MAIL DE RECUPERAÇÃO"}
         </button>
       </form>
-    </div>
+      <div className="mt-4 text-center">
+        <a
+          href="/login"
+          className="text-sm text-[#9E9E9E] hover:underline"
+        >
+          Voltar para o login
+        </a>
+      </div>
+    </section>
   );
 }
