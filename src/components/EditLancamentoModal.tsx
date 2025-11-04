@@ -22,7 +22,7 @@ export default function EditLancamentoModal({
   lancamentoId,
 }: EditLancamentoModalProps) {
   const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState("");
+  const [valor, setValor] = useState<number>(0);
   const [tipo, setTipo] = useState<"receita" | "despesa" | "">("");
   const [categoriaId, setCategoriaId] = useState<number | "">("");
   const [data, setData] = useState("");
@@ -183,29 +183,6 @@ export default function EditLancamentoModal({
                   </p>
                 )}
               </div>
-              {/* <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-                  htmlFor="valor"
-                >
-                  Valor
-                </label>
-                <input
-                  id="valor"
-                  name="valor"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none
-                  ${
-                    errors.valor
-                      ? "border-2 border-[#FF5252]"
-                      : "focus:ring-2 focus:ring-[#2196F3]"
-                  }`}
-                />
-                {errors.valor && (
-                  <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
-                )}
-              </div> */}
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
@@ -217,9 +194,7 @@ export default function EditLancamentoModal({
                   id="valor"
                   name="valor"
                   value={valor}
-                  onValueChange={(value) =>
-                    setValor((value.floatValue ?? 0).toString())
-                  }
+                  onValueChange={(values) => setValor(values.floatValue || 0)}
                   thousandSeparator="."
                   decimalSeparator=","
                   prefix="R$ "
