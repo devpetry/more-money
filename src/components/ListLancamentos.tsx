@@ -140,7 +140,7 @@ export default function ListLancamentos() {
                 </td>
                 <td className="px-3 py-2 capitalize">{l.tipo}</td>
                 <td className="px-3 py-2">
-                  {new Date(l.data).toLocaleDateString("pt-BR")}
+                  {l.data.slice(0, 10).split("-").reverse().join("/")}
                 </td>
                 <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
                 <td className="px-3 py-2 text-center">
