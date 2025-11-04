@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   BriefcaseBusiness,
   CircleDollarSign,
-  LayoutDashboard,
+  ChartNoAxesCombined,
   LogIn,
   LogOut,
   Menu,
@@ -53,7 +53,7 @@ export default function SidebarToggle() {
                   className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
                   onClick={toggleSidebar}
                 >
-                  <LayoutDashboard size={16} />
+                  <ChartNoAxesCombined size={16} />
                   Dashboard
                 </a>
               </li>

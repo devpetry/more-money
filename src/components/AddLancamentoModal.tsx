@@ -24,10 +24,10 @@ export default function AddLancamentoModal({
   onLancamentoAdded,
 }: AddLancamentoModalProps) {
   const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState<number>(0);
+  const [valor, setValor] = useState<string>("");
   const [tipo, setTipo] = useState("despesa");
   const [data, setData] = useState("");
-  const [categoriaId, setCategoriaId] = useState<number | "">("");
+  const [categoriaId, setCategoriaId] = useState<string>("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -36,9 +36,7 @@ export default function AddLancamentoModal({
       const res = await fetch("/api/auth/categorias");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) {
-          setCategorias(data);
-        }
+        if (Array.isArray(data)) setCategorias(data);
       } else {
         console.error("Erro ao carregar categorias:", res.status);
       }
@@ -48,26 +46,26 @@ export default function AddLancamentoModal({
   }
 
   useEffect(() => {
-    if (isOpen) {
-      carregarCategorias();
-    }
+    if (isOpen) carregarCategorias();
   }, [isOpen]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
-    const formData = new FormData(e.currentTarget);
+    const valorNumerico = Number(
+      valor.replace(/[^\d,-]/g, "").replace(",", ".")
+    );
+
     const dataForm = {
-      descricao: formData.get("descricao"),
-      valor: Number(formData.get("valor")),
-      tipo: formData.get("tipo"),
-      data: formData.get("data"),
-      categoria_id: formData.get("categoria_id"),
+      descricao,
+      valor: valorNumerico,
+      tipo,
+      data,
+      categoria_id: categoriaId || null,
     };
 
     const validation = LancamentoSchema.safeParse(dataForm);
-
     if (!validation.success) {
       const fieldErrors: FormErrors = {};
       for (const issue of validation.error.issues) {
@@ -82,13 +80,7 @@ export default function AddLancamentoModal({
       const res = await fetch("/api/auth/lancamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          descricao,
-          valor: Number(valor),
-          tipo,
-          data,
-          categoria_id: categoriaId || null,
-        }),
+        body: JSON.stringify(dataForm),
       });
 
       if (res.ok) {
@@ -108,7 +100,7 @@ export default function AddLancamentoModal({
     if (!isOpen) {
       setErrors({});
       setDescricao("");
-      setValor(0);
+      setValor("");
       setTipo("despesa");
       setData("");
       setCategoriaId("");
@@ -120,6 +112,7 @@ export default function AddLancamentoModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
       <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md shadow-2xl text-white">
+        {/* Cabeçalho */}
         <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
           <h2 className="text-xl font-semibold text-[#E0E0E0]">
             Novo Lançamento
@@ -137,19 +130,16 @@ export default function AddLancamentoModal({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="descricao"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Descrição
             </label>
             <input
-              name="descricao"
               id="descricao"
-              type="text"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] rounded-xl outline-none text-[#E0E0E0] ${
                 errors.descricao
                   ? "border-2 border-[#FF5252]"
                   : "focus:ring-2 focus:ring-[#2196F3]"
@@ -161,16 +151,15 @@ export default function AddLancamentoModal({
           </div>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="valor"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Valor (R$)
             </label>
             <NumericFormat
               id="valor"
-              name="valor"
               value={valor}
-              onValueChange={(values) => {setValor(values.floatValue ?? 0);}}
+              onValueChange={(values) => setValor(values.formattedValue)}
               thousandSeparator="."
               decimalSeparator=","
               prefix="R$ "
@@ -189,18 +178,16 @@ export default function AddLancamentoModal({
           </div>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="tipo"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Tipo
             </label>
             <select
-              name="tipo"
               id="tipo"
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
                 errors.tipo
                   ? "border-2 border-[#FF5252]"
                   : "focus:ring-2 focus:ring-[#2196F3]"
@@ -215,19 +202,17 @@ export default function AddLancamentoModal({
           </div>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="data"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Data
             </label>
             <input
-              name="data"
               id="data"
               type="date"
               value={data}
               onChange={(e) => setData(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
                 errors.data
                   ? "border-2 border-[#FF5252]"
                   : "focus:ring-2 focus:ring-[#2196F3]"
@@ -238,21 +223,14 @@ export default function AddLancamentoModal({
             )}
           </div>
           <div className="mb-6">
-            <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-              htmlFor="categoria_id"
-            >
+            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]">
               Categoria
             </label>
             <select
-              name="categoria_id"
               id="categoria_id"
               value={categoriaId}
-              onChange={(e) =>
-                setCategoriaId(e.target.value ? Number(e.target.value) : "")
-              }
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none 
-              ${
+              onChange={(e) => setCategoriaId(e.target.value)}
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
                 errors.categoria_id
                   ? "border-2 border-[#FF5252]"
                   : "focus:ring-2 focus:ring-[#2196F3]"
@@ -260,7 +238,7 @@ export default function AddLancamentoModal({
             >
               <option value="">Selecione uma categoria</option>
               {categorias.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={String(c.id)}>
                   {c.nome} ({c.tipo})
                 </option>
               ))}
