@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
+import { NumericFormat } from "react-number-format";
 
 type FormErrors = {
   [K in keyof TLancamentoSchema]?: string;
@@ -156,7 +157,6 @@ export default function EditLancamentoModal({
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* Descrição */}
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
@@ -183,9 +183,7 @@ export default function EditLancamentoModal({
                   </p>
                 )}
               </div>
-
-              {/* Valor */}
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                   htmlFor="valor"
@@ -195,8 +193,6 @@ export default function EditLancamentoModal({
                 <input
                   id="valor"
                   name="valor"
-                  type="number"
-                  step="0.01"
                   value={valor}
                   onChange={(e) => setValor(e.target.value)}
                   className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none
@@ -209,9 +205,37 @@ export default function EditLancamentoModal({
                 {errors.valor && (
                   <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
                 )}
+              </div> */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+                  htmlFor="valor"
+                >
+                  Valor (R$)
+                </label>
+                <NumericFormat
+                  id="valor"
+                  name="valor"
+                  value={valor}
+                  onValueChange={(value) =>
+                    setValor((value.floatValue ?? 0).toString())
+                  }
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  fixedDecimalScale
+                  allowNegative={false}
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl ${
+                    errors.valor
+                      ? "border-2 border-[#FF5252]"
+                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  }`}
+                />
+                {errors.valor && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
+                )}
               </div>
-
-              {/* Tipo */}
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
@@ -241,8 +265,6 @@ export default function EditLancamentoModal({
                   <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
                 )}
               </div>
-
-              {/* Categoria */}
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
@@ -275,8 +297,6 @@ export default function EditLancamentoModal({
                   </p>
                 )}
               </div>
-
-              {/* Data */}
               <div className="mb-6">
                 <label
                   className="block text-sm font-medium mb-1 text-[#E0E0E0]"
@@ -302,7 +322,7 @@ export default function EditLancamentoModal({
                 )}
               </div>
 
-              {/* Botões */}
+              {/* Botões de ação*/}
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
