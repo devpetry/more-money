@@ -1,3 +1,4 @@
+import Dashboard from "@/components/Dashboard";
 import SidebarToggle from "@/components/SidebarToggle";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
@@ -14,10 +15,16 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center">
-      <main>
-        <h1 className="text-3xl font-black mt-4">Olá, {session.user?.name}</h1>
-        <SidebarToggle />
+    <div>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-black">
+            Olá, {session.user?.name?.split(" ")[0] || "usuário"} 👋
+          </h1>
+          <SidebarToggle />
+        </div>
+
+        <Dashboard />
       </main>
     </div>
   );
