@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     <div>
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-black">
+          <h1 className="text-3xl font-black mt-4 text-left">
             Olá, {session.user?.name?.split(" ")[0] || "usuário"} 👋
           </h1>
           <SidebarToggle />
