@@ -133,7 +133,7 @@ export default function ListLancamentos() {
                       - R$ {Number(l.valor ?? 0).toFixed(2)}
                     </span>
                   ) : (
-                    <span className="text-[#4CAF50]">
+                    <span className="text-[#00E676]">
                       + R$ {Number(l.valor ?? 0).toFixed(2)}
                     </span>
                   )}
