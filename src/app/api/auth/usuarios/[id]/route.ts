@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
   "2": "GERENTE",
   "3": "COLABORADOR",
-};
+} as const;
 
 // GET - Obter detalhes de um usuário específico
 export async function GET(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -42,14 +42,12 @@ export async function GET(
 
 // PUT - Atualizar usuário
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const body = await req.json();
-
-    const { nome, email, empresa_id, tipo_usuario } = body;
+    const { nome, email, empresa_id, tipo_usuario } = await req.json();
 
     const enum_tipo_usuario =
       TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
@@ -65,8 +63,8 @@ export async function PUT(
 
     const rows = await query(
       `UPDATE "Usuarios" 
-       SET nome=$1, email=$2, "empresa_id"=$3, "tipo_usuario"=$4, "atualizado_em"=NOW() 
-       WHERE id=$5 
+       SET nome = $1, email = $2, "empresa_id" = $3, "tipo_usuario" = $4, "atualizado_em" = NOW()
+       WHERE id = $5
        RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
       [nome, email, empresaId, enum_tipo_usuario, id]
     );
@@ -90,7 +88,7 @@ export async function PUT(
 
 // DELETE - Soft delete
 export async function DELETE(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

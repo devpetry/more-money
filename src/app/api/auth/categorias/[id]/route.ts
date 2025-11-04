@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // GET - Obter detalhes de uma categoria específica
 export async function GET(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -35,8 +35,9 @@ export async function GET(
   }
 }
 
+// PUT - Atualizar uma categoria existente
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -44,6 +45,7 @@ export async function PUT(
     if (!session || !session.user.id) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
+
     const usuarioId = parseInt(session.user.id, 10);
     if (isNaN(usuarioId)) {
       return NextResponse.json(
@@ -107,9 +109,9 @@ export async function PUT(
   }
 }
 
-// DELETE - Remover categoria (remoção definitiva)
+// DELETE - Remover categoria
 export async function DELETE(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

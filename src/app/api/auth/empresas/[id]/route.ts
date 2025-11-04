@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
 // GET - Obter detalhes de uma empresa específica
 export async function GET(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -36,7 +36,7 @@ export async function GET(
 
 // PUT - Atualizar empresa
 export async function PUT(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -47,8 +47,8 @@ export async function PUT(
 
     const rows = await query(
       `UPDATE "Empresas"
-       SET nome=$1, cnpj=$2, "atualizado_em"=NOW()
-       WHERE id=$3
+       SET nome = $1, cnpj = $2, "atualizado_em" = NOW()
+       WHERE id = $3
        RETURNING id, nome, cnpj, "criado_em", "atualizado_em"`,
       [nome, cnpj, empresaId]
     );
@@ -72,7 +72,7 @@ export async function PUT(
 
 // DELETE - Remover empresa (soft delete)
 export async function DELETE(
-  req: Request,
+  _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

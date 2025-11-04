@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -16,7 +17,7 @@ export async function GET(
     }
 
     const usuarioId = parseInt(session.user.id, 10);
-    const lancamentoId = parseInt(params.id, 10);
+    const lancamentoId = parseInt(id, 10);
 
     if (isNaN(usuarioId) || isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
@@ -52,10 +53,11 @@ export async function GET(
 
 // PUT - Atualizar um lançamento existente
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -63,7 +65,7 @@ export async function PUT(
     }
 
     const usuarioId = parseInt(session.user.id, 10);
-    const lancamentoId = parseInt(params.id, 10);
+    const lancamentoId = parseInt(id, 10);
 
     if (isNaN(usuarioId) || isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
@@ -151,10 +153,11 @@ export async function PUT(
 
 // DELETE - Remover lançamento
 export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -162,7 +165,7 @@ export async function DELETE(
     }
 
     const usuarioId = parseInt(session.user.id, 10);
-    const lancamentoId = parseInt(params.id, 10);
+    const lancamentoId = parseInt(id, 10);
 
     if (isNaN(usuarioId) || isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
