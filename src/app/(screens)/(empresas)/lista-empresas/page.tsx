@@ -14,6 +14,15 @@ export default async function EmpresasPage() {
     redirect("/login");
   }
 
+  const tipoUsuario = session.user?.tipo_usuario;
+
+  if (tipoUsuario !== "ADMIN") {
+    if (process.env.NODE_ENV === "development") {
+      console.log("🚫   Acesso negado. Tipo de usuário:", tipoUsuario);
+    }
+    redirect("/unauthorized");
+  }
+
   return (
     <div>
       <main className="max-w-7xl mx-auto px-6 py-8">

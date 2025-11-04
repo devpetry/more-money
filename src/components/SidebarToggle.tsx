@@ -17,11 +17,13 @@ import { signOut, useSession } from "next-auth/react";
 
 export default function SidebarToggle() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  const tipoUsuario = session?.user?.tipo_usuario;
 
   return (
     <>
@@ -58,7 +60,7 @@ export default function SidebarToggle() {
                 </a>
               </li>
             ) : null}
-            {session ? (
+            {session && tipoUsuario === "ADMIN" ? (
               <li>
                 <a
                   href="/lista-usuarios"
@@ -70,7 +72,7 @@ export default function SidebarToggle() {
                 </a>
               </li>
             ) : null}
-            {session ? (
+            {session && tipoUsuario === "ADMIN" ? (
               <li>
                 <a
                   href="/lista-empresas"
