@@ -13,7 +13,6 @@ export async function GET() {
 
     const usuarioId = parseInt(session.user.id, 10);
 
-    // === 1️⃣ Buscar totais ===
     const [totais] = await query(
       `
       SELECT 
@@ -29,7 +28,6 @@ export async function GET() {
     const totalDespesas = parseFloat(totais?.total_despesas || 0);
     const saldo = totalReceitas - totalDespesas;
 
-    // === 2️⃣ Evolução mensal (últimos 6 meses) ===
     const evolucaoMensal = await query(
       `
       SELECT 
@@ -45,11 +43,11 @@ export async function GET() {
       [usuarioId]
     );
 
-    // === 3️⃣ Despesas por categoria ===
     const despesasPorCategoria = await query(
       `
       SELECT 
         c.nome AS categoria,
+        COUNT(l.id) AS quantidade,
         COALESCE(SUM(l.valor), 0) AS total
       FROM "Lancamentos" l
       JOIN "Categorias" c ON l.categoria_id = c.id
@@ -60,7 +58,6 @@ export async function GET() {
       [usuarioId]
     );
 
-    // === 4️⃣ Últimos lançamentos ===
     const ultimosLancamentos = await query(
       `
       SELECT descricao, tipo, valor, data
@@ -72,7 +69,6 @@ export async function GET() {
       [usuarioId]
     );
 
-    // === 5️⃣ Montar resposta ===
     const data = {
       saldo,
       totalReceitas,

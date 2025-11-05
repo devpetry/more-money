@@ -8,9 +8,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 import { ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
 
@@ -24,6 +21,11 @@ interface DespesaCategoria {
   categoria: string;
   total: number;
   [key: string]: string | number;
+}
+interface DespesaCategoria {
+  categoria: string;
+  total: number;
+  quantidade: number;
 }
 
 interface Lancamento {
@@ -75,8 +77,6 @@ export default function Dashboard() {
         Erro ao carregar o dashboard.
       </div>
     );
-
-  const COLORS = ["#00E676", "#2196F3", "#FFC107", "#FF5252", "#9C27B0"];
 
   return (
     <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
@@ -150,40 +150,43 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Gráfico de pizza: Despesas por Categoria */}
+      {/* Despesas por Categoria */}
       <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
         <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
-        <div className="flex justify-center">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={dados.despesasPorCategoria as DespesaCategoria[]}
-                dataKey="total"
-                nameKey="categoria"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ percent, index }) =>
-                  typeof index === "number" && dados.despesasPorCategoria[index]
-                    ? `${dados.despesasPorCategoria[index].categoria} ${((Number(percent) || 0) * 100).toFixed(0)}%`
-                    : ""
-                }
-              >
-                {dados.despesasPorCategoria.map(
-                  (_: DespesaCategoria, index: number) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  )
-                )}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#161B22",
-                  border: "1px solid #333",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-gray-700 text-gray-400 text-sm">
+              <th className="pb-2">Categoria</th>
+              <th className="pb-2">Nº de Lançamentos</th>
+              <th className="pb-2">Valor Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dados.despesasPorCategoria.length > 0 ? (
+              dados.despesasPorCategoria.map(
+                (item: DespesaCategoria, index: number) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                  >
+                    <td className="py-2 capitalize">{item.categoria}</td>
+                    <td className="py-2">{item.quantidade ?? "-"}</td>
+                    <td className="py-2">R$ {Number(item.total).toFixed(2)}</td>
+                  </tr>
+                )
+              )
+            ) : (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="text-center py-4 text-gray-500 text-sm"
+                >
+                  Nenhuma despesa encontrada.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Últimos Lançamentos */}
