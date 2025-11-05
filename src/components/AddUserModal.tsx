@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { UsuarioSchema, TUsuarioSchema } from "@/schemas/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormErrors = Partial<Record<keyof TUsuarioSchema, string>>;
 
@@ -29,6 +30,7 @@ export default function AddUserModal({
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const carregarEmpresas = async () => {
     setLoadingEmpresas(true);
@@ -45,7 +47,7 @@ export default function AddUserModal({
   useEffect(() => {
     if (isOpen) {
       carregarEmpresas();
-    } else if (!isOpen){
+    } else if (!isOpen) {
       setErrors({});
     }
   }, [isOpen]);
@@ -221,28 +223,42 @@ export default function AddUserModal({
               <p className="text-[#FF5252] text-xs mt-1">{errors.tipo_usuario}</p>
             )} */}
           </div>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label
               className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="senha"
             >
               Senha
             </label>
-            <input
-              name="senha"
-              id="senha"
-              type="password"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
-                errors.senha
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
-              }`}
-            />
+
+            <div className="relative">
+              <input
+                name="senha"
+                id="senha"
+                type={showPassword ? "text" : "password"}
+                className={`w-full px-4 py-2 pr-10 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
+                ${
+                  errors.senha
+                    ? "border-2 border-[#FF5252]"
+                    : "focus:ring-2 focus:ring-[#2196F3]"
+                }`}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#E0E0E0] hover:text-[#E0E0E0]/60"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
             {errors.senha && (
               <p className="text-[#FF5252] text-xs mt-1">{errors.senha}</p>
             )}
-            <label className="text-xs text-[#9E9E9E] mt-1">
+
+            <label className="text-xs text-[#9E9E9E] mt-1 block">
               * Recomendamos o novo usuário alterar a senha no primeiro login
             </label>
           </div>
