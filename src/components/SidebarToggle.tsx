@@ -108,16 +108,6 @@ export default function SidebarToggle() {
                 </a>
               </li>
             ) : null}
-            <li>
-              <a
-                href="#"
-                className="block p-2 rounded-lg text-[#9E9E9E] hover:text-[#E0E0E0] hover:bg-[#0D1117] flex items-center gap-1"
-                onClick={toggleSidebar}
-              >
-                <Settings size={16} />
-                Configurações
-              </a>
-            </li>
             {session ? (
               <li>
                 <a
