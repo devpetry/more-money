@@ -9,7 +9,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, Filter } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface EvolucaoMensal {
   mes: string;
@@ -17,11 +26,6 @@ interface EvolucaoMensal {
   despesa: number;
 }
 
-interface DespesaCategoria {
-  categoria: string;
-  total: number;
-  [key: string]: string | number;
-}
 interface DespesaCategoria {
   categoria: string;
   total: number;
@@ -48,13 +52,21 @@ export default function Dashboard() {
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
+    undefined
+  );
+  const [filtroAberto, setFiltroAberto] = useState(false);
+
   useEffect(() => {
     carregarDashboard();
   }, []);
 
-  async function carregarDashboard() {
+  async function carregarDashboard(mes?: string) {
     try {
-      const res = await fetch("/api/auth/dashboard");
+      const url = mes
+        ? `/api/auth/dashboard?mes=${mes}`
+        : "/api/auth/dashboard";
+      const res = await fetch(url);
       const data: DashboardData = await res.json();
       setDados(data);
     } catch (error) {
@@ -80,15 +92,101 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
-      <h1 className="text-2xl font-semibold mb-6 border-b border-gray-700 pb-2">
-        Dashboard
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold border-b border-gray-700 pb-2">
+          Dashboard
+        </h1>
+
+        <Popover open={filtroAberto} onOpenChange={setFiltroAberto}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="bg-[#161B22] border border-gray-700 text-[#E0E0E0] hover:bg-[#1C2128]"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {mesSelecionado
+                ? format(mesSelecionado, "MMMM yyyy", { locale: ptBR })
+                : "Filtrar mês"}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            className="bg-[#161B22] border border-gray-700 text-[#E0E0E0] rounded-xl p-3 w-auto"
+            align="end"
+          >
+            <div className="flex space-x-2 items-center">
+              {/* Select de Mês */}
+              <select
+                value={
+                  mesSelecionado
+                    ? mesSelecionado.getMonth()
+                    : new Date().getMonth()
+                }
+                onChange={(e) => {
+                  const ano = mesSelecionado
+                    ? mesSelecionado.getFullYear()
+                    : new Date().getFullYear();
+                  const novoMes = new Date(ano, parseInt(e.target.value), 1);
+                  setMesSelecionado(novoMes);
+                }}
+                className="bg-[#0D1117] border border-gray-700 rounded-lg p-2 text-sm text-[#E0E0E0]"
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
+                  </option>
+                ))}
+              </select>
+
+              {/* Select de Ano */}
+              <select
+                value={
+                  mesSelecionado
+                    ? mesSelecionado.getFullYear()
+                    : new Date().getFullYear()
+                }
+                onChange={(e) => {
+                  const mes = mesSelecionado
+                    ? mesSelecionado.getMonth()
+                    : new Date().getMonth();
+                  const novoAno = new Date(parseInt(e.target.value), mes, 1);
+                  setMesSelecionado(novoAno);
+                }}
+                className="bg-[#0D1117] border border-gray-700 rounded-lg p-2 text-sm text-[#E0E0E0]"
+              >
+                {Array.from({ length: 11 }, (_, i) => {
+                  const ano = 2020 + i;
+                  return (
+                    <option key={ano} value={ano}>
+                      {ano}
+                    </option>
+                  );
+                })}
+              </select>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-[#1C2128] border border-gray-700 text-[#E0E0E0]"
+                onClick={() => {
+                  if (!mesSelecionado) return;
+                  setFiltroAberto(false);
+                  const mes = format(mesSelecionado, "yyyy-MM");
+                  carregarDashboard(mes);
+                }}
+              >
+                Aplicar
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Saldo Atual</h3>
+            <h3 className="text-sm text-gray-400">Saldo</h3>
             <TrendingUp className="text-[#00E676]" />
           </div>
           <p
@@ -102,7 +200,7 @@ export default function Dashboard() {
 
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Receitas (mês)</h3>
+            <h3 className="text-sm text-gray-400">Receitas</h3>
             <ArrowUpRight className="text-[#2196F3]" />
           </div>
           <p className="text-2xl font-bold mt-2 text-[#2196F3]">
@@ -112,7 +210,7 @@ export default function Dashboard() {
 
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Despesas (mês)</h3>
+            <h3 className="text-sm text-gray-400">Despesas</h3>
             <ArrowDownRight className="text-[#FF5252]" />
           </div>
           <p className="text-2xl font-bold mt-2 text-[#FF5252]">
