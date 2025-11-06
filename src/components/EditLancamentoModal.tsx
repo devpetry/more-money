@@ -26,7 +26,7 @@ export default function EditLancamentoModal({
   lancamentoId,
 }: EditLancamentoModalProps) {
   const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState<string>("");
+  const [valor, setValor] = useState<string>(""); // guardamos string aqui
   const [tipo, setTipo] = useState("despesa");
   const [data, setData] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("");
@@ -57,14 +57,16 @@ export default function EditLancamentoModal({
       if (res.ok) {
         const data = await res.json();
         setDescricao(data.descricao || "");
+        const valorNumerico = Number(data.valor);
         setValor(
-          data.valor
-            ? data.valor.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })
+          !isNaN(valorNumerico)
+            ? valorNumerico
+                .toFixed(2)
+                .replace(".", ",")
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
             : ""
         );
+
         setTipo(data.tipo || "despesa");
         setData(data.data ? data.data.split("T")[0] : "");
         setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
@@ -96,6 +98,11 @@ export default function EditLancamentoModal({
     const valorNumerico = Number(
       valor.replace(/[^\d,-]/g, "").replace(",", ".")
     );
+
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      setErrors({ valor: "Informe um valor válido" });
+      return;
+    }
 
     const dataForm = {
       descricao,
