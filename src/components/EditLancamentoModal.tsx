@@ -28,8 +28,8 @@ export default function EditLancamentoModal({
   lancamentoId,
 }: EditLancamentoModalProps) {
   const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState<string>(""); // guardamos string aqui
-  const [tipo, setTipo] = useState("despesa");
+  const [valor, setValor] = useState<string>("");
+  const [tipo, setTipo] = useState("");
   const [data, setData] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -253,6 +253,7 @@ export default function EditLancamentoModal({
                     : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
+                <option value="" disabled>Selecione um tipo</option>
                 <option value="despesa">Despesa</option>
                 <option value="receita">Receita</option>
               </select>
@@ -340,7 +341,7 @@ export default function EditLancamentoModal({
                     : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
-                <option value="">Selecione uma categoria</option>
+                <option value="" disabled>Selecione uma categoria</option>
                 {categorias.map((c) => (
                   <option key={c.id} value={String(c.id)}>
                     {c.nome} ({c.tipo})
