@@ -50,6 +50,19 @@ export default function AddLancamentoModal({
     if (isOpen) carregarCategorias();
   }, [isOpen]);
 
+  useEffect(() => {
+    if (categoriaId) {
+      const categoriaSelecionada = categorias.find(
+        (c) => String(c.id) === categoriaId
+      );
+      if (categoriaSelecionada) {
+        setTipo(categoriaSelecionada.tipo);
+      }
+    } else {
+      setTipo("");
+    }
+  }, [categoriaId, categorias]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
@@ -178,35 +191,6 @@ export default function AddLancamentoModal({
             )}
           </div>
           <div className="mb-4">
-            <label
-              htmlFor="tipo"
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-            >
-              Tipo
-            </label>
-            <select
-              id="tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                errors.valor
-                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-              }`}
-            >
-              <option value="" disabled>
-                Selecione o tipo de lançamento
-              </option>
-              <option value="despesa">Despesa</option>
-              <option value="receita">Receita</option>
-            </select>
-            {errors.tipo && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
-            )}
-          </div>
-
-          {/* Campo Data */}
-          <div className="mb-6">
             <DateInput
               label="Data"
               value={data}
@@ -214,7 +198,6 @@ export default function AddLancamentoModal({
               error={errors.data}
             />
           </div>
-
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1 text-[#E0E0E0]">
               Categoria

@@ -92,6 +92,19 @@ export default function EditLancamentoModal({
     }
   }, [isOpen, lancamentoId, carregarCategorias, carregarLancamento]);
 
+  useEffect(() => {
+    if (categoriaId) {
+      const categoriaSelecionada = categorias.find(
+        (c) => String(c.id) === categoriaId
+      );
+      if (categoriaSelecionada) {
+        setTipo(categoriaSelecionada.tipo);
+      }
+    } else {
+      setTipo("");
+    }
+  }, [categoriaId, categorias]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
@@ -232,34 +245,6 @@ export default function EditLancamentoModal({
               />
               {errors.valor && (
                 <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <label
-                htmlFor="tipo"
-                className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-              >
-                Tipo
-              </label>
-              <select
-                id="tipo"
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                  errors.tipo
-                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-                }`}
-              >
-                <option value="" disabled>
-                  Selecione o tipo de lançamento
-                </option>
-                <option value="despesa">Despesa</option>
-                <option value="receita">Receita</option>
-              </select>
-              {errors.tipo && (
-                <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
               )}
             </div>
 
