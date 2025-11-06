@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -62,9 +63,16 @@ export default function LoginForm() {
   return (
     <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
       {/* Logo */}
-      <div className="flex justify-center mb-6 bg-[#9E9E9E]/15 rounded-xl">
-        <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
-          *LOGO*
+      <div className="flex justify-center mb-6 rounded-xl">
+        <div className="h-20 flex items-center justify-center">
+          <Image
+            src="/images/logo-temporaria.png"
+            alt="Logo More Money"
+            width={320}
+            height={200}
+            priority
+            className="object-contain"
+          />
         </div>
       </div>
 
