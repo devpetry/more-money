@@ -23,6 +23,9 @@ export default function FiltroMes({
   carregarDashboard,
 }: FiltroMesProps) {
   const [filtroAberto, setFiltroAberto] = useState(false);
+  const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
+
+  const estaFiltrando = !!mesAplicado;
 
   return (
     <div className="flex justify-between items-center mb-6">
@@ -34,11 +37,21 @@ export default function FiltroMes({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="bg-[#161B22] border border-gray-700 text-[#E0E0E0] hover:bg-[#1C2128] rounded-xl px-4 py-2 flex items-center transition-all duration-200"
+            className={`rounded-xl px-4 py-2 flex items-center transition-all duration-200 border ${
+              estaFiltrando
+                ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#FFC107]/75 hover:text-[#0D1117] hover:border-[#FFC107]/75 focus:text-[#0D1117]"
+                : "bg-[#161B22] border-gray-700 text-[#E0E0E0] hover:bg-[#161B22]/30"
+            }`}
           >
-            <Filter className="h-4 w-4 mr-2 text-gray-300" />
-            {mesSelecionado
-              ? format(mesSelecionado, "MMMM yyyy", { locale: ptBR })
+            <Filter
+              className={`h-4 w-4 mr-2 transition-colors ${
+                estaFiltrando
+                  ? "text-[#0D1117] hover:text-[#0D1117] focus:text-[#0D1117]"
+                  : "text-gray-300"
+              }`}
+            />
+            {mesAplicado
+              ? format(mesAplicado, "MMMM yyyy", { locale: ptBR })
               : "Filtrar mês"}
           </Button>
         </PopoverTrigger>
@@ -117,6 +130,7 @@ export default function FiltroMes({
                 if (!mesSelecionado) return;
                 setFiltroAberto(false);
                 const mes = format(mesSelecionado, "yyyy-MM");
+                setMesAplicado(mesSelecionado);
                 carregarDashboard(mes);
               }}
             >
@@ -129,6 +143,7 @@ export default function FiltroMes({
               className="bg-[#161B22] hover:bg-[#FF5252] text-[#FF5252] hover:text-[#161B22] rounded-xl px-4 py-2 transition-all duration-200"
               onClick={() => {
                 setMesSelecionado(undefined);
+                setMesAplicado(undefined);
                 setFiltroAberto(false);
                 carregarDashboard();
               }}
