@@ -133,11 +133,10 @@ export default function AddUserModal({
               name="nome"
               id="nome"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.nome
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.nome && (
@@ -155,11 +154,10 @@ export default function AddUserModal({
               name="email"
               id="email"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.email
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.email && (
@@ -168,16 +166,20 @@ export default function AddUserModal({
           </div>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="empresa_id"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Empresa
             </label>
             <select
               name="empresa_id"
               id="empresa_id"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
+      ${
+        loadingEmpresas || empresas.length === 0
+          ? "opacity-60 cursor-not-allowed border-gray-800"
+          : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+      }`}
               disabled={loadingEmpresas || empresas.length === 0}
               defaultValue=""
             >
@@ -196,18 +198,19 @@ export default function AddUserModal({
               ))}
             </select>
           </div>
+
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="tipo_usuario"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Tipo de Usuário
             </label>
             <select
               name="tipo_usuario"
               id="tipo_usuario"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
+      border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30`}
               defaultValue=""
             >
               <option value="" disabled>
@@ -219,9 +222,6 @@ export default function AddUserModal({
                 </option>
               ))}
             </select>
-            {/* {errors.tipo_usuario && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.tipo_usuario}</p>
-            )} */}
           </div>
           <div className="mb-4 relative">
             <label
@@ -236,11 +236,10 @@ export default function AddUserModal({
                 name="senha"
                 id="senha"
                 type={showPassword ? "text" : "password"}
-                className={`w-full px-4 py-2 pr-10 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-                ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.senha
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
 

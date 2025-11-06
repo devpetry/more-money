@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
 import { NumericFormat } from "react-number-format";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
@@ -139,10 +141,10 @@ export default function AddLancamentoModal({
               id="descricao"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] rounded-xl outline-none text-[#E0E0E0] ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.descricao
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.descricao && (
@@ -166,10 +168,10 @@ export default function AddLancamentoModal({
               decimalScale={2}
               fixedDecimalScale
               allowNegative={false}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.valor
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.valor && (
@@ -187,10 +189,10 @@ export default function AddLancamentoModal({
               id="tipo"
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
-                errors.tipo
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                errors.valor
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             >
               <option value="despesa">Despesa</option>
@@ -200,6 +202,7 @@ export default function AddLancamentoModal({
               <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
             )}
           </div>
+
           <div className="mb-4">
             <label
               htmlFor="data"
@@ -207,21 +210,63 @@ export default function AddLancamentoModal({
             >
               Data
             </label>
-            <input
-              id="data"
-              type="date"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
-                errors.data
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
-              }`}
-            />
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`w-full flex justify-between items-center px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none ${
+                    errors.data
+                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                  }`}
+                >
+                  {data
+                    ? new Date(data).toLocaleDateString("pt-BR")
+                    : "Selecione uma data"}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-4 w-auto"
+                align="start"
+              >
+                <Calendar
+                  mode="single"
+                  selected={data ? new Date(data) : undefined}
+                  onSelect={(selectedDate) => {
+                    if (selectedDate) {
+                      const formatted = selectedDate
+                        .toISOString()
+                        .split("T")[0];
+                      setData(formatted);
+                    }
+                  }}
+                  disabled={(date) => date > new Date()}
+                  className="rounded-xl border border-gray-800 bg-[#0D1117] text-white shadow-inner"
+                />
+              </PopoverContent>
+            </Popover>
+
             {errors.data && (
               <p className="text-[#FF5252] text-xs mt-1">{errors.data}</p>
             )}
           </div>
+
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1 text-[#E0E0E0]">
               Categoria
@@ -230,10 +275,10 @@ export default function AddLancamentoModal({
               id="categoria_id"
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.categoria_id
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             >
               <option value="">Selecione uma categoria</option>

@@ -186,10 +186,10 @@ export default function EditLancamentoModal({
                 id="descricao"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] rounded-xl outline-none text-[#E0E0E0] ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.descricao
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
               {errors.descricao && (
@@ -216,10 +216,10 @@ export default function EditLancamentoModal({
                 decimalScale={2}
                 fixedDecimalScale
                 allowNegative={false}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.valor
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
               {errors.valor && (
@@ -238,10 +238,10 @@ export default function EditLancamentoModal({
                 id="tipo"
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.tipo
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
                 <option value="despesa">Despesa</option>
@@ -264,10 +264,10 @@ export default function EditLancamentoModal({
                 type="date"
                 value={data}
                 onChange={(e) => setData(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.data
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
               {errors.data && (
@@ -283,10 +283,10 @@ export default function EditLancamentoModal({
                 id="categoria_id"
                 value={categoriaId}
                 onChange={(e) => setCategoriaId(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.categoria_id
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
                 <option value="">Selecione uma categoria</option>
