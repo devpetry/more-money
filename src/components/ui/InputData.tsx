@@ -15,7 +15,7 @@ interface DateInputProps {
   error?: string;
 }
 
-export default function DateInput({
+export default function InputData({
   value,
   onChange,
   label,

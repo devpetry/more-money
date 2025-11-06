@@ -9,15 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, Filter } from "lucide-react";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ArrowUpRight, ArrowDownRight, TrendingUp} from "lucide-react";
+import FiltroMes from "./dashboard/FiltroMes";
 
 interface EvolucaoMensal {
   mes: string;
@@ -54,7 +47,6 @@ export default function Dashboard() {
   const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
     undefined
   );
-  const [filtroAberto, setFiltroAberto] = useState(false);
 
   useEffect(() => {
     carregarDashboard();
@@ -91,120 +83,11 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold border-b border-gray-700 pb-2">
-          Dashboard
-        </h1>
-
-        <Popover open={filtroAberto} onOpenChange={setFiltroAberto}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="bg-[#161B22] border border-gray-700 text-[#E0E0E0] hover:bg-[#1C2128] rounded-xl px-4 py-2 flex items-center transition-all duration-200"
-            >
-              <Filter className="h-4 w-4 mr-2 text-gray-300" />
-              {mesSelecionado
-                ? format(mesSelecionado, "MMMM yyyy", { locale: ptBR })
-                : "Filtrar mês"}
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent
-            className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-5 w-[280px] space-y-4 transition-all duration-200"
-            align="end"
-          >
-            <div className="flex flex-col gap-3">
-              {/* Select de Mês */}
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">Mês</label>
-                <select
-                  value={mesSelecionado ? mesSelecionado.getMonth() : ""}
-                  onChange={(e) => {
-                    const valor = e.target.value;
-                    if (valor === "") return;
-                    const ano = mesSelecionado
-                      ? mesSelecionado.getFullYear()
-                      : new Date().getFullYear();
-                    const novoMes = new Date(ano, parseInt(valor), 1);
-                    setMesSelecionado(novoMes);
-                  }}
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
-                >
-                  <option value="">Selecione o mês</option>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Select de Ano */}
-              <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-400">Ano</label>
-                <select
-                  value={mesSelecionado ? mesSelecionado.getFullYear() : ""}
-                  onChange={(e) => {
-                    const valor = e.target.value;
-                    if (valor === "") return;
-                    const mes = mesSelecionado
-                      ? mesSelecionado.getMonth()
-                      : new Date().getMonth();
-                    const novoAno = new Date(parseInt(valor), mes, 1);
-                    setMesSelecionado(novoAno);
-                  }}
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
-                >
-                  <option value="">Selecione o ano</option>
-                  {Array.from({ length: 11 }, (_, i) => {
-                    const ano = 2020 + i;
-                    return (
-                      <option key={ano} value={ano}>
-                        {ano}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            </div>
-
-            {/* Botões de ação */}
-            <div className="flex justify-between pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!mesSelecionado}
-                className={`font-semibold rounded-xl px-4 py-2 transition-all duration-200 border-none ${
-                  mesSelecionado
-                    ? "bg-[#161B22] hover:bg-[#2196F3] hover:text-[#161B22]"
-                    : "bg-[#0D1117] text-gray-500 cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  if (!mesSelecionado) return;
-                  setFiltroAberto(false);
-                  const mes = format(mesSelecionado, "yyyy-MM");
-                  carregarDashboard(mes);
-                }}
-              >
-                Aplicar
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-[#161B22] hover:bg-[#FF5252] text-[#FF5252] hover:text-[#161B22] rounded-xl px-4 py-2 transition-all duration-200"
-                onClick={() => {
-                  setMesSelecionado(undefined);
-                  setFiltroAberto(false);
-                  carregarDashboard();
-                }}
-              >
-                Limpar filtro
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+      <FiltroMes
+        mesSelecionado={mesSelecionado}
+        setMesSelecionado={setMesSelecionado}
+        carregarDashboard={carregarDashboard}
+      />
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

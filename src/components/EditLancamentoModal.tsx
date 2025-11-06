@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
 import { NumericFormat } from "react-number-format";
-import DateInput from "./ui/DateInput";
+import InputData from "./ui/InputData";
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
@@ -249,7 +249,7 @@ export default function EditLancamentoModal({
             </div>
 
             <div className="mb-4">
-              <DateInput
+              <InputData
                 label="Data"
                 value={data}
                 onChange={(iso) => setData(iso)}
