@@ -95,7 +95,7 @@ export default function EditUserModal({
         }
       };
       fetchUser();
-    } else if (!isOpen){
+    } else if (!isOpen) {
       setErrors({});
     }
   }, [isOpen, userId, onClose]);
@@ -206,11 +206,10 @@ export default function EditUserModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-                  ${
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.nome
-                      ? "border-2 border-[#FF5252]"
-                      : "focus:ring-2 focus:ring-[#2196F3]"
+                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
                 />
                 {errors.nome && (
@@ -231,11 +230,10 @@ export default function EditUserModal({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-                  ${
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.email
-                      ? "border-2 border-[#FF5252]"
-                      : "focus:ring-2 focus:ring-[#2196F3]"
+                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
                 />
                 {errors.email && (
@@ -244,8 +242,8 @@ export default function EditUserModal({
               </div>
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                   htmlFor="empresa_id"
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                 >
                   Empresa
                 </label>
@@ -254,9 +252,13 @@ export default function EditUserModal({
                   id="empresa_id"
                   value={empresaIdSelecionada}
                   onChange={(e) => setEmpresaIdSelecionada(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-                  ${"focus:ring-2 focus:ring-[#2196F3]"}`}
                   disabled={loadingEmpresas || empresas.length === 0}
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
+      ${
+        loadingEmpresas || empresas.length === 0
+          ? "opacity-60 cursor-not-allowed border-gray-800"
+          : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+      }`}
                 >
                   <option value="" disabled hidden={!!empresaIdSelecionada}>
                     {loadingEmpresas
@@ -273,10 +275,11 @@ export default function EditUserModal({
                   ))}
                 </select>
               </div>
+
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                   htmlFor="tipo_usuario"
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                 >
                   Tipo de Usuário
                 </label>
@@ -285,8 +288,7 @@ export default function EditUserModal({
                   id="tipo_usuario"
                   value={tipoUsuarioSelecionado}
                   onChange={(e) => setTipoUsuarioSelecionado(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border border-gray-700 transition-all duration-200 outline-none appearance-none cursor-pointer hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 >
                   <option value="" disabled>
                     Selecione o tipo de usuário

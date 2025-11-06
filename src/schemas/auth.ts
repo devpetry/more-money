@@ -118,7 +118,10 @@ export const LancamentoSchema = z.object({
       message: "Tipo inválido.",
     }),
   data: z.string().min(1, "A data é obrigatória."),
-  categoria_id: z.string().optional(),
+  categoria_id: z.preprocess(
+    (val) => (val === null || val === undefined ? "" : val),
+    z.string().min(1, "A categoria é obrigatória.")
+  ),
 });
 
 export type TLancamentoSchema = z.infer<typeof LancamentoSchema>;

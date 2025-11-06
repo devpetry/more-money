@@ -140,11 +140,10 @@ export default function EditCategoriaModal({
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-                  ${
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.nome
-                      ? "border-2 border-[#FF5252]"
-                      : "focus:ring-2 focus:ring-[#2196F3]"
+                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
                 />
                 {errors.nome && (
@@ -167,11 +166,10 @@ export default function EditCategoriaModal({
                   onChange={(e) =>
                     setTipo(e.target.value as "receita" | "despesa" | "")
                   }
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none
-                  ${
-                    errors.tipo
-                      ? "border-2 border-[#FF5252]"
-                      : "focus:ring-2 focus:ring-[#2196F3]"
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                    errors.nome
+                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
                 >
                   <option value="">Selecione...</option>

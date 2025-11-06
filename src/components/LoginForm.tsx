@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { LoginSchema, TLoginSchema } from "@/schemas/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormErrors = Partial<TLoginSchema>;
 
@@ -12,6 +13,7 @@ export default function LoginForm() {
   const nextAuthError = searchParams.get("error");
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,17 +94,24 @@ export default function LoginForm() {
           )}
         </div>
 
-        <div>
+        <div className="relative">
           <input
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="senha"
-            className={`w-full px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
+            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
               errors.password
                 ? "border-2 border-[#FF5252]"
                 : "focus:ring-2 focus:ring-[#00C853]"
             }`}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
           {errors.password && (
             <p className="text-[#FF5252] text-xs mt-1">{errors.password}</p>
           )}

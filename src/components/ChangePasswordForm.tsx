@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { PasswordChangeSchema, TPasswordChangeSchema } from "@/schemas/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormErrors = Partial<TPasswordChangeSchema>;
 
@@ -14,6 +15,8 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   async function alterarSenha(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -89,48 +92,65 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
       )}
 
       <form onSubmit={alterarSenha} className="flex flex-col gap-4">
-        <input
-          name="password"
-          type="password"
-          placeholder="nova senha"
-          disabled={loading}
-          aria-invalid={!!errors.password}
-          aria-describedby={errors.password ? "password-error" : undefined}
-          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-            errors.password
-              ? "border-2 border-[#FF5252]"
-              : "focus:ring-2 focus:ring-[#00C853]"
-          }`}
-        />
-        {errors.password && (
-          <p id="password-error" className="text-[#FF5252] text-xs -mt-3">
-            {errors.password}
-          </p>
-        )}
-
-        <input
-          name="confirmPassword"
-          type="password"
-          placeholder="confirme a nova senha"
-          disabled={loading}
-          aria-invalid={!!errors.confirmPassword}
-          aria-describedby={
-            errors.confirmPassword ? "confirmPassword-error" : undefined
-          }
-          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-            errors.confirmPassword
-              ? "border-2 border-[#FF5252]"
-              : "focus:ring-2 focus:ring-[#00C853]"
-          }`}
-        />
-        {errors.confirmPassword && (
-          <p
-            id="confirmPassword-error"
-            className="text-[#FF5252] text-xs -mt-3"
+        <div className="relative">
+          <input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="nova senha"
+            disabled={loading}
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
+              errors.password
+                ? "border-2 border-[#FF5252]"
+                : "focus:ring-2 focus:ring-[#00C853]"
+            }`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
           >
-            {errors.confirmPassword}
-          </p>
-        )}
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          {errors.password && (
+            <p id="password-error" className="text-[#FF5252] text-xs -mt-3">
+              {errors.password}
+            </p>
+          )}
+        </div>
+        <div className="relative">
+          <input
+            name="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="confirme a nova senha"
+            disabled={loading}
+            aria-invalid={!!errors.confirmPassword}
+            aria-describedby={
+              errors.confirmPassword ? "confirmPassword-error" : undefined
+            }
+            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
+              errors.confirmPassword
+                ? "border-2 border-[#FF5252]"
+                : "focus:ring-2 focus:ring-[#00C853]"
+            }`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
+          >
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          {errors.confirmPassword && (
+            <p
+              id="confirmPassword-error"
+              className="text-[#FF5252] text-xs -mt-3"
+            >
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
 
         <button
           type="submit"

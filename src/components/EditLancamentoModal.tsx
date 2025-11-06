@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
 import { NumericFormat } from "react-number-format";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
@@ -27,7 +29,7 @@ export default function EditLancamentoModal({
 }: EditLancamentoModalProps) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState<string>("");
-  const [tipo, setTipo] = useState("despesa");
+  const [tipo, setTipo] = useState("");
   const [data, setData] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -57,14 +59,16 @@ export default function EditLancamentoModal({
       if (res.ok) {
         const data = await res.json();
         setDescricao(data.descricao || "");
+        const valorNumerico = Number(data.valor);
         setValor(
-          data.valor
-            ? data.valor.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })
+          !isNaN(valorNumerico)
+            ? valorNumerico
+                .toFixed(2)
+                .replace(".", ",")
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
             : ""
         );
+
         setTipo(data.tipo || "despesa");
         setData(data.data ? data.data.split("T")[0] : "");
         setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
@@ -96,6 +100,11 @@ export default function EditLancamentoModal({
     const valorNumerico = Number(
       valor.replace(/[^\d,-]/g, "").replace(",", ".")
     );
+
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      setErrors({ valor: "Informe um valor válido" });
+      return;
+    }
 
     const dataForm = {
       descricao,
@@ -186,10 +195,10 @@ export default function EditLancamentoModal({
                 id="descricao"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] rounded-xl outline-none text-[#E0E0E0] ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.descricao
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
               {errors.descricao && (
@@ -216,10 +225,10 @@ export default function EditLancamentoModal({
                 decimalScale={2}
                 fixedDecimalScale
                 allowNegative={false}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.valor
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               />
               {errors.valor && (
@@ -238,12 +247,13 @@ export default function EditLancamentoModal({
                 id="tipo"
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.tipo
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
+                <option value="" disabled>Selecione um tipo</option>
                 <option value="despesa">Despesa</option>
                 <option value="receita">Receita</option>
               </select>
@@ -259,17 +269,59 @@ export default function EditLancamentoModal({
               >
                 Data
               </label>
-              <input
-                id="data"
-                type="date"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
-                  errors.data
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
-                }`}
-              />
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 flex justify-between items-center
+                      ${
+                        errors.data
+                          ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                          : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                      }`}
+                  >
+                    {data
+                      ? new Date(data).toLocaleDateString("pt-BR")
+                      : "Selecione uma data"}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                </PopoverTrigger>
+
+                <PopoverContent
+                  className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-4 w-auto"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={data ? new Date(data) : undefined}
+                    onSelect={(selectedDate) => {
+                      if (selectedDate) {
+                        const formatted = selectedDate
+                          .toISOString()
+                          .split("T")[0];
+                        setData(formatted);
+                      }
+                    }}
+                    disabled={(date) => date > new Date()}
+                    className="rounded-lg border border-gray-800 bg-[#0D1117] text-white"
+                  />
+                </PopoverContent>
+              </Popover>
+
               {errors.data && (
                 <p className="text-[#FF5252] text-xs mt-1">{errors.data}</p>
               )}
@@ -283,13 +335,13 @@ export default function EditLancamentoModal({
                 id="categoria_id"
                 value={categoriaId}
                 onChange={(e) => setCategoriaId(e.target.value)}
-                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none ${
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                   errors.categoria_id
-                    ? "border-2 border-[#FF5252]"
-                    : "focus:ring-2 focus:ring-[#2196F3]"
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 }`}
               >
-                <option value="">Selecione uma categoria</option>
+                <option value="" disabled>Selecione uma categoria</option>
                 {categorias.map((c) => (
                   <option key={c.id} value={String(c.id)}>
                     {c.nome} ({c.tipo})

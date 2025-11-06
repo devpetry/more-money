@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { UsuarioSchema, TUsuarioSchema } from "@/schemas/auth";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormErrors = Partial<Record<keyof TUsuarioSchema, string>>;
 
@@ -29,6 +30,7 @@ export default function AddUserModal({
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const carregarEmpresas = async () => {
     setLoadingEmpresas(true);
@@ -45,7 +47,7 @@ export default function AddUserModal({
   useEffect(() => {
     if (isOpen) {
       carregarEmpresas();
-    } else if (!isOpen){
+    } else if (!isOpen) {
       setErrors({});
     }
   }, [isOpen]);
@@ -131,11 +133,10 @@ export default function AddUserModal({
               name="nome"
               id="nome"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.nome
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.nome && (
@@ -153,11 +154,10 @@ export default function AddUserModal({
               name="email"
               id="email"
               type="text"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                 errors.email
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
+                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             />
             {errors.email && (
@@ -166,16 +166,20 @@ export default function AddUserModal({
           </div>
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="empresa_id"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Empresa
             </label>
             <select
               name="empresa_id"
               id="empresa_id"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
+      ${
+        loadingEmpresas || empresas.length === 0
+          ? "opacity-60 cursor-not-allowed border-gray-800"
+          : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+      }`}
               disabled={loadingEmpresas || empresas.length === 0}
               defaultValue=""
             >
@@ -194,18 +198,19 @@ export default function AddUserModal({
               ))}
             </select>
           </div>
+
           <div className="mb-4">
             <label
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="tipo_usuario"
+              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
             >
               Tipo de Usuário
             </label>
             <select
               name="tipo_usuario"
               id="tipo_usuario"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl appearance-none cursor-pointer
-              ${"focus:ring-2 focus:ring-[#2196F3]"}`}
+              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
+      border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30`}
               defaultValue=""
             >
               <option value="" disabled>
@@ -217,32 +222,42 @@ export default function AddUserModal({
                 </option>
               ))}
             </select>
-            {/* {errors.tipo_usuario && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.tipo_usuario}</p>
-            )} */}
           </div>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label
               className="block text-sm font-medium mb-1 text-[#E0E0E0]"
               htmlFor="senha"
             >
               Senha
             </label>
-            <input
-              name="senha"
-              id="senha"
-              type="password"
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] outline-none rounded-xl 
-              ${
-                errors.senha
-                  ? "border-2 border-[#FF5252]"
-                  : "focus:ring-2 focus:ring-[#2196F3]"
-              }`}
-            />
+
+            <div className="relative">
+              <input
+                name="senha"
+                id="senha"
+                type={showPassword ? "text" : "password"}
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  errors.senha
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                }`}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#E0E0E0] hover:text-[#E0E0E0]/60"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
             {errors.senha && (
               <p className="text-[#FF5252] text-xs mt-1">{errors.senha}</p>
             )}
-            <label className="text-xs text-[#9E9E9E] mt-1">
+
+            <label className="text-xs text-[#9E9E9E] mt-1 block">
               * Recomendamos o novo usuário alterar a senha no primeiro login
             </label>
           </div>
