@@ -68,7 +68,7 @@ export default function EditLancamentoModal({
             : ""
         );
 
-        setTipo(data.tipo || "despesa");
+        setTipo(data.tipo);
         setData(data.data ? data.data.split("T")[0] : "");
         setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
       } else {
@@ -153,7 +153,7 @@ export default function EditLancamentoModal({
     if (!isOpen) {
       setDescricao("");
       setValor("");
-      setTipo("despesa");
+      setTipo("");
       setData("");
       setCategoriaId("");
       setErrors({});
@@ -253,7 +253,7 @@ export default function EditLancamentoModal({
                 }`}
               >
                 <option value="" disabled>
-                  Selecione um tipo
+                  Selecione o tipo de lançamento
                 </option>
                 <option value="despesa">Despesa</option>
                 <option value="receita">Receita</option>

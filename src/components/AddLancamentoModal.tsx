@@ -102,7 +102,7 @@ export default function AddLancamentoModal({
       setErrors({});
       setDescricao("");
       setValor("");
-      setTipo("despesa");
+      setTipo("");
       setData("");
       setCategoriaId("");
     }
@@ -195,7 +195,7 @@ export default function AddLancamentoModal({
               }`}
             >
               <option value="" disabled>
-                Selecione um tipo
+                Selecione o tipo de lançamento
               </option>
               <option value="despesa">Despesa</option>
               <option value="receita">Receita</option>

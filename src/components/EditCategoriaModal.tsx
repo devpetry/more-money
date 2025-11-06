@@ -172,7 +172,9 @@ export default function EditCategoriaModal({
                       : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
                 >
-                  <option value="">Selecione...</option>
+                  <option value="" disabled>
+                    Selecione o tipo de categoria
+                  </option>
                   <option value="receita">Receita</option>
                   <option value="despesa">Despesa</option>
                 </select>
