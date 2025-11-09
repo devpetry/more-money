@@ -17,7 +17,7 @@ export default function AddCategoriaModal({
   onCategoriaAdded,
 }: AddCategoriaModalProps) {
   const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState("despesa"); // valor padrão
+  const [tipo, setTipo] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -66,7 +66,7 @@ export default function AddCategoriaModal({
     if (!isOpen) {
       setErrors({});
       setNome("");
-      setTipo("despesa");
+      setTipo("");
     }
   }, [isOpen]);
 
@@ -132,6 +132,9 @@ export default function AddCategoriaModal({
                   : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             >
+              <option value="" disabled>
+                Selecione o tipo de categoria
+              </option>
               <option value="despesa">Despesa</option>
               <option value="receita">Receita</option>
             </select>

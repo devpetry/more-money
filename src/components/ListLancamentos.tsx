@@ -1,5 +1,7 @@
 "use client";
 
+import BarraPesquisa from "./lancamentos/BarraPesquisa";
+import Filtros from "./lancamentos/Filtros";
 import { useEffect, useState } from "react";
 import AddLancamentoModal from "./AddLancamentoModal";
 import EditLancamentoModal from "./EditLancamentoModal";
@@ -24,6 +26,19 @@ export default function ListLancamentos() {
   const [lancamentoSelecionado, setLancamentoSelecionado] = useState<
     number | null
   >(null);
+  const [termo, setTermo] = useState("");
+  const [tipo, setTipo] = useState<string>();
+  const [categoria, setCategoria] = useState<string>();
+
+  // Aplica filtros e busca na lista
+  const lancamentosFiltrados = lancamentos.filter((l) => {
+    const busca = termo
+      ? l.descricao.toLowerCase().includes(termo.toLowerCase())
+      : true;
+    const filtraTipo = tipo ? l.tipo === tipo : true;
+    const filtraCategoria = categoria ? l.categoria_nome === categoria : true;
+    return busca && filtraTipo && filtraCategoria;
+  });
 
   async function carregarLancamentos() {
     setLoading(true);
@@ -108,6 +123,22 @@ export default function ListLancamentos() {
           Adicionar
         </button>
 
+        <div className="flex flex-wrap gap-3 justify-between items-center mb-4 mt-4">
+          <BarraPesquisa termo={termo} setTermo={setTermo} />
+
+          <Filtros
+            tipo={tipo}
+            categoria={categoria}
+            setTipo={setTipo}
+            setCategoria={setCategoria}
+            aplicarFiltros={() => console.log("Filtros aplicados")}
+            limparFiltros={() => {
+              setTipo(undefined);
+              setCategoria(undefined);
+            }}
+          />
+        </div>
+
         {/* Tabela de lançamentos */}
         <table className="w-full text-center border-collapse mt-6">
           <thead>
@@ -121,7 +152,7 @@ export default function ListLancamentos() {
             </tr>
           </thead>
           <tbody>
-            {lancamentos.map((l) => (
+            {lancamentosFiltrados.map((l) => (
               <tr
                 key={l.id}
                 className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"

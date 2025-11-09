@@ -3,8 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
 import { NumericFormat } from "react-number-format";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Calendar } from "./ui/calendar";
+import InputData from "./ui/InputData";
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
@@ -50,6 +49,19 @@ export default function AddLancamentoModal({
   useEffect(() => {
     if (isOpen) carregarCategorias();
   }, [isOpen]);
+
+  useEffect(() => {
+    if (categoriaId) {
+      const categoriaSelecionada = categorias.find(
+        (c) => String(c.id) === categoriaId
+      );
+      if (categoriaSelecionada) {
+        setTipo(categoriaSelecionada.tipo);
+      }
+    } else {
+      setTipo("");
+    }
+  }, [categoriaId, categorias]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,7 +115,7 @@ export default function AddLancamentoModal({
       setErrors({});
       setDescricao("");
       setValor("");
-      setTipo("despesa");
+      setTipo("");
       setData("");
       setCategoriaId("");
     }
@@ -179,96 +191,14 @@ export default function AddLancamentoModal({
             )}
           </div>
           <div className="mb-4">
-            <label
-              htmlFor="tipo"
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-            >
-              Tipo
-            </label>
-            <select
-              id="tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                errors.valor
-                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-              }`}
-            >
-              <option value="" disabled>Selecione um tipo</option>
-              <option value="despesa">Despesa</option>
-              <option value="receita">Receita</option>
-            </select>
-            {errors.tipo && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
-            )}
+            <InputData
+              label="Data"
+              value={data}
+              onChange={(iso) => setData(iso)}
+              error={errors.data}
+            />
           </div>
-
           <div className="mb-4">
-            <label
-              htmlFor="data"
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-            >
-              Data
-            </label>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={`w-full flex justify-between items-center px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none ${
-                    errors.data
-                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-                  }`}
-                >
-                  {data
-                    ? new Date(data).toLocaleDateString("pt-BR")
-                    : "Selecione uma data"}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </button>
-              </PopoverTrigger>
-
-              <PopoverContent
-                className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-4 w-auto"
-                align="start"
-              >
-                <Calendar
-                  mode="single"
-                  selected={data ? new Date(data) : undefined}
-                  onSelect={(selectedDate) => {
-                    if (selectedDate) {
-                      const formatted = selectedDate
-                        .toISOString()
-                        .split("T")[0];
-                      setData(formatted);
-                    }
-                  }}
-                  disabled={(date) => date > new Date()}
-                  className="rounded-xl border border-gray-800 bg-[#0D1117] text-white shadow-inner"
-                />
-              </PopoverContent>
-            </Popover>
-
-            {errors.data && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.data}</p>
-            )}
-          </div>
-
-          <div className="mb-6">
             <label className="block text-sm font-medium mb-1 text-[#E0E0E0]">
               Categoria
             </label>
@@ -282,7 +212,9 @@ export default function AddLancamentoModal({
                   : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
               }`}
             >
-              <option value="" disabled>Selecione uma categoria</option>
+              <option value="" disabled>
+                Selecione uma categoria
+              </option>
               {categorias.map((c) => (
                 <option key={c.id} value={String(c.id)}>
                   {c.nome} ({c.tipo})

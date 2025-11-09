@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import {
   PasswordRecoverySchema,
@@ -63,9 +64,16 @@ export default function RecoverPasswordForm() {
   return (
     <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
       {/* Logo */}
-      <div className="flex justify-center mb-4 bg-[#9E9E9E]/15 rounded-xl">
-        <div className="h-20 flex items-center justify-center text-3xl font-black text-[#E0E0E0]">
-          *LOGO*
+      <div className="flex justify-center mb-6 rounded-xl">
+        <div className="h-20 flex items-center justify-center">
+          <Image
+            src="/images/logo-temporaria.png"
+            alt="Logo More Money"
+            width={320}
+            height={200}
+            priority
+            className="object-contain"
+          />
         </div>
       </div>
 
@@ -117,10 +125,7 @@ export default function RecoverPasswordForm() {
         </button>
       </form>
       <div className="mt-4 text-center">
-        <a
-          href="/login"
-          className="text-sm text-[#9E9E9E] hover:underline"
-        >
+        <a href="/login" className="text-sm text-[#9E9E9E] hover:underline">
           Voltar para o login
         </a>
       </div>
