@@ -9,8 +9,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, Plus } from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
+import AddLancamentoModal from "./AddLancamentoModal";
 
 interface EvolucaoMensal {
   mes: string;
@@ -43,7 +44,7 @@ interface DashboardData {
 export default function Dashboard() {
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
     undefined
   );
@@ -82,168 +83,188 @@ export default function Dashboard() {
     );
 
   return (
-    <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
-      <FiltroMes
-        mesSelecionado={mesSelecionado}
-        setMesSelecionado={setMesSelecionado}
-        carregarDashboard={carregarDashboard}
-      />
+    <>
+      <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
+        <FiltroMes
+          mesSelecionado={mesSelecionado}
+          setMesSelecionado={setMesSelecionado}
+          carregarDashboard={carregarDashboard}
+        />
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Saldo</h3>
-            <TrendingUp className="text-[#00E676]" />
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="fixed bottom-5 right-5 flex items-center gap-2 bg-[#2196F3] text-[#0D1117] font-medium py-2 px-4 rounded-xl shadow-md hover:bg-[#2196F3]/80 transition"
+        >
+          <Plus size={16} className="text-[#0D1117]" />
+          {isAddModalOpen ? "Adicionando..." : "Novo Lançamento"}
+        </button>
+
+        {/* Cards de Resumo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm text-gray-400">Saldo</h3>
+              <TrendingUp className="text-[#00E676]" />
+            </div>
+            <p
+              className={`text-2xl font-bold mt-2 ${
+                dados.saldo >= 0 ? "text-[#00E676]" : "text-[#FF5252]"
+              }`}
+            >
+              R$ {dados.saldo.toFixed(2)}
+            </p>
           </div>
-          <p
-            className={`text-2xl font-bold mt-2 ${
-              dados.saldo >= 0 ? "text-[#00E676]" : "text-[#FF5252]"
-            }`}
-          >
-            R$ {dados.saldo.toFixed(2)}
-          </p>
+
+          <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm text-gray-400">Receitas</h3>
+              <ArrowUpRight className="text-[#2196F3]" />
+            </div>
+            <p className="text-2xl font-bold mt-2 text-[#2196F3]">
+              R$ {dados.totalReceitas.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm text-gray-400">Despesas</h3>
+              <ArrowDownRight className="text-[#FF5252]" />
+            </div>
+            <p className="text-2xl font-bold mt-2 text-[#FF5252]">
+              R$ {dados.totalDespesas.toFixed(2)}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Receitas</h3>
-            <ArrowUpRight className="text-[#2196F3]" />
-          </div>
-          <p className="text-2xl font-bold mt-2 text-[#2196F3]">
-            R$ {dados.totalReceitas.toFixed(2)}
-          </p>
+        {/* Gráfico de linha: Evolução Mensal */}
+        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
+          <h2 className="text-lg font-medium mb-4">Evolução Mensal</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={dados.evolucaoMensal}>
+              <XAxis dataKey="mes" stroke="#E0E0E0" />
+              <YAxis stroke="#E0E0E0" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#161B22",
+                  border: "1px solid #333",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="receita"
+                stroke="#2196F3"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="despesa"
+                stroke="#FF5252"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm text-gray-400">Despesas</h3>
-            <ArrowDownRight className="text-[#FF5252]" />
-          </div>
-          <p className="text-2xl font-bold mt-2 text-[#FF5252]">
-            R$ {dados.totalDespesas.toFixed(2)}
-          </p>
-        </div>
-      </div>
-
-      {/* Gráfico de linha: Evolução Mensal */}
-      <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
-        <h2 className="text-lg font-medium mb-4">Evolução Mensal</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={dados.evolucaoMensal}>
-            <XAxis dataKey="mes" stroke="#E0E0E0" />
-            <YAxis stroke="#E0E0E0" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#161B22",
-                border: "1px solid #333",
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="receita"
-              stroke="#2196F3"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="despesa"
-              stroke="#FF5252"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Despesas por Categoria */}
-      <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
-        <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-700 text-gray-400 text-sm">
-              <th className="pb-2">Categoria</th>
-              <th className="pb-2">Nº de Lançamentos</th>
-              <th className="pb-2">Valor Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dados.despesasPorCategoria.length > 0 ? (
-              dados.despesasPorCategoria.map(
-                (item: DespesaCategoria, index: number) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                  >
-                    <td className="py-2 capitalize">{item.categoria}</td>
-                    <td className="py-2">{item.quantidade ?? "-"}</td>
-                    <td className="py-2">R$ {Number(item.total).toFixed(2)}</td>
-                  </tr>
-                )
-              )
-            ) : (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="text-center py-4 text-gray-500 text-sm"
-                >
-                  Nenhuma despesa encontrada.
-                </td>
+        {/* Despesas por Categoria */}
+        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
+          <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                <th className="pb-2">Categoria</th>
+                <th className="pb-2">Nº de Lançamentos</th>
+                <th className="pb-2">Valor Total</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Últimos Lançamentos */}
-      <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
-        <h2 className="text-lg font-medium mb-4">Últimos Lançamentos</h2>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-700 text-gray-400 text-sm">
-              <th className="pb-2">Descrição</th>
-              <th className="pb-2">Tipo</th>
-              <th className="pb-2">Valor</th>
-              <th className="pb-2">Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dados.ultimosLancamentos.length > 0 ? (
-              dados.ultimosLancamentos.map(
-                (lanc: Lancamento, index: number) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-800 hover:bg-[#0D1117]"
-                  >
-                    <td className="py-2">{lanc.descricao}</td>
-                    <td
-                      className={`py-2 capitalize ${
-                        lanc.tipo === "receita"
-                          ? "text-[#2196F3]"
-                          : "text-[#FF5252]"
-                      }`}
+            </thead>
+            <tbody>
+              {dados.despesasPorCategoria.length > 0 ? (
+                dados.despesasPorCategoria.map(
+                  (item: DespesaCategoria, index: number) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
                     >
-                      {lanc.tipo}
-                    </td>
-                    <td className="py-2">R$ {Number(lanc.valor).toFixed(2)}</td>
-                    <td className="py-2">
-                      {new Date(lanc.data).toLocaleDateString("pt-BR")}
-                    </td>
-                  </tr>
+                      <td className="py-2 capitalize">{item.categoria}</td>
+                      <td className="py-2">{item.quantidade ?? "-"}</td>
+                      <td className="py-2">
+                        R$ {Number(item.total).toFixed(2)}
+                      </td>
+                    </tr>
+                  )
                 )
-              )
-            ) : (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="text-center py-4 text-gray-500 text-sm"
-                >
-                  Nenhum lançamento encontrado.
-                </td>
+              ) : (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="text-center py-4 text-gray-500 text-sm"
+                  >
+                    Nenhuma despesa encontrada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Últimos Lançamentos */}
+        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+          <h2 className="text-lg font-medium mb-4">Últimos Lançamentos</h2>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                <th className="pb-2">Descrição</th>
+                <th className="pb-2">Tipo</th>
+                <th className="pb-2">Valor</th>
+                <th className="pb-2">Data</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {dados.ultimosLancamentos.length > 0 ? (
+                dados.ultimosLancamentos.map(
+                  (lanc: Lancamento, index: number) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-800 hover:bg-[#0D1117]"
+                    >
+                      <td className="py-2">{lanc.descricao}</td>
+                      <td
+                        className={`py-2 capitalize ${
+                          lanc.tipo === "receita"
+                            ? "text-[#2196F3]"
+                            : "text-[#FF5252]"
+                        }`}
+                      >
+                        {lanc.tipo}
+                      </td>
+                      <td className="py-2">
+                        R$ {Number(lanc.valor).toFixed(2)}
+                      </td>
+                      <td className="py-2">
+                        {new Date(lanc.data).toLocaleDateString("pt-BR")}
+                      </td>
+                    </tr>
+                  )
+                )
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="text-center py-4 text-gray-500 text-sm"
+                  >
+                    Nenhum lançamento encontrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+      {/* MODAL DE ADIÇÃO */}
+      <AddLancamentoModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onLancamentoAdded={() => carregarDashboard()}
+      />
+    </>
   );
 }
