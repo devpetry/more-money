@@ -77,7 +77,7 @@ export default function FiltroMes({
                 }}
                 className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
               >
-                <option value="">Selecione o mês</option>
+                <option value="" disabled>Selecione o mês</option>
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i} value={i}>
                     {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
@@ -102,7 +102,7 @@ export default function FiltroMes({
                 }}
                 className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
               >
-                <option value="">Selecione o ano</option>
+                <option value="" disabled>Selecione o ano</option>
                 {Array.from({ length: 11 }, (_, i) => {
                   const ano = 2020 + i;
                   return (
