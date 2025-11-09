@@ -39,8 +39,8 @@ export default function FiltroMes({
             variant="outline"
             className={`rounded-xl px-4 py-2 flex items-center transition-all duration-200 border ${
               estaFiltrando
-                ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#FFC107]/75 hover:text-[#0D1117] hover:border-[#FFC107]/75 focus:text-[#0D1117]"
-                : "bg-[#161B22] border-gray-700 text-[#E0E0E0] hover:bg-[#161B22]/30"
+                ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05] hover:text-[#0D1117]"
+                : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
             }`}
           >
             <Filter
@@ -52,7 +52,7 @@ export default function FiltroMes({
             />
             {mesAplicado
               ? format(mesAplicado, "MMMM yyyy", { locale: ptBR })
-              : "Filtrar mês"}
+              : "Filtrar"}
           </Button>
         </PopoverTrigger>
 
