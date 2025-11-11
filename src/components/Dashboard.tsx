@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, TrendingUp, Plus, TrendingDown } from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
 import AddLancamentoModal from "./AddLancamentoModal";
 
@@ -135,7 +135,7 @@ export default function Dashboard() {
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <div className="flex justify-between items-center">
               <h3 className="text-sm text-gray-400">Saldo</h3>
-              <TrendingUp className="text-[#00E676]" />
+              {dados.saldo >= 0 ? <TrendingUp className="text-[#00E676]" /> : <TrendingDown className="text-[#FF5252]" />}
             </div>
             <p
               className={`text-2xl font-bold mt-2 ${
