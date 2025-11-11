@@ -13,37 +13,32 @@ export async function GET(req: Request) {
 
     const usuarioId = parseInt(session.user.id as string, 10);
 
-    // Captura o parâmetro de mês (ex: ?mes=2025-10)
     const { searchParams } = new URL(req.url);
-    const mesParam = searchParams.get("mes"); // formato esperado: YYYY-MM
+    const mesParam = searchParams.get("mes");
 
-    // Valores que iremos passar ao SQL: start (inclusive) e nextMonthStart (exclusive)
     let startDate: string | null = null;
     let nextMonthStart: string | null = null;
 
     if (mesParam) {
       const [anoStr, mesStr] = mesParam.split("-");
       const ano = parseInt(anoStr, 10);
-      const mes = parseInt(mesStr, 10); // 1..12
+      const mes = parseInt(mesStr, 10);
 
       if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
         const mm = String(mes).padStart(2, "0");
         startDate = `${anoStr}-${mm}-01`;
 
-        // próximo mês
         const nextMonth = mes === 12 ? 1 : mes + 1;
         const nextYear = mes === 12 ? ano + 1 : ano;
         const nextMm = String(nextMonth).padStart(2, "0");
         nextMonthStart = `${nextYear}-${nextMm}-01`;
       }
     } else {
-      // 🔹 Exibição padrão: todo o ano atual
       const anoAtual = new Date().getFullYear();
       startDate = `${anoAtual}-01-01`;
-      nextMonthStart = `${anoAtual + 1}-01-01`; // limite exclusivo (início do próximo ano)
+      nextMonthStart = `${anoAtual + 1}-01-01`;
     }
 
-    // --- Totais (receitas, despesas, saldo) ---
     const [totais] = await query(
       `
       SELECT 
@@ -61,8 +56,6 @@ export async function GET(req: Request) {
     const totalDespesas = parseFloat(totais?.total_despesas || 0);
     const saldo = totalReceitas - totalDespesas;
 
-    // --- Evolução mensal (agrupa por mês) ---
-    // Nota: se filtrarmos por um único mês, o result será apenas esse mês
     const evolucaoMensal = await query(
       `
       SELECT 
@@ -79,7 +72,6 @@ export async function GET(req: Request) {
       [usuarioId, startDate, nextMonthStart]
     );
 
-    // --- Despesas por Categoria (agregado com contagem) ---
     const despesasPorCategoria = await query(
       `
       SELECT 
@@ -98,7 +90,6 @@ export async function GET(req: Request) {
       [usuarioId, startDate, nextMonthStart]
     );
 
-    // --- Últimos lançamentos ---
     const ultimosLancamentos = await query(
       `
       SELECT descricao, tipo, valor, data
@@ -112,7 +103,6 @@ export async function GET(req: Request) {
       [usuarioId, startDate, nextMonthStart]
     );
 
-    // Monta o objeto final
     const data = {
       saldo,
       totalReceitas,

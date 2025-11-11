@@ -46,6 +46,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
+  const [periodoPersonalizado, setPeriodoPersonalizado] = useState<
+    { inicio: string; fim: string } | undefined
+  >();
   const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
     undefined
   );
@@ -92,23 +95,31 @@ export default function Dashboard() {
           carregarDashboard={carregarDashboard}
           mesAplicado={mesAplicado}
           setMesAplicado={setMesAplicado}
+          setPeriodoPersonalizado={setPeriodoPersonalizado}
         />
+
         <p className="mb-6 text-sm text-gray-500">
-          {mesAplicado
-            ? (() => {
-                const ano = mesAplicado.getFullYear();
-                const mes = mesAplicado.getMonth();
-                const inicio = new Date(ano, mes, 1);
-                const fim = new Date(ano, mes + 1, 0);
-                const formatar = (d: Date) =>
-                  d.toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  });
-                return `Período em exibição: ${formatar(inicio)} até ${formatar(fim)}`;
-              })()
-            : `Período em exibição: ${new Date().getFullYear()}`}
+          {periodoPersonalizado
+            ? `Período em exibição: ${new Date(
+                `${periodoPersonalizado.inicio}T00:00:00`
+              ).toLocaleDateString("pt-BR")} até ${new Date(
+                `${periodoPersonalizado.fim}T00:00:00`
+              ).toLocaleDateString("pt-BR")}`
+            : mesAplicado
+              ? (() => {
+                  const ano = mesAplicado.getFullYear();
+                  const mes = mesAplicado.getMonth();
+                  const inicio = new Date(ano, mes, 1);
+                  const fim = new Date(ano, mes + 1, 0);
+                  const formatar = (d: Date) =>
+                    d.toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    });
+                  return `Período em exibição: ${formatar(inicio)} até ${formatar(fim)}`;
+                })()
+              : `Período em exibição: ${new Date().getFullYear()}`}
         </p>
 
         <button
