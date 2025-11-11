@@ -15,15 +15,18 @@ interface FiltroMesProps {
   mesSelecionado?: Date;
   setMesSelecionado: (data?: Date) => void;
   carregarDashboard: (mes?: string) => void;
+  mesAplicado?: Date;
+  setMesAplicado: (data?: Date) => void;
 }
 
 export default function FiltroMes({
   mesSelecionado,
   setMesSelecionado,
   carregarDashboard,
+  mesAplicado,
+  setMesAplicado,
 }: FiltroMesProps) {
   const [filtroAberto, setFiltroAberto] = useState(false);
-  const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
 
   const estaFiltrando = !!mesAplicado;
 
@@ -77,7 +80,9 @@ export default function FiltroMes({
                 }}
                 className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
               >
-                <option value="" disabled>Selecione o mês</option>
+                <option value="" disabled>
+                  Selecione o mês
+                </option>
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i} value={i}>
                     {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
@@ -102,7 +107,9 @@ export default function FiltroMes({
                 }}
                 className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
               >
-                <option value="" disabled>Selecione o ano</option>
+                <option value="" disabled>
+                  Selecione o ano
+                </option>
                 {Array.from({ length: 11 }, (_, i) => {
                   const ano = 2020 + i;
                   return (

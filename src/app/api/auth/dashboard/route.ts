@@ -27,20 +27,20 @@ export async function GET(req: Request) {
       const mes = parseInt(mesStr, 10); // 1..12
 
       if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
-        // start: YYYY-MM-01
         const mm = String(mes).padStart(2, "0");
         startDate = `${anoStr}-${mm}-01`;
 
-        // next month: handle dezembro -> janeiro do próximo ano
+        // próximo mês
         const nextMonth = mes === 12 ? 1 : mes + 1;
         const nextYear = mes === 12 ? ano + 1 : ano;
         const nextMm = String(nextMonth).padStart(2, "0");
         nextMonthStart = `${nextYear}-${nextMm}-01`;
-      } else {
-        // se o parâmetro vier inválido, ignoramos e retornamos todos os dados (startDate stays null)
-        startDate = null;
-        nextMonthStart = null;
       }
+    } else {
+      // 🔹 Exibição padrão: todo o ano atual
+      const anoAtual = new Date().getFullYear();
+      startDate = `${anoAtual}-01-01`;
+      nextMonthStart = `${anoAtual + 1}-01-01`; // limite exclusivo (início do próximo ano)
     }
 
     // --- Totais (receitas, despesas, saldo) ---
