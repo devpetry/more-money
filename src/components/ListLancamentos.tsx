@@ -30,7 +30,6 @@ export default function ListLancamentos() {
   const [tipo, setTipo] = useState<string>();
   const [categoria, setCategoria] = useState<string>();
 
-  // Aplica filtros e busca na lista
   const lancamentosFiltrados = lancamentos.filter((l) => {
     const busca = termo
       ? l.descricao.toLowerCase().includes(termo.toLowerCase())
@@ -146,7 +145,7 @@ export default function ListLancamentos() {
               <th className="px-3 py-2">Descrição</th>
               <th className="px-3 py-2">Valor</th>
               <th className="px-3 py-2">Tipo</th>
-              <th className="px-3 py-2">Data</th>
+              <th className="px-3 py-2">Data de Pagamento</th>
               <th className="px-3 py-2">Categoria</th>
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>

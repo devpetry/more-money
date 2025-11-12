@@ -14,22 +14,73 @@ import { Filter } from "lucide-react";
 interface FiltroMesProps {
   mesSelecionado?: Date;
   setMesSelecionado: (data?: Date) => void;
-  carregarDashboard: (mes?: string) => void;
+  carregarDashboard: (filtro?: string) => void;
+  mesAplicado?: Date | undefined;
+  setMesAplicado: (data?: Date) => void;
+  setPeriodoPersonalizado?: (periodo?: { inicio: string; fim: string }) => void;
 }
 
 export default function FiltroMes({
   mesSelecionado,
   setMesSelecionado,
   carregarDashboard,
+  mesAplicado,
+  setMesAplicado,
+  setPeriodoPersonalizado,
 }: FiltroMesProps) {
   const [filtroAberto, setFiltroAberto] = useState(false);
-  const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
+  const [tipoFiltro, setTipoFiltro] = useState<"mes" | "periodo">("mes");
 
-  const estaFiltrando = !!mesAplicado;
+  // Estados para o período personalizado
+  const [periodoSelecionado, setPeriodoSelecionado] = useState<{
+    inicio?: string;
+    fim?: string;
+  }>({});
+  const [periodoAplicado, setPeriodoAplicado] = useState<{
+    inicio?: string;
+    fim?: string;
+  }>({});
+
+  const estaFiltrando =
+    !!mesAplicado || (!!periodoAplicado.inicio && !!periodoAplicado.fim);
+
+  const aplicarFiltro = () => {
+    if (tipoFiltro === "mes" && mesSelecionado) {
+      setMesAplicado(mesSelecionado);
+      carregarDashboard(format(mesSelecionado, "yyyy-MM"));
+      setPeriodoPersonalizado?.(undefined);
+      setPeriodoAplicado({});
+    } else if (
+      tipoFiltro === "periodo" &&
+      periodoSelecionado.inicio &&
+      periodoSelecionado.fim
+    ) {
+      carregarDashboard(
+        `${periodoSelecionado.inicio}|${periodoSelecionado.fim}`
+      );
+      setMesAplicado(undefined);
+      setPeriodoPersonalizado?.({
+        inicio: periodoSelecionado.inicio,
+        fim: periodoSelecionado.fim,
+      });
+      setPeriodoAplicado(periodoSelecionado);
+    }
+    setFiltroAberto(false);
+  };
+
+  const limparFiltro = () => {
+    setMesSelecionado(undefined);
+    setMesAplicado(undefined);
+    setPeriodoSelecionado({});
+    setPeriodoAplicado({});
+    setPeriodoPersonalizado?.(undefined);
+    carregarDashboard();
+    setFiltroAberto(false);
+  };
 
   return (
     <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-semibold border-b border-gray-700 pb-2">
+      <h1 className="text-2xl font-semibold border-b border-gray-700">
         Dashboard
       </h1>
 
@@ -43,112 +94,151 @@ export default function FiltroMes({
                 : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
             }`}
           >
-            <Filter
-              className={`h-4 w-4 mr-2 transition-colors ${
-                estaFiltrando
-                  ? "text-[#0D1117] hover:text-[#0D1117] focus:text-[#0D1117]"
-                  : "text-gray-300"
-              }`}
-            />
-            {mesAplicado
-              ? format(mesAplicado, "MMMM yyyy", { locale: ptBR })
-              : "Filtrar"}
+            <Filter className="h-4 w-4 mr-2" />
+            {estaFiltrando ? "Filtrando" : "Filtrar"}
           </Button>
         </PopoverTrigger>
 
         <PopoverContent
-          className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-5 w-[280px] space-y-4 transition-all duration-200"
+          className="bg-[#161B22] border border-gray-800 shadow-lg shadow-black/30 text-[#E0E0E0] rounded-2xl p-5 w-[300px] space-y-4 transition-all duration-200"
           align="end"
         >
-          <div className="flex flex-col gap-3">
-            {/* Select de Mês */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-400">Mês</label>
-              <select
-                value={mesSelecionado ? mesSelecionado.getMonth() : ""}
-                onChange={(e) => {
-                  const valor = e.target.value;
-                  if (valor === "") return;
-                  const ano = mesSelecionado
-                    ? mesSelecionado.getFullYear()
-                    : new Date().getFullYear();
-                  const novoMes = new Date(ano, parseInt(valor), 1);
-                  setMesSelecionado(novoMes);
-                }}
-                className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
-              >
-                <option value="" disabled>Selecione o mês</option>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Select de Ano */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-400">Ano</label>
-              <select
-                value={mesSelecionado ? mesSelecionado.getFullYear() : ""}
-                onChange={(e) => {
-                  const valor = e.target.value;
-                  if (valor === "") return;
-                  const mes = mesSelecionado
-                    ? mesSelecionado.getMonth()
-                    : new Date().getMonth();
-                  const novoAno = new Date(parseInt(valor), mes, 1);
-                  setMesSelecionado(novoAno);
-                }}
-                className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
-              >
-                <option value="" disabled>Selecione o ano</option>
-                {Array.from({ length: 11 }, (_, i) => {
-                  const ano = 2020 + i;
-                  return (
-                    <option key={ano} value={ano}>
-                      {ano}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+          {/* Tipo de filtro */}
+          <div className="flex gap-3 justify-center">
+            <button
+              className={`rounded-xl px-3 py-1 border text-sm transition-all ${
+                tipoFiltro === "mes"
+                  ? "bg-[#1E2633] border-[#2196F3] text-[#E0E0E0]"
+                  : "bg-[#0D1117] border-gray-700 text-gray-400 hover:border-[#2196F3]/40 hover:text-[#E0E0E0]"
+              }`}
+              onClick={() => setTipoFiltro("mes")}
+            >
+              Mês/Ano
+            </button>
+            <button
+              className={`rounded-xl px-3 py-1 border text-sm transition-all ${
+                tipoFiltro === "periodo"
+                  ? "bg-[#1E2633] border-[#2196F3] text-[#E0E0E0]"
+                  : "bg-[#0D1117] border-gray-700 text-gray-400 hover:border-[#2196F3]/40 hover:text-[#E0E0E0]"
+              }`}
+              onClick={() => setTipoFiltro("periodo")}
+            >
+              Personalizado
+            </button>
           </div>
 
-          {/* Botões de ação */}
+          {/* Filtro condicional */}
+          {tipoFiltro === "mes" ? (
+            <div className="flex flex-col gap-3">
+              {/* Seleção de mês */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-400">Mês</label>
+                <select
+                  value={mesSelecionado ? mesSelecionado.getMonth() : ""}
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    if (valor === "") return;
+                    const ano = mesSelecionado
+                      ? mesSelecionado.getFullYear()
+                      : new Date().getFullYear();
+                    setMesSelecionado(new Date(ano, parseInt(valor), 1));
+                  }}
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                >
+                  <option value="" disabled>
+                    Selecione o mês
+                  </option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Seleção de ano */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-400">Ano</label>
+                <select
+                  value={mesSelecionado ? mesSelecionado.getFullYear() : ""}
+                  onChange={(e) => {
+                    const valor = e.target.value;
+                    if (valor === "") return;
+                    const mes = mesSelecionado
+                      ? mesSelecionado.getMonth()
+                      : new Date().getMonth();
+                    setMesSelecionado(new Date(parseInt(valor), mes, 1));
+                  }}
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                >
+                  <option value="" disabled>
+                    Selecione o ano
+                  </option>
+                  {Array.from({ length: 11 }, (_, i) => {
+                    const ano = 2020 + i;
+                    return (
+                      <option key={ano} value={ano}>
+                        {ano}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {/* Data início */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-400">Data de início</label>
+                <input
+                  type="date"
+                  value={periodoSelecionado.inicio || ""}
+                  onChange={(e) =>
+                    setPeriodoSelecionado({
+                      ...periodoSelecionado,
+                      inicio: e.target.value,
+                    })
+                  }
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                />
+              </div>
+
+              {/* Data fim */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-400">Data de fim</label>
+                <input
+                  type="date"
+                  value={periodoSelecionado.fim || ""}
+                  onChange={(e) =>
+                    setPeriodoSelecionado({
+                      ...periodoSelecionado,
+                      fim: e.target.value,
+                    })
+                  }
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Botões */}
           <div className="flex justify-between pt-2">
             <Button
-              variant="outline"
-              size="sm"
-              disabled={!mesSelecionado}
-              className={`font-semibold rounded-xl px-4 py-2 transition-all duration-200 border-none ${
-                mesSelecionado
-                  ? "bg-[#161B22] hover:bg-[#2196F3] hover:text-[#161B22]"
-                  : "bg-[#0D1117] text-gray-500 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                if (!mesSelecionado) return;
-                setFiltroAberto(false);
-                const mes = format(mesSelecionado, "yyyy-MM");
-                setMesAplicado(mesSelecionado);
-                carregarDashboard(mes);
-              }}
+              onClick={aplicarFiltro}
+              disabled={
+                (tipoFiltro === "mes" && !mesSelecionado) ||
+                (tipoFiltro === "periodo" &&
+                  (!periodoSelecionado.inicio || !periodoSelecionado.fim))
+              }
+              className="font-semibold rounded-xl px-4 py-2 bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40 transition-all disabled:text-gray-500 disabled:border-gray-800 disabled:cursor-not-allowed"
             >
               Aplicar
             </Button>
-
             <Button
-              variant="ghost"
-              size="sm"
-              className="bg-[#161B22] hover:bg-[#FF5252] text-[#FF5252] hover:text-[#161B22] rounded-xl px-4 py-2 transition-all duration-200"
-              onClick={() => {
-                setMesSelecionado(undefined);
-                setMesAplicado(undefined);
-                setFiltroAberto(false);
-                carregarDashboard();
-              }}
+              onClick={limparFiltro}
+              className="rounded-xl px-4 py-2 bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40 transition-all"
             >
-              Limpar filtro
+              Limpar
             </Button>
           </div>
         </PopoverContent>

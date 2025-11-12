@@ -9,7 +9,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUpRight, ArrowDownRight, TrendingUp, Plus } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  TrendingUp,
+  Plus,
+  TrendingDown,
+} from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
 import AddLancamentoModal from "./AddLancamentoModal";
 
@@ -25,11 +31,18 @@ interface DespesaCategoria {
   quantidade: number;
 }
 
+interface ReceitaCategoria {
+  categoria: string;
+  total: number;
+  quantidade: number;
+}
+
 interface Lancamento {
   descricao: string;
   tipo: "receita" | "despesa";
   valor: number;
   data: string;
+  criado_em: string;
 }
 
 interface DashboardData {
@@ -38,6 +51,7 @@ interface DashboardData {
   saldo: number;
   evolucaoMensal: EvolucaoMensal[];
   despesasPorCategoria: DespesaCategoria[];
+  receitasPorCategoria: ReceitaCategoria[];
   ultimosLancamentos: Lancamento[];
 }
 
@@ -45,6 +59,10 @@ export default function Dashboard() {
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
+  const [periodoPersonalizado, setPeriodoPersonalizado] = useState<
+    { inicio: string; fim: string } | undefined
+  >();
   const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
     undefined
   );
@@ -89,7 +107,34 @@ export default function Dashboard() {
           mesSelecionado={mesSelecionado}
           setMesSelecionado={setMesSelecionado}
           carregarDashboard={carregarDashboard}
+          mesAplicado={mesAplicado}
+          setMesAplicado={setMesAplicado}
+          setPeriodoPersonalizado={setPeriodoPersonalizado}
         />
+
+        <p className="mb-6 text-sm text-gray-500">
+          {periodoPersonalizado
+            ? `Período em exibição: ${new Date(
+                `${periodoPersonalizado.inicio}T00:00:00`
+              ).toLocaleDateString("pt-BR")} até ${new Date(
+                `${periodoPersonalizado.fim}T00:00:00`
+              ).toLocaleDateString("pt-BR")}`
+            : mesAplicado
+              ? (() => {
+                  const ano = mesAplicado.getFullYear();
+                  const mes = mesAplicado.getMonth();
+                  const inicio = new Date(ano, mes, 1);
+                  const fim = new Date(ano, mes + 1, 0);
+                  const formatar = (d: Date) =>
+                    d.toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    });
+                  return `Período em exibição: ${formatar(inicio)} até ${formatar(fim)}`;
+                })()
+              : `Período em exibição: ${new Date().getFullYear()}`}
+        </p>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
@@ -104,7 +149,11 @@ export default function Dashboard() {
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <div className="flex justify-between items-center">
               <h3 className="text-sm text-gray-400">Saldo</h3>
-              <TrendingUp className="text-[#00E676]" />
+              {dados.saldo >= 0 ? (
+                <TrendingUp className="text-[#00E676]" />
+              ) : (
+                <TrendingDown className="text-[#FF5252]" />
+              )}
             </div>
             <p
               className={`text-2xl font-bold mt-2 ${
@@ -165,57 +214,106 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Despesas por Categoria */}
-        <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
-          <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                <th className="pb-2">Categoria</th>
-                <th className="pb-2">Nº de Lançamentos</th>
-                <th className="pb-2">Valor Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dados.despesasPorCategoria.length > 0 ? (
-                dados.despesasPorCategoria.map(
-                  (item: DespesaCategoria, index: number) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                    >
-                      <td className="py-2 capitalize">{item.categoria}</td>
-                      <td className="py-2">{item.quantidade ?? "-"}</td>
-                      <td className="py-2">
-                        R$ {Number(item.total).toFixed(2)}
-                      </td>
-                    </tr>
-                  )
-                )
-              ) : (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center py-4 text-gray-500 text-sm"
-                  >
-                    Nenhuma despesa encontrada.
-                  </td>
+        {/* Despesas e Receitas por Categoria */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Despesas por Categoria */}
+          <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+            <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
+            <table className="w-full text-left border-collapse table-fixed">
+              <thead>
+                <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                  <th className="pb-2">Categoria</th>
+                  <th className="pb-2 text-center">Nº de Lançamentos</th>
+                  <th className="pb-2 w-[25%] text-right">Valor Total</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {dados.despesasPorCategoria.length > 0 ? (
+                  dados.despesasPorCategoria.map(
+                    (item: DespesaCategoria, index: number) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                      >
+                        <td className="py-2 capitalize">{item.categoria}</td>
+                        <td className="py-2 text-center">
+                          {item.quantidade ?? "-"}
+                        </td>
+                        <td className="py-2 text-right">
+                          R$ {Number(item.total).toFixed(2)}
+                        </td>
+                      </tr>
+                    )
+                  )
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="text-center py-4 text-gray-500 text-sm"
+                    >
+                      Nenhuma despesa encontrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Receitas por Categoria */}
+          <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
+            <h2 className="text-lg font-medium mb-4">Receitas por Categoria</h2>
+            <table className="w-full text-left border-collapse table-fixed">
+              <thead>
+                <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                  <th className="pb-2">Categoria</th>
+                  <th className="pb-2 text-center">Nº de Lançamentos</th>
+                  <th className="pb-2 w-[25%] text-right">Valor Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dados.receitasPorCategoria.length > 0 ? (
+                  dados.receitasPorCategoria.map(
+                    (item: ReceitaCategoria, index: number) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                      >
+                        <td className="py-2 capitalize">{item.categoria}</td>
+                        <td className="py-2 text-center">
+                          {item.quantidade ?? "-"}
+                        </td>
+                        <td className="py-2 text-right">
+                          R$ {Number(item.total).toFixed(2)}
+                        </td>
+                      </tr>
+                    )
+                  )
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="text-center py-4 text-gray-500 text-sm"
+                    >
+                      Nenhuma receita encontrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Últimos Lançamentos */}
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
           <h2 className="text-lg font-medium mb-4">Últimos Lançamentos</h2>
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="border-b border-gray-700 text-gray-400 text-sm">
                 <th className="pb-2">Descrição</th>
                 <th className="pb-2">Tipo</th>
                 <th className="pb-2">Valor</th>
-                <th className="pb-2">Data</th>
+                <th className="pb-2">Lançamento</th>
+                <th className="pb-2 w-[10%]">Pagamento</th>
               </tr>
             </thead>
             <tbody>
@@ -238,6 +336,9 @@ export default function Dashboard() {
                       </td>
                       <td className="py-2">
                         R$ {Number(lanc.valor).toFixed(2)}
+                      </td>
+                      <td className="py-2">
+                        {new Date(lanc.criado_em).toLocaleDateString("pt-BR")}
                       </td>
                       <td className="py-2">
                         {new Date(lanc.data).toLocaleDateString("pt-BR")}
