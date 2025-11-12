@@ -90,14 +90,32 @@ export async function GET(req: Request) {
       [usuarioId, startDate, nextMonthStart]
     );
 
+    const receitasPorCategoria = await query(
+      `
+      SELECT 
+        c.nome AS categoria,
+        COUNT(l.id) AS quantidade,
+        COALESCE(SUM(l.valor), 0) AS total
+      FROM "Lancamentos" l
+      JOIN "Categorias" c ON l.categoria_id = c.id
+      WHERE l.usuario_id = $1
+        AND l.tipo = 'receita'
+        AND ($2::date IS NULL OR l.data >= $2)
+        AND ($3::date IS NULL OR l.data < $3)
+      GROUP BY c.nome
+      ORDER BY total DESC
+      `,
+      [usuarioId, startDate, nextMonthStart]
+    );
+
     const ultimosLancamentos = await query(
       `
-      SELECT descricao, tipo, valor, data
+      SELECT descricao, tipo, valor, criado_em, data
       FROM "Lancamentos"
       WHERE usuario_id = $1
         AND ($2::date IS NULL OR data >= $2)
         AND ($3::date IS NULL OR data < $3)
-      ORDER BY data DESC
+      ORDER BY criado_em DESC
       LIMIT 5
       `,
       [usuarioId, startDate, nextMonthStart]
@@ -109,6 +127,7 @@ export async function GET(req: Request) {
       totalDespesas,
       evolucaoMensal: evolucaoMensal || [],
       despesasPorCategoria: despesasPorCategoria || [],
+      receitasPorCategoria: receitasPorCategoria || [],
       ultimosLancamentos: ultimosLancamentos || [],
     };
 

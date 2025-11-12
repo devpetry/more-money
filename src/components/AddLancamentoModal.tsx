@@ -192,7 +192,7 @@ export default function AddLancamentoModal({
           </div>
           <div className="mb-4">
             <InputData
-              label="Data"
+              label="Data de Pagamento"
               value={data}
               onChange={(iso) => setData(iso)}
               error={errors.data}
