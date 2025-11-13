@@ -168,11 +168,12 @@ export default function EditEmpresaModal({
                 )}
               </div>
 
+              {/* Botões de ação */}
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl disabled:opacity-50"
+                  className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
                   disabled={salvando}
                 >
                   Cancelar

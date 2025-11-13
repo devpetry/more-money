@@ -31,6 +31,7 @@ export default function AddUserModal({
   const [errors, setErrors] = useState<FormErrors>({});
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   const carregarEmpresas = async () => {
     setLoadingEmpresas(true);
@@ -83,6 +84,8 @@ export default function AddUserModal({
       return;
     }
 
+    setSalvando(true);
+
     try {
       const res = await fetch("/api/auth/usuarios", {
         method: "POST",
@@ -101,6 +104,8 @@ export default function AddUserModal({
     } catch (error) {
       console.error("Erro na requisição POST:", error);
       alert("Erro de conexão ao criar usuário.");
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -262,20 +267,26 @@ export default function AddUserModal({
             </label>
           </div>
 
-          {/* Botões de Ação */}
+          {/* Botões de ação */}
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
               className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
+              className={`${
+                salvando
+                  ? "bg-[#2196F3]/50 cursor-not-allowed"
+                  : "bg-[#2196F3] hover:bg-[#2196F3]/75"
+              } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
             >
-              Salvar
+              {salvando ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </form>

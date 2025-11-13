@@ -31,6 +31,7 @@ export default function AddLancamentoModal({
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [salvando, setSalvando] = useState(false);
 
   async function carregarCategorias() {
     try {
@@ -90,6 +91,8 @@ export default function AddLancamentoModal({
       return;
     }
 
+    setSalvando(true);
+
     try {
       const res = await fetch("/api/auth/lancamentos", {
         method: "POST",
@@ -107,6 +110,8 @@ export default function AddLancamentoModal({
     } catch (error) {
       console.error(error);
       alert("Erro de conexão ao criar lançamento.");
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -234,14 +239,20 @@ export default function AddLancamentoModal({
               type="button"
               onClick={onClose}
               className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
+              className={`${
+                salvando
+                  ? "bg-[#2196F3]/50 cursor-not-allowed"
+                  : "bg-[#2196F3] hover:bg-[#2196F3]/75"
+              } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
             >
-              Salvar
+              {salvando ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </form>

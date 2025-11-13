@@ -20,6 +20,7 @@ export default function AddEmpresaModal({
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [salvando, setSalvando] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,6 +44,8 @@ export default function AddEmpresaModal({
       return;
     }
 
+    setSalvando(true);
+
     try {
       const res = await fetch("/api/auth/empresas", {
         method: "POST",
@@ -60,6 +63,8 @@ export default function AddEmpresaModal({
     } catch (error) {
       console.error(error);
       alert("Erro de conexão ao criar empresa.");
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -127,20 +132,26 @@ export default function AddEmpresaModal({
             )}
           </div>
 
-          {/* Botões de Ação */}
+          {/* Botões de ação */}
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
               className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+              disabled={salvando}
+              className={`${
+                salvando
+                  ? "bg-[#2196F3]/50 cursor-not-allowed"
+                  : "bg-[#2196F3] hover:bg-[#2196F3]/75"
+              } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
             >
-              Salvar
+              {salvando ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </form>
