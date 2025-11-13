@@ -66,7 +66,6 @@ export default function EditUserModal({
       setEmail("");
       setEmpresaIdSelecionada("");
       setTipoUsuarioSelecionado("");
-
       carregarEmpresas();
       setLoading(true);
       const fetchUser = async () => {
@@ -253,12 +252,12 @@ export default function EditUserModal({
                   value={empresaIdSelecionada}
                   onChange={(e) => setEmpresaIdSelecionada(e.target.value)}
                   disabled={loadingEmpresas || empresas.length === 0}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none appearance-none cursor-pointer
-      ${
-        loadingEmpresas || empresas.length === 0
-          ? "opacity-60 cursor-not-allowed border-gray-800"
-          : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-      }`}
+                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border transition-all duration-200 outline-none cursor-pointer
+                    ${
+                      loadingEmpresas || empresas.length === 0
+                        ? "opacity-60 cursor-not-allowed border-gray-800"
+                        : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                    }`}
                 >
                   <option value="" disabled hidden={!!empresaIdSelecionada}>
                     {loadingEmpresas
@@ -288,7 +287,7 @@ export default function EditUserModal({
                   id="tipo_usuario"
                   value={tipoUsuarioSelecionado}
                   onChange={(e) => setTipoUsuarioSelecionado(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border border-gray-700 transition-all duration-200 outline-none appearance-none cursor-pointer hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                  className="w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl border border-gray-700 transition-all duration-200 outline-none cursor-pointer hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                 >
                   <option value="" disabled>
                     Selecione o tipo de usuário

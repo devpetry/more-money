@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { LancamentoSchema, TLancamentoSchema } from "@/schemas/auth";
 import { NumericFormat } from "react-number-format";
 import InputData from "./ui/InputData";
+import { Plus } from "lucide-react";
+import AddCategoriaModal from "./AddCategoriaModal";
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
@@ -32,6 +34,7 @@ export default function AddLancamentoModal({
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [salvando, setSalvando] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   async function carregarCategorias() {
     try {
@@ -129,134 +132,156 @@ export default function AddLancamentoModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
-      <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md shadow-2xl text-white">
-        {/* Cabeçalho */}
-        <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-          <h2 className="text-xl font-semibold text-[#E0E0E0]">
-            Novo Lançamento
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl"
-            aria-label="Fechar Modal"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Formulário */}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              htmlFor="descricao"
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-            >
-              Descrição
-            </label>
-            <input
-              id="descricao"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                errors.descricao
-                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-              }`}
-            />
-            {errors.descricao && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.descricao}</p>
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="valor"
-              className="block text-sm font-medium mb-1 text-[#E0E0E0]"
-            >
-              Valor (R$)
-            </label>
-            <NumericFormat
-              id="valor"
-              value={valor}
-              onValueChange={(values) => setValor(values.formattedValue)}
-              thousandSeparator="."
-              decimalSeparator=","
-              prefix="R$ "
-              decimalScale={2}
-              fixedDecimalScale
-              allowNegative={false}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                errors.valor
-                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-              }`}
-            />
-            {errors.valor && (
-              <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
-            )}
-          </div>
-          <div className="mb-4">
-            <InputData
-              label="Data de Pagamento"
-              value={data}
-              onChange={(iso) => setData(iso)}
-              error={errors.data}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1 text-[#E0E0E0]">
-              Categoria
-            </label>
-            <select
-              id="categoria_id"
-              value={categoriaId}
-              onChange={(e) => setCategoriaId(e.target.value)}
-              className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                errors.categoria_id
-                  ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                  : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
-              }`}
-            >
-              <option value="" disabled>
-                Selecione uma categoria
-              </option>
-              {categorias.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.nome} ({c.tipo})
-                </option>
-              ))}
-            </select>
-            {errors.categoria_id && (
-              <p className="text-[#FF5252] text-xs mt-1">
-                {errors.categoria_id}
-              </p>
-            )}
-          </div>
-
-          {/* Botões de ação */}
-          <div className="flex justify-end space-x-3">
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+        <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md shadow-2xl text-white">
+          {/* Cabeçalho */}
+          <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+            <h2 className="text-xl font-semibold text-[#E0E0E0]">
+              Novo Lançamento
+            </h2>
             <button
-              type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
-              disabled={salvando}
+              className="text-gray-400 hover:text-white text-2xl"
+              aria-label="Fechar Modal"
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={salvando}
-              className={`${
-                salvando
-                  ? "bg-[#2196F3]/50 cursor-not-allowed"
-                  : "bg-[#2196F3] hover:bg-[#2196F3]/75"
-              } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
-            >
-              {salvando ? "Salvando..." : "Salvar"}
+              &times;
             </button>
           </div>
-        </form>
+
+          {/* Formulário */}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label
+                htmlFor="descricao"
+                className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              >
+                Descrição
+              </label>
+              <input
+                id="descricao"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  errors.descricao
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                }`}
+              />
+              {errors.descricao && (
+                <p className="text-[#FF5252] text-xs mt-1">
+                  {errors.descricao}
+                </p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="valor"
+                className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+              >
+                Valor (R$)
+              </label>
+              <NumericFormat
+                id="valor"
+                value={valor}
+                onValueChange={(values) => setValor(values.formattedValue)}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                decimalScale={2}
+                fixedDecimalScale
+                allowNegative={false}
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  errors.valor
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                }`}
+              />
+              {errors.valor && (
+                <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
+              )}
+            </div>
+            <div className="mb-4">
+              <InputData
+                label="Data de Pagamento"
+                value={data}
+                onChange={(iso) => setData(iso)}
+                error={errors.data}
+              />
+            </div>
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-[#E0E0E0]">
+                  Categoria
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="p-1 rounded-xl border border-gray-700 text-[#E0E0E0] transition-all duration-200
+                  hover:border-[#2196F3]/50 hover:ring-1 hover:ring-[#2196F3]/30
+                  focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                >
+                  <Plus size={12} />
+                </button>
+              </div>
+              <select
+                id="categoria_id"
+                value={categoriaId}
+                onChange={(e) => setCategoriaId(e.target.value)}
+                className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  errors.categoria_id
+                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
+                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
+                }`}
+              >
+                <option value="" disabled>
+                  Selecione uma categoria
+                </option>
+                {categorias.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    {c.nome} ({c.tipo})
+                  </option>
+                ))}
+              </select>
+              {errors.categoria_id && (
+                <p className="text-[#FF5252] text-xs mt-1">
+                  {errors.categoria_id}
+                </p>
+              )}
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
+                disabled={salvando}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={salvando}
+                className={`${
+                  salvando
+                    ? "bg-[#2196F3]/50 cursor-not-allowed"
+                    : "bg-[#2196F3] hover:bg-[#2196F3]/75"
+                } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
+              >
+                {salvando ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      {/* MODAL DE ADIÇÃO DE CATEGORIA */}
+      <AddCategoriaModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onCategoriaAdded={carregarCategorias}
+      />
+    </>
   );
 }
