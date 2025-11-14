@@ -6,103 +6,91 @@ import { EmpresaSchema, TEmpresaSchema } from "@/schemas/auth";
 
 type FormErrors = Partial<TEmpresaSchema>;
 
-interface EditUserModalProps {
+interface ModalEmpresaProps {
   isOpen: boolean;
   onClose: () => void;
-  onEmpresaUpdated: () => void;
-  empresaId: number | null;
+  onSuccess: () => void;
+  mode: "create" | "edit";
+  empresaId?: number | null;
 }
 
-export default function EditEmpresaModal({
+export default function ModalEmpresa({
   isOpen,
   onClose,
-  onEmpresaUpdated,
+  onSuccess,
+  mode,
   empresaId,
-}: EditUserModalProps) {
+}: ModalEmpresaProps) {
   const [nome, setNome] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
+  // Carrega dados se for edição
   useEffect(() => {
-    if (isOpen && empresaId) {
+    if (mode === "edit" && isOpen && empresaId) {
       setLoading(true);
-      const fetchEmpresa = async () => {
-        try {
-          const res = await fetch(`/api/auth/empresas/${empresaId}`);
-          if (res.ok) {
-            const data = await res.json();
-            setNome(data.nome || "");
-            setCnpj(data.cnpj || "");
-          } else {
-            console.error("Erro ao carregar empresa:", res.statusText);
-            alert("Erro ao carregar informações da empresa.");
-            onClose();
-          }
-        } catch (error) {
-          console.error("Erro na requisição GET:", error);
-          alert("Falha ao carregar empresa.");
-          onClose();
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchEmpresa();
+      fetch(`/api/auth/empresas/${empresaId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setNome(data.nome || "");
+          setCnpj(data.cnpj || "");
+        })
+        .catch(() => alert("Erro ao carregar dados da empresa."))
+        .finally(() => setLoading(false));
     } else if (!isOpen) {
+      setNome("");
+      setCnpj("");
       setErrors({});
     }
-  }, [isOpen, empresaId, onClose]);
+  }, [isOpen, empresaId, mode]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      nome: formData.get("nome"),
-      cnpj: formData.get("cnpj"),
-    };
-
+    const data = { nome, cnpj };
     const validation = EmpresaSchema.safeParse(data);
 
     if (!validation.success) {
       const fieldErrors: FormErrors = {};
-      for (const issue of validation.error.issues) {
-        const key = issue.path[0] as keyof FormErrors;
-        fieldErrors[key] = issue.message;
-      }
+      validation.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as keyof FormErrors] = issue.message;
+      });
       setErrors(fieldErrors);
       return;
     }
 
-    if (!empresaId) return;
-
     setSalvando(true);
+
     try {
-      const res = await fetch(`/api/auth/empresas/${empresaId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, cnpj }),
-      });
+      const res = await fetch(
+        mode === "create"
+          ? "/api/auth/empresas"
+          : `/api/auth/empresas/${empresaId}`,
+        {
+          method: mode === "create" ? "POST" : "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (res.ok) {
-        onEmpresaUpdated();
+        onSuccess();
         onClose();
       } else {
         const errorData = await res.json();
-        console.error("Erro ao atualizar empresa:", errorData);
-        alert(`Erro ao atualizar: ${errorData.error || res.statusText}`);
+        alert(`Erro: ${errorData.error || res.statusText}`);
       }
-    } catch (error) {
-      console.error("Erro na requisição PUT:", error);
-      alert("Erro de conexão ao atualizar empresa.");
+    } catch {
+      alert("Erro de conexão.");
     } finally {
       setSalvando(false);
     }
   };
 
-  if (!isOpen || !empresaId) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
@@ -115,7 +103,7 @@ export default function EditEmpresaModal({
           <>
             <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
               <h2 className="text-xl font-semibold text-[#E0E0E0]">
-                Editar Empresa
+                {mode === "create" ? "Nova Empresa" : "Editar Empresa"}
               </h2>
               <button
                 onClick={onClose}
@@ -129,18 +117,17 @@ export default function EditEmpresaModal({
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                   htmlFor="nome"
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                 >
                   Nome
                 </label>
                 <input
                   id="nome"
-                  name="nome"
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  className={`modal-input w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.nome
                       ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
                       : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
@@ -157,7 +144,7 @@ export default function EditEmpresaModal({
                   label="CNPJ"
                   value={cnpj}
                   onChange={(e) => setCnpj(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  className={`modal-input w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.cnpj
                       ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
                       : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
@@ -172,11 +159,12 @@ export default function EditEmpresaModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl disabled:opacity-50"
+                  className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold py-2 px-4 rounded-xl"
                   disabled={salvando}
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
                   disabled={salvando}
@@ -186,7 +174,11 @@ export default function EditEmpresaModal({
                       : "bg-[#2196F3] hover:bg-[#2196F3]/75"
                   } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
                 >
-                  {salvando ? "Salvando..." : "Salvar"}
+                  {salvando
+                    ? "Salvando..."
+                    : mode === "create"
+                      ? "Salvar"
+                      : "Atualizar"}
                 </button>
               </div>
             </form>

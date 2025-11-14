@@ -57,7 +57,7 @@ export const EmpresaSchema = z.object({
   cnpj: z
     .string()
     .nonempty("O CNPJ é obrigatório.")
-    .min(18, "O CNPJ deve ter pelo menos 14 caracteres."),
+    .min(14, "O CNPJ deve ter pelo menos 14 caracteres."),
 });
 
 export type TEmpresaSchema = z.infer<typeof EmpresaSchema>;
@@ -78,6 +78,8 @@ export const UsuarioSchema = z.object({
     .string()
     .nonempty("A senha é obrigatória.")
     .min(6, "A senha deve ter pelo menos 6 caracteres."),
+  tipo_usuario: z.string(),
+  emresa_id: z.string().optional(),
 });
 
 export type TUsuarioSchema = z.infer<typeof UsuarioSchema>;
@@ -94,6 +96,8 @@ export const UsuarioEditSchema = z.object({
     .nonempty("O e-mail é obrigatório.")
     .trim()
     .email("Digite um e-mail válido."),
+  tipo_usuario: z.string().optional(),
+  emresa_id: z.string().optional(),
 });
 
 export type TUsuarioEditSchema = z.infer<typeof UsuarioEditSchema>;

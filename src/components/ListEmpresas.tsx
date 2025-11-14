@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AddEmpresaModal from "./AddEmpresaModal";
-import EditEmpresaModal from "./EditEmpresaModal";
+import ModalEmpresa from "./ModalEmpresa";
 import { Edit, Plus, Trash2 } from "lucide-react";
 
 interface Empresa {
@@ -29,36 +28,55 @@ export default function ListEmpresas() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [empresaSelecionada, setEmpresaSelecionada] = useState<number | null>(
     null
   );
 
   async function carregarEmpresas() {
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/empresas");
-      const text = await res.text();
-      const data = JSON.parse(text);
-      setEmpresas(data);
+
+      if (!res.ok) {
+        console.error("Erro na requisição:", res.status, await res.text());
+        alert("Falha ao carregar lista de empresas.");
+        setEmpresas([]);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setEmpresas(data);
+      } else {
+        console.error("Formato inesperado de resposta:", data);
+        setEmpresas([]);
+      }
     } catch (e) {
       console.error("Erro ao carregar empresas:", e);
       alert("Falha ao carregar lista de empresas.");
+      setEmpresas([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function editarEmpresa(id: number) {
     setEmpresaSelecionada(id);
-    setIsEditModalOpen(true);
+    setModalMode("edit");
+    setIsModalOpen(true);
   }
 
   async function deletarEmpresa(id: number) {
     if (!confirm("Tem certeza que deseja excluir esta empresa?")) return;
 
     try {
-      const res = await fetch(`/api/auth/empresas/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/auth/empresas/${id}`, {
+        method: "DELETE",
+      });
 
       if (!res.ok) {
         console.error("Falha ao deletar empresa. Status:", res.status);
@@ -73,6 +91,7 @@ export default function ListEmpresas() {
       alert("Erro de conexão ao tentar excluir a empresa.");
     }
   }
+
   useEffect(() => {
     carregarEmpresas();
   }, []);
@@ -88,8 +107,12 @@ export default function ListEmpresas() {
     <>
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
         <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
+          onClick={() => {
+            setModalMode("create");
+            setEmpresaSelecionada(null);
+            setIsModalOpen(true);
+          }}
+          className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
           <Plus size={16} />
           Adicionar
@@ -142,21 +165,14 @@ export default function ListEmpresas() {
         )}
       </div>
 
-      {/* MODAL DE ADIÇÃO */}
-      <AddEmpresaModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onEmpresaAdded={carregarEmpresas}
-      />
-
-      {/* MODAL DE EDIÇÃO */}
-      <EditEmpresaModal
-        isOpen={isEditModalOpen}
+      <ModalEmpresa
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setIsModalOpen(false);
           setEmpresaSelecionada(null);
         }}
-        onEmpresaUpdated={carregarEmpresas}
+        onSuccess={carregarEmpresas}
+        mode={modalMode}
         empresaId={empresaSelecionada}
       />
     </>

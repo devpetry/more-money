@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AddCategoriaModal from "./AddCategoriaModal";
-import EditCategoriaModal from "./EditCategoriaModal";
+import ModalCategoria from "./ModalCategoria";
 import { Edit, Plus, Trash2 } from "lucide-react";
 
 interface Categoria {
@@ -16,8 +15,8 @@ export default function ListCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<
     number | null
   >(null);
@@ -54,7 +53,8 @@ export default function ListCategorias() {
 
   async function editarCategoria(id: number) {
     setCategoriaSelecionada(id);
-    setIsEditModalOpen(true);
+    setModalMode("edit");
+    setIsModalOpen(true);
   }
 
   async function deletarCategoria(id: number) {
@@ -94,8 +94,12 @@ export default function ListCategorias() {
     <>
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
         <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
+          onClick={() => {
+            setModalMode("create");
+            setCategoriaSelecionada(null);
+            setIsModalOpen(true);
+          }}
+          className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
           <Plus size={16} />
           Adicionar
@@ -146,21 +150,14 @@ export default function ListCategorias() {
         )}
       </div>
 
-      {/* MODAL DE ADIÇÃO */}
-      <AddCategoriaModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onCategoriaAdded={carregarCategorias}
-      />
-
-      {/* MODAL DE EDIÇÃO */}
-      <EditCategoriaModal
-        isOpen={isEditModalOpen}
+      <ModalCategoria
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setIsModalOpen(false);
           setCategoriaSelecionada(null);
         }}
-        onCategoriaUpdated={carregarCategorias}
+        onSuccess={carregarCategorias}
+        mode={modalMode}
         categoriaId={categoriaSelecionada}
       />
     </>
