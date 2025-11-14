@@ -67,17 +67,18 @@ export default function Filtros({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`rounded-xl px-4 py-2 flex items-center transition-all duration-200 border ${
+          className={`rounded-xl px-4 h-10 flex items-center gap-2 transition-all duration-200 border ${
             filtrosAtivos
-              ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05] hover:text-[#0D1117]"
+              ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05]"
               : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
           }`}
         >
           <Filter
-            className={`h-4 w-4 mr-2 transition-colors ${
+            className={`h-4 w-4 transition-colors ${
               filtrosAtivos ? "text-[#0D1117]" : "text-gray-300"
             }`}
           />
+
           {filtrosAtivos ? "Filtrando" : "Filtrar"}
         </Button>
       </PopoverTrigger>

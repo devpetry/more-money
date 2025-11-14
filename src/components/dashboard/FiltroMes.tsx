@@ -31,7 +31,6 @@ export default function FiltroMes({
   const [filtroAberto, setFiltroAberto] = useState(false);
   const [tipoFiltro, setTipoFiltro] = useState<"mes" | "periodo">("mes");
 
-  // Estados para o período personalizado
   const [periodoSelecionado, setPeriodoSelecionado] = useState<{
     inicio?: string;
     fim?: string;
@@ -88,13 +87,13 @@ export default function FiltroMes({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={`rounded-xl px-4 py-2 flex items-center transition-all duration-200 border ${
+            className={`rounded-xl px-4 h-10 flex items-center gap-2 transition-all duration-200 border ${
               estaFiltrando
                 ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05] hover:text-[#0D1117]"
                 : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
             }`}
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4" />
             {estaFiltrando ? "Filtrando" : "Filtrar"}
           </Button>
         </PopoverTrigger>
