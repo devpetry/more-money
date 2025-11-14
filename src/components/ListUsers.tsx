@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AddUserModal from "./AddUserModal";
-import EditUserModal from "./EditUserModal";
+import ModalUser from "./ModalUser";
 import { Edit, Plus, Trash2 } from "lucide-react";
 
 interface Usuario {
@@ -13,6 +12,7 @@ interface Usuario {
   tipo_usuario: string;
   criado_em: string;
 }
+
 interface Empresa {
   id: number;
   nome: string;
@@ -23,53 +23,82 @@ export default function ListUsers() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(
     null
   );
 
   async function carregarEmpresas() {
-    setLoading(true);
     try {
       const res = await fetch("/api/auth/empresas");
-      const text = await res.text();
-      const data = JSON.parse(text);
-      setEmpresas(data);
-    } catch (e) {
-      console.error("Erro ao carregar empresas:", e);
-      alert("Falha ao carregar lista de empresas.");
+
+      if (!res.ok) {
+        console.error("Erro ao carregar empresas:", res.status);
+        alert("Falha ao carregar lista de empresas.");
+        setEmpresas([]);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) setEmpresas(data);
+      else {
+        console.error("Formato inesperado:", data);
+        setEmpresas([]);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar empresas:", error);
+      alert("Erro ao carregar empresas.");
+      setEmpresas([]);
     }
-    setLoading(false);
   }
 
   async function carregarUsuarios() {
-    setLoading(true);
     try {
+      setLoading(true);
+
       const res = await fetch("/api/auth/usuarios");
-      const text = await res.text();
-      const data = JSON.parse(text);
-      setUsuarios(data);
-    } catch (e) {
-      console.error("Erro ao carregar usuários:", e);
-      alert("Falha ao carregar lista de usuários.");
+
+      if (!res.ok) {
+        console.error("Erro ao carregar usuários:", res.status);
+        alert("Falha ao carregar usuários.");
+        setUsuarios([]);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) setUsuarios(data);
+      else {
+        console.error("Formato inesperado:", data);
+        setUsuarios([]);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+      alert("Erro ao carregar lista de usuários.");
+      setUsuarios([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function editarUsuario(id: number) {
     setUsuarioSelecionado(id);
-    setIsEditModalOpen(true);
+    setModalMode("edit");
+    setIsModalOpen(true);
   }
 
   async function deletarUsuario(id: number) {
     if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
 
     try {
-      const res = await fetch(`/api/auth/usuarios/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/auth/usuarios/${id}`, {
+        method: "DELETE",
+      });
 
       if (!res.ok) {
-        console.error("Falha ao deletar usuário. Status:", res.status);
+        console.error("Falha ao deletar usuário:", res.status);
         alert("Não foi possível remover o usuário.");
       } else {
         alert("Usuário removido com sucesso!");
@@ -77,10 +106,11 @@ export default function ListUsers() {
 
       carregarUsuarios();
     } catch (error) {
-      console.error("Erro na requisição DELETE:", error);
-      alert("Erro de conexão ao tentar excluir o usuário.");
+      console.error("Erro ao excluir:", error);
+      alert("Erro de conexão ao excluir o usuário.");
     }
   }
+
   useEffect(() => {
     carregarUsuarios();
     carregarEmpresas();
@@ -97,14 +127,18 @@ export default function ListUsers() {
     <>
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => {
+            setModalMode("create");
+            setUsuarioSelecionado(null);
+            setIsModalOpen(true);
+          }}
           className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
           <Plus size={16} />
           Adicionar
         </button>
 
-        {/* Tabela de usuários */}
+        {/* Tabela */}
         <table className="w-full text-center border-collapse mt-6">
           <thead>
             <tr className="border-b border-gray-700 text-[#E0E0E0]">
@@ -119,7 +153,6 @@ export default function ListUsers() {
           <tbody>
             {usuarios.map((u) => {
               const empresa = empresas.find((e) => e.id === u.empresa_id);
-              const nomeDaEmpresa = empresa ? empresa.nome : "N/A";
 
               return (
                 <tr
@@ -129,8 +162,11 @@ export default function ListUsers() {
                   <td className="px-3 py-2">{u.id}</td>
                   <td className="px-3 py-2">{u.nome}</td>
                   <td className="px-3 py-2">{u.email}</td>
-                  <td className="px-3 py-2">{nomeDaEmpresa}</td>
-                  <td className="px-3 py-2">{u.tipo_usuario}</td>
+                  <td className="px-3 py-2">
+                    {empresa ? empresa.nome : "N/A"}
+                  </td>
+                  <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
+
                   <td className="px-3 py-2 text-center">
                     <button
                       onClick={() => editarUsuario(u.id)}
@@ -139,6 +175,7 @@ export default function ListUsers() {
                     >
                       <Edit size={18} />
                     </button>
+
                     <button
                       onClick={() => deletarUsuario(u.id)}
                       className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
@@ -160,21 +197,14 @@ export default function ListUsers() {
         )}
       </div>
 
-      {/* MODAL DE ADIÇÃO */}
-      <AddUserModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onUserAdded={carregarUsuarios}
-      />
-
-      {/* MODAL DE EDIÇÃO */}
-      <EditUserModal
-        isOpen={isEditModalOpen}
+      <ModalUser
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setIsModalOpen(false);
           setUsuarioSelecionado(null);
         }}
-        onUserUpdated={carregarUsuarios}
+        onSuccess={carregarUsuarios}
+        mode={modalMode}
         userId={usuarioSelecionado}
       />
     </>

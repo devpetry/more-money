@@ -3,8 +3,7 @@
 import BarraPesquisa from "./lancamentos/BarraPesquisa";
 import Filtros from "./lancamentos/Filtros";
 import { useEffect, useState } from "react";
-import AddLancamentoModal from "./AddLancamentoModal";
-import EditLancamentoModal from "./EditLancamentoModal";
+import ModalLancamento from "./ModalLancamento";
 import { Edit, Plus, Trash2 } from "lucide-react";
 
 interface Lancamento {
@@ -21,11 +20,12 @@ export default function ListLancamentos() {
   const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [lancamentoSelecionado, setLancamentoSelecionado] = useState<
     number | null
   >(null);
+
   const [termo, setTermo] = useState("");
   const [tipo, setTipo] = useState<string>();
   const [categoria, setCategoria] = useState<string>();
@@ -73,9 +73,10 @@ export default function ListLancamentos() {
     }
   }
 
-  async function editarLancamento(id: number) {
+  function editarLancamento(id: number) {
     setLancamentoSelecionado(id);
-    setIsEditModalOpen(true);
+    setModalMode("edit");
+    setIsModalOpen(true);
   }
 
   async function deletarLancamento(id: number) {
@@ -115,7 +116,11 @@ export default function ListLancamentos() {
     <>
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => {
+            setModalMode("create");
+            setLancamentoSelecionado(null);
+            setIsModalOpen(true);
+          }}
           className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
           <Plus size={16} />
@@ -130,7 +135,7 @@ export default function ListLancamentos() {
             categoria={categoria}
             setTipo={setTipo}
             setCategoria={setCategoria}
-            aplicarFiltros={() => console.log("Filtros aplicados")}
+            aplicarFiltros={() => {}}
             limparFiltros={() => {
               setTipo(undefined);
               setCategoria(undefined);
@@ -157,6 +162,7 @@ export default function ListLancamentos() {
                 className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
               >
                 <td className="px-3 py-2">{l.descricao}</td>
+
                 <td className="px-3 py-2">
                   {l.tipo === "despesa" ? (
                     <span className="text-[#FF5252]">
@@ -168,11 +174,15 @@ export default function ListLancamentos() {
                     </span>
                   )}
                 </td>
+
                 <td className="px-3 py-2 capitalize">{l.tipo}</td>
+
                 <td className="px-3 py-2">
                   {l.data.slice(0, 10).split("-").reverse().join("/")}
                 </td>
+
                 <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
+
                 <td className="px-3 py-2 text-center">
                   <button
                     onClick={() => editarLancamento(l.id)}
@@ -181,6 +191,7 @@ export default function ListLancamentos() {
                   >
                     <Edit size={18} />
                   </button>
+
                   <button
                     onClick={() => deletarLancamento(l.id)}
                     className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
@@ -201,21 +212,14 @@ export default function ListLancamentos() {
         )}
       </div>
 
-      {/* MODAL DE ADIÇÃO */}
-      <AddLancamentoModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onLancamentoAdded={carregarLancamentos}
-      />
-
-      {/* MODAL DE EDIÇÃO */}
-      <EditLancamentoModal
-        isOpen={isEditModalOpen}
+      <ModalLancamento
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setIsModalOpen(false);
           setLancamentoSelecionado(null);
         }}
-        onLancamentoUpdated={carregarLancamentos}
+        onSuccess={carregarLancamentos}
+        mode={modalMode}
         lancamentoId={lancamentoSelecionado}
       />
     </>

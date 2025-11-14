@@ -17,7 +17,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
-import AddLancamentoModal from "./AddLancamentoModal";
+import ModalLancamento from "./ModalLancamento";
 
 interface EvolucaoMensal {
   mes: string;
@@ -58,7 +58,7 @@ interface DashboardData {
 export default function Dashboard() {
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalLancamentoOpen, setIsModalLancamentoOpen] = useState(false);
   const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
   const [periodoPersonalizado, setPeriodoPersonalizado] = useState<
     { inicio: string; fim: string } | undefined
@@ -137,11 +137,11 @@ export default function Dashboard() {
         </p>
 
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => setIsModalLancamentoOpen(true)}
           className="fixed bottom-5 right-5 flex items-center gap-2 bg-[#2196F3] text-[#0D1117] font-medium py-2 px-4 rounded-xl shadow-md hover:bg-[#2196F3]/80 transition"
         >
           <Plus size={16} className="text-[#0D1117]" />
-          {isAddModalOpen ? "Adicionando..." : "Novo Lançamento"}
+          {isModalLancamentoOpen ? "Adicionando..." : "Novo Lançamento"}
         </button>
 
         {/* Cards de Resumo */}
@@ -360,11 +360,13 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
-      {/* MODAL DE ADIÇÃO */}
-      <AddLancamentoModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onLancamentoAdded={() => carregarDashboard()}
+      
+      <ModalLancamento
+        isOpen={isModalLancamentoOpen}
+        onClose={() => setIsModalLancamentoOpen(false)}
+        onSuccess={() => carregarDashboard()}
+        mode="create"
+        lancamentoId={null}
       />
     </>
   );

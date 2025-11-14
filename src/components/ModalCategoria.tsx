@@ -1,121 +1,107 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import CnpjInput from "./CnpjInput";
-import { EmpresaSchema, TEmpresaSchema } from "@/schemas/auth";
+import { CategoriaSchema, TCategoriaSchema } from "@/schemas/auth";
 
-type FormErrors = Partial<TEmpresaSchema>;
+type FormErrors = Partial<TCategoriaSchema>;
 
-interface EditUserModalProps {
+interface ModalCategoriaProps {
   isOpen: boolean;
   onClose: () => void;
-  onEmpresaUpdated: () => void;
-  empresaId: number | null;
+  onSuccess: () => void;
+  mode: "create" | "edit";
+  categoriaId?: number | null;
 }
 
-export default function EditEmpresaModal({
+export default function ModalCategoria({
   isOpen,
   onClose,
-  onEmpresaUpdated,
-  empresaId,
-}: EditUserModalProps) {
+  onSuccess,
+  mode,
+  categoriaId,
+}: ModalCategoriaProps) {
   const [nome, setNome] = useState("");
-  const [cnpj, setCnpj] = useState("");
+  const [tipo, setTipo] = useState<"receita" | "despesa" | "">("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
+  // Carrega dados se for edição
   useEffect(() => {
-    if (isOpen && empresaId) {
+    if (mode === "edit" && isOpen && categoriaId) {
       setLoading(true);
-      const fetchEmpresa = async () => {
-        try {
-          const res = await fetch(`/api/auth/empresas/${empresaId}`);
-          if (res.ok) {
-            const data = await res.json();
-            setNome(data.nome || "");
-            setCnpj(data.cnpj || "");
-          } else {
-            console.error("Erro ao carregar empresa:", res.statusText);
-            alert("Erro ao carregar informações da empresa.");
-            onClose();
-          }
-        } catch (error) {
-          console.error("Erro na requisição GET:", error);
-          alert("Falha ao carregar empresa.");
-          onClose();
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchEmpresa();
+      fetch(`/api/auth/categorias/${categoriaId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setNome(data.nome || "");
+          setTipo(data.tipo || "");
+        })
+        .catch(() => alert("Erro ao carregar categoria."))
+        .finally(() => setLoading(false));
     } else if (!isOpen) {
+      setNome("");
+      setTipo("");
       setErrors({});
     }
-  }, [isOpen, empresaId, onClose]);
+  }, [isOpen, categoriaId, mode]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      nome: formData.get("nome"),
-      cnpj: formData.get("cnpj"),
-    };
-
-    const validation = EmpresaSchema.safeParse(data);
-
+    const data = { nome, tipo };
+    const validation = CategoriaSchema.safeParse(data);
     if (!validation.success) {
       const fieldErrors: FormErrors = {};
-      for (const issue of validation.error.issues) {
-        const key = issue.path[0] as keyof FormErrors;
-        fieldErrors[key] = issue.message;
-      }
+      validation.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as keyof FormErrors] = issue.message;
+      });
       setErrors(fieldErrors);
       return;
     }
 
-    if (!empresaId) return;
-
     setSalvando(true);
+
     try {
-      const res = await fetch(`/api/auth/empresas/${empresaId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, cnpj }),
-      });
+      const res = await fetch(
+        mode === "create"
+          ? "/api/auth/categorias"
+          : `/api/auth/categorias/${categoriaId}`,
+        {
+          method: mode === "create" ? "POST" : "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (res.ok) {
-        onEmpresaUpdated();
+        onSuccess();
         onClose();
       } else {
         const errorData = await res.json();
-        console.error("Erro ao atualizar empresa:", errorData);
-        alert(`Erro ao atualizar: ${errorData.error || res.statusText}`);
+        alert(`Erro: ${errorData.error || res.statusText}`);
       }
-    } catch (error) {
-      console.error("Erro na requisição PUT:", error);
-      alert("Erro de conexão ao atualizar empresa.");
+    } catch {
+      alert("Erro de conexão.");
     } finally {
       setSalvando(false);
     }
   };
 
-  if (!isOpen || !empresaId) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
       <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md shadow-2xl text-white relative">
         {loading ? (
           <p className="text-center text-[#E0E0E0] py-8">
-            Carregando dados da empresa...
+            Carregando dados da categoria...
           </p>
         ) : (
           <>
             <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
               <h2 className="text-xl font-semibold text-[#E0E0E0]">
-                Editar Empresa
+                {mode === "create" ? "Nova Categoria" : "Editar Categoria"}
               </h2>
               <button
                 onClick={onClose}
@@ -129,18 +115,17 @@ export default function EditEmpresaModal({
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                   htmlFor="nome"
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
                 >
                   Nome
                 </label>
                 <input
                   id="nome"
-                  name="nome"
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                  className={`modal-input w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
                     errors.nome
                       ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
                       : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
@@ -152,23 +137,35 @@ export default function EditEmpresaModal({
               </div>
 
               <div className="mb-4">
-                <CnpjInput
-                  name="cnpj"
-                  label="CNPJ"
-                  value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
-                  className={`w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
-                    errors.cnpj
+                <label
+                  htmlFor="tipo"
+                  className="block text-sm font-medium mb-1 text-[#E0E0E0]"
+                >
+                  Tipo
+                </label>
+                <select
+                  id="tipo"
+                  value={tipo}
+                  onChange={(e) =>
+                    setTipo(e.target.value as "receita" | "despesa" | "")
+                  }
+                  className={`modal-input w-full px-4 py-2 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 ${
+                    errors.tipo
                       ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
                       : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30"
                   }`}
-                />
-                {errors.cnpj && (
-                  <p className="text-[#FF5252] text-xs mt-1">{errors.cnpj}</p>
+                >
+                  <option value="" disabled>
+                    Selecione o tipo de categoria
+                  </option>
+                  <option value="receita">Receita</option>
+                  <option value="despesa">Despesa</option>
+                </select>
+                {errors.tipo && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
                 )}
               </div>
 
-              {/* Botões de ação */}
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
@@ -178,6 +175,7 @@ export default function EditEmpresaModal({
                 >
                   Cancelar
                 </button>
+                
                 <button
                   type="submit"
                   disabled={salvando}
@@ -187,7 +185,11 @@ export default function EditEmpresaModal({
                       : "bg-[#2196F3] hover:bg-[#2196F3]/75"
                   } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
                 >
-                  {salvando ? "Salvando..." : "Salvar"}
+                  {salvando
+                    ? "Salvando..."
+                    : mode === "create"
+                      ? "Salvar"
+                      : "Atualizar"}
                 </button>
               </div>
             </form>
