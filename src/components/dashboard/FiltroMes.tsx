@@ -90,7 +90,7 @@ export default function FiltroMes({
             className={`rounded-xl px-4 h-10 flex items-center gap-2 transition-all duration-200 border ${
               estaFiltrando
                 ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05] hover:text-[#0D1117]"
-                : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
+                : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:border-[#2196F3]/40"
             }`}
           >
             <Filter className="h-4 w-4" />
@@ -107,7 +107,7 @@ export default function FiltroMes({
             <button
               className={`rounded-xl px-3 py-1 border text-sm transition-all ${
                 tipoFiltro === "mes"
-                  ? "bg-[#1E2633] border-[#2196F3] text-[#E0E0E0]"
+                  ? "bg-[#0D1117] border-[#2196F3] text-[#E0E0E0]"
                   : "bg-[#0D1117] border-gray-700 text-gray-400 hover:border-[#2196F3]/40 hover:text-[#E0E0E0]"
               }`}
               onClick={() => setTipoFiltro("mes")}
@@ -117,7 +117,7 @@ export default function FiltroMes({
             <button
               className={`rounded-xl px-3 py-1 border text-sm transition-all ${
                 tipoFiltro === "periodo"
-                  ? "bg-[#1E2633] border-[#2196F3] text-[#E0E0E0]"
+                  ? "bg-[#0D1117] border-[#2196F3] text-[#E0E0E0]"
                   : "bg-[#0D1117] border-gray-700 text-gray-400 hover:border-[#2196F3]/40 hover:text-[#E0E0E0]"
               }`}
               onClick={() => setTipoFiltro("periodo")}
@@ -229,13 +229,13 @@ export default function FiltroMes({
                 (tipoFiltro === "periodo" &&
                   (!periodoSelecionado.inicio || !periodoSelecionado.fim))
               }
-              className="font-semibold rounded-xl px-4 py-2 bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40 transition-all disabled:text-gray-500 disabled:border-gray-800 disabled:cursor-not-allowed"
+              className="font-semibold rounded-xl px-4 py-2 bg-[#0D1117] hover:bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:border-[#2196F3]/40 transition-all disabled:text-gray-500 disabled:border-gray-800 disabled:cursor-not-allowed"
             >
               Aplicar
             </Button>
             <Button
               onClick={limparFiltro}
-              className="rounded-xl px-4 py-2 bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40 transition-all"
+              className="rounded-xl px-4 py-2 bg-[#0D1117] hover:bg-[#0D1117] border border-gray-700 text-[#E0E0E0] hover:border-[#2196F3]/40 transition-all"
             >
               Limpar
             </Button>

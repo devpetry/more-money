@@ -5,6 +5,7 @@ import Filtros from "./lancamentos/Filtros";
 import { useEffect, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
 import { Edit, Plus, Trash2 } from "lucide-react";
+import PaginacaoMes from "./lancamentos/PaginacaoMensal";
 
 interface Lancamento {
   id: number;
@@ -30,13 +31,26 @@ export default function ListLancamentos() {
   const [tipo, setTipo] = useState<string>();
   const [categoria, setCategoria] = useState<string>();
 
+  const [mesAtual, setMesAtual] = useState(() => {
+    const hoje = new Date();
+    return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  });
+
   const lancamentosFiltrados = lancamentos.filter((l) => {
+    const [ano, mes] = mesAtual.split("-");
+    const lDate = new Date(l.data);
+
+    const mesmoMes =
+      lDate.getMonth() + 1 === Number(mes) &&
+      lDate.getFullYear() === Number(ano);
+
     const busca = termo
       ? l.descricao.toLowerCase().includes(termo.toLowerCase())
       : true;
     const filtraTipo = tipo ? l.tipo === tipo : true;
     const filtraCategoria = categoria ? l.categoria_nome === categoria : true;
-    return busca && filtraTipo && filtraCategoria;
+
+    return mesmoMes && busca && filtraTipo && filtraCategoria;
   });
 
   async function carregarLancamentos() {
@@ -115,32 +129,37 @@ export default function ListLancamentos() {
   return (
     <>
       <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
-        <button
-          onClick={() => {
-            setModalMode("create");
-            setLancamentoSelecionado(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
-        >
-          <Plus size={16} />
-          Adicionar
-        </button>
-
         <div className="flex flex-wrap gap-3 justify-between items-center mb-4 mt-4">
+          <button
+            onClick={() => {
+              setModalMode("create");
+              setLancamentoSelecionado(null);
+              setIsModalOpen(true);
+            }}
+            className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
+          >
+            <Plus size={16} />
+            Adicionar
+          </button>
+        </div>
+
+        <div className="flex flex-wrap justify-between items-center">
           <BarraPesquisa termo={termo} setTermo={setTermo} />
 
-          <Filtros
-            tipo={tipo}
-            categoria={categoria}
-            setTipo={setTipo}
-            setCategoria={setCategoria}
-            aplicarFiltros={() => {}}
-            limparFiltros={() => {
-              setTipo(undefined);
-              setCategoria(undefined);
-            }}
-          />
+          <div className="flex flex-wrap justify-between items-center">
+            <PaginacaoMes mesAtual={mesAtual} onChange={setMesAtual} />
+            <Filtros
+              tipo={tipo}
+              categoria={categoria}
+              setTipo={setTipo}
+              setCategoria={setCategoria}
+              aplicarFiltros={() => {}}
+              limparFiltros={() => {
+                setTipo(undefined);
+                setCategoria(undefined);
+              }}
+            />
+          </div>
         </div>
 
         {/* Tabela de lançamentos */}

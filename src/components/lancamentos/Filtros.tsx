@@ -70,7 +70,7 @@ export default function Filtros({
           className={`rounded-xl px-4 h-10 flex items-center gap-2 transition-all duration-200 border ${
             filtrosAtivos
               ? "bg-[#FFC107] text-[#0D1117] border-[#FFC107] hover:bg-[#e0ac05] hover:border-[#e0ac05]"
-              : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:bg-[#1c2330] hover:border-[#2196F3]/40"
+              : "bg-[#0D1117] border-gray-700 text-[#E0E0E0] hover:border-[#2196F3]/40"
           }`}
         >
           <Filter

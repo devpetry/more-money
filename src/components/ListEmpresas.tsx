@@ -112,7 +112,7 @@ export default function ListEmpresas() {
             setEmpresaSelecionada(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
+          className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
         >
           <Plus size={16} />
           Adicionar
