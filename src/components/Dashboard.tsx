@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
 import ModalLancamento from "./ModalLancamento";
+import { formatDate, formatTimestamp } from "@/lib/date";
 
 interface EvolucaoMensal {
   mes: string;
@@ -338,10 +339,10 @@ export default function Dashboard() {
                         R$ {Number(lanc.valor).toFixed(2)}
                       </td>
                       <td className="py-2">
-                        {new Date(lanc.criado_em).toLocaleDateString("pt-BR")}
+                        {formatTimestamp(lanc.criado_em)}
                       </td>
                       <td className="py-2">
-                        {new Date(lanc.data).toLocaleDateString("pt-BR")}
+                        {formatDate(lanc.data)}
                       </td>
                     </tr>
                   )
