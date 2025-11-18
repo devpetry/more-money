@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import PaginacaoMes from "./lancamentos/PaginacaoMensal";
+import { parseDateOnly } from "@/lib/date";
 
 interface Lancamento {
   id: number;
@@ -38,7 +39,9 @@ export default function ListLancamentos() {
 
   const lancamentosFiltrados = lancamentos.filter((l) => {
     const [ano, mes] = mesAtual.split("-");
-    const lDate = new Date(l.data);
+    const lDate = parseDateOnly(l.data);
+
+    if (!lDate) return false;
 
     const mesmoMes =
       lDate.getMonth() + 1 === Number(mes) &&
