@@ -139,7 +139,7 @@ export default function Dashboard() {
 
         <button
           onClick={() => setIsModalLancamentoOpen(true)}
-          className="fixed bottom-5 right-5 flex items-center gap-2 bg-[#2196F3] text-[#0D1117] font-medium py-2 px-4 rounded-xl shadow-md hover:bg-[#2196F3]/80 transition"
+          className="fixed bottom-5 right-5 flex items-center gap-2 bg-[#2196F3] text-[#0D1117] font-medium py-2 px-4 rounded-xl shadow-md hover:bg-[#2196F3]/80 transition z-40"
         >
           <Plus size={16} className="text-[#0D1117]" />
           {isModalLancamentoOpen ? "Adicionando..." : "Novo Lançamento"}
