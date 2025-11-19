@@ -87,19 +87,21 @@ export default function Dashboard() {
     }
   }
 
-  if (loading)
+  if (loading) {
     return (
       <div className="text-center text-[#E0E0E0] mt-10">
         Carregando dados...
       </div>
     );
+  }
 
-  if (!dados)
+  if (!dados) {
     return (
       <div className="text-center text-[#FF5252] mt-10">
         Erro ao carregar o dashboard.
       </div>
     );
+  }
 
   return (
     <>
@@ -115,11 +117,7 @@ export default function Dashboard() {
 
         <p className="mb-6 text-sm text-gray-500">
           {periodoPersonalizado
-            ? `Período em exibição: ${new Date(
-                `${periodoPersonalizado.inicio}T00:00:00`
-              ).toLocaleDateString("pt-BR")} até ${new Date(
-                `${periodoPersonalizado.fim}T00:00:00`
-              ).toLocaleDateString("pt-BR")}`
+            ? `Período em exibição: ${formatDate(periodoPersonalizado.inicio)} até ${formatDate(periodoPersonalizado.fim)}`
             : mesAplicado
               ? (() => {
                   const ano = mesAplicado.getFullYear();
@@ -145,7 +143,7 @@ export default function Dashboard() {
           {isModalLancamentoOpen ? "Adicionando..." : "Novo Lançamento"}
         </button>
 
-        {/* Cards de Resumo */}
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <div className="flex justify-between items-center">
@@ -186,7 +184,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Gráfico de linha: Evolução Mensal */}
+        {/* Gráfico de Evolução */}
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800 mb-8">
           <h2 className="text-lg font-medium mb-4">Evolução Mensal</h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -215,9 +213,9 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Despesas e Receitas por Categoria */}
+        {/* Categorias */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Despesas por Categoria */}
+          {/* Despesas */}
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
             <table className="w-full text-left border-collapse table-fixed">
@@ -230,22 +228,18 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {dados.despesasPorCategoria.length > 0 ? (
-                  dados.despesasPorCategoria.map(
-                    (item: DespesaCategoria, index: number) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                      >
-                        <td className="py-2 capitalize">{item.categoria}</td>
-                        <td className="py-2 text-center">
-                          {item.quantidade ?? "-"}
-                        </td>
-                        <td className="py-2 text-right">
-                          R$ {Number(item.total).toFixed(2)}
-                        </td>
-                      </tr>
-                    )
-                  )
+                  dados.despesasPorCategoria.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                    >
+                      <td className="py-2 capitalize">{item.categoria}</td>
+                      <td className="py-2 text-center">{item.quantidade}</td>
+                      <td className="py-2 text-right">
+                        R$ {Number(item.total).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
@@ -260,7 +254,7 @@ export default function Dashboard() {
             </table>
           </div>
 
-          {/* Receitas por Categoria */}
+          {/* Receitas */}
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <h2 className="text-lg font-medium mb-4">Receitas por Categoria</h2>
             <table className="w-full text-left border-collapse table-fixed">
@@ -273,22 +267,18 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {dados.receitasPorCategoria.length > 0 ? (
-                  dados.receitasPorCategoria.map(
-                    (item: ReceitaCategoria, index: number) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                      >
-                        <td className="py-2 capitalize">{item.categoria}</td>
-                        <td className="py-2 text-center">
-                          {item.quantidade ?? "-"}
-                        </td>
-                        <td className="py-2 text-right">
-                          R$ {Number(item.total).toFixed(2)}
-                        </td>
-                      </tr>
-                    )
-                  )
+                  dados.receitasPorCategoria.map((item, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                    >
+                      <td className="py-2 capitalize">{item.categoria}</td>
+                      <td className="py-2 text-center">{item.quantidade}</td>
+                      <td className="py-2 text-right">
+                        R$ {Number(item.total).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
@@ -319,38 +309,30 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {dados.ultimosLancamentos.length > 0 ? (
-                dados.ultimosLancamentos.map(
-                  (lanc: Lancamento, index: number) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-800 hover:bg-[#0D1117]"
+                dados.ultimosLancamentos.map((lanc, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-800 hover:bg-[#0D1117]"
+                  >
+                    <td className="py-2">{lanc.descricao}</td>
+                    <td
+                      className={`py-2 capitalize ${
+                        lanc.tipo === "receita"
+                          ? "text-[#2196F3]"
+                          : "text-[#FF5252]"
+                      }`}
                     >
-                      <td className="py-2">{lanc.descricao}</td>
-                      <td
-                        className={`py-2 capitalize ${
-                          lanc.tipo === "receita"
-                            ? "text-[#2196F3]"
-                            : "text-[#FF5252]"
-                        }`}
-                      >
-                        {lanc.tipo}
-                      </td>
-                      <td className="py-2">
-                        R$ {Number(lanc.valor).toFixed(2)}
-                      </td>
-                      <td className="py-2">
-                        {formatTimestamp(lanc.criado_em)}
-                      </td>
-                      <td className="py-2">
-                        {formatDate(lanc.data)}
-                      </td>
-                    </tr>
-                  )
-                )
+                      {lanc.tipo}
+                    </td>
+                    <td className="py-2">R$ {Number(lanc.valor).toFixed(2)}</td>
+                    <td className="py-2">{formatTimestamp(lanc.criado_em)}</td>
+                    <td className="py-2">{formatDate(lanc.data)}</td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="text-center py-4 text-gray-500 text-sm"
                   >
                     Nenhum lançamento encontrado.
@@ -361,7 +343,7 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
-      
+
       <ModalLancamento
         isOpen={isModalLancamentoOpen}
         onClose={() => setIsModalLancamentoOpen(false)}
