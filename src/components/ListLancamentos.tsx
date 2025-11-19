@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import PaginacaoMes from "./lancamentos/PaginacaoMensal";
-import { parseDateOnly } from "@/lib/date";
+import { parseDateOnly, getMonth, getYear } from "@/lib/date";
 
 interface Lancamento {
   id: number;
@@ -39,17 +39,17 @@ export default function ListLancamentos() {
 
   const lancamentosFiltrados = lancamentos.filter((l) => {
     const [ano, mes] = mesAtual.split("-");
-    const lDate = parseDateOnly(l.data);
 
+    const lDate = parseDateOnly(l.data);
     if (!lDate) return false;
 
     const mesmoMes =
-      lDate.getMonth() + 1 === Number(mes) &&
-      lDate.getFullYear() === Number(ano);
+      getMonth(lDate) === Number(mes) && getYear(lDate) === Number(ano);
 
     const busca = termo
       ? l.descricao.toLowerCase().includes(termo.toLowerCase())
       : true;
+
     const filtraTipo = tipo ? l.tipo === tipo : true;
     const filtraCategoria = categoria ? l.categoria_nome === categoria : true;
 
@@ -165,7 +165,6 @@ export default function ListLancamentos() {
           </div>
         </div>
 
-        {/* Tabela de lançamentos */}
         <table className="w-full text-center border-collapse mt-6">
           <thead>
             <tr className="border-b border-gray-700 text-[#E0E0E0]">
@@ -177,6 +176,7 @@ export default function ListLancamentos() {
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>
           </thead>
+
           <tbody>
             {lancamentosFiltrados.map((l) => (
               <tr
@@ -188,11 +188,11 @@ export default function ListLancamentos() {
                 <td className="px-3 py-2">
                   {l.tipo === "despesa" ? (
                     <span className="text-[#FF5252]">
-                      - R$ {Number(l.valor ?? 0).toFixed(2)}
+                      - R$ {Number(l.valor).toFixed(2)}
                     </span>
                   ) : (
                     <span className="text-[#00E676]">
-                      + R$ {Number(l.valor ?? 0).toFixed(2)}
+                      + R$ {Number(l.valor).toFixed(2)}
                     </span>
                   )}
                 </td>
