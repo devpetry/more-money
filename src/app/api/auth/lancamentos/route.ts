@@ -21,9 +21,10 @@ export async function GET() {
     }
 
     const result = await query(
-      `SELECT l.id, l.descricao, l.valor, l.tipo, l.data, 
-              l.categoria_id, c.nome AS categoria_nome, 
-              l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
+      `SELECT l.id, l.descricao, l.valor, l.tipo,
+        TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
+        l.categoria_id, c.nome AS categoria_nome, 
+        l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
        FROM "Lancamentos" l
        LEFT JOIN "Categorias" c ON c.id = l.categoria_id
        WHERE l.usuario_id = $1
