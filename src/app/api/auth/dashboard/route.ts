@@ -110,7 +110,8 @@ export async function GET(req: Request) {
 
     const ultimosLancamentos = await query(
       `
-      SELECT descricao, tipo, valor, criado_em, data
+      SELECT descricao, tipo, valor, criado_em,
+        TO_CHAR(data, 'YYYY-MM-DD') AS data
       FROM "Lancamentos"
       WHERE usuario_id = $1
         AND ($2::date IS NULL OR data >= $2)
