@@ -3,6 +3,15 @@ import { query } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+type CamposAtualizaveis = {
+  descricao?: string;
+  valor?: number;
+  tipo?: "receita" | "despesa";
+  categoria_id?: number | null;
+  data?: string;
+  status?: "pendente" | "pago" | "cancelado" | "agendado" | "atrasado";
+};
+
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
   _req: NextRequest,
@@ -24,7 +33,7 @@ export async function GET(
     }
 
     const result = await query(
-      `SELECT l.id, l.descricao, l.valor, l.tipo, l.data,
+      `SELECT l.id, l.descricao, l.valor, l.tipo, l.status, l.data,
               l.categoria_id, c.nome AS categoria_nome,
               l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
        FROM "Lancamentos" l
@@ -71,67 +80,67 @@ export async function PUT(
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const { descricao, valor, tipo, categoria_id, data } = await req.json();
+    const body = (await req.json()) as Record<string, unknown>;
 
-    if (!descricao || !valor || !tipo || !data) {
+    const camposPermitidos = [
+      "descricao",
+      "valor",
+      "tipo",
+      "categoria_id",
+      "data",
+      "status",
+    ];
+
+    const camposAtualizar: Partial<CamposAtualizaveis> = {};
+
+    for (const key of Object.keys(body)) {
+      if (camposPermitidos.includes(key)) {
+        (camposAtualizar as unknown as Record<string, unknown>)[key] =
+          body[key];
+      }
+    }
+
+    if (Object.keys(camposAtualizar).length === 0) {
       return NextResponse.json(
-        {
-          error:
-            "Campos 'descricao', 'valor', 'tipo' e 'data' são obrigatórios.",
-        },
+        { error: "Nenhum campo válido enviado para atualização." },
         { status: 400 }
       );
     }
 
-    if (isNaN(parseFloat(valor))) {
-      return NextResponse.json(
-        { error: "O campo 'valor' deve ser numérico." },
-        { status: 400 }
-      );
+    if (camposAtualizar.status) {
+      const statusValidos = [
+        "pendente",
+        "pago",
+        "cancelado",
+        "agendado",
+        "atrasado",
+      ];
+
+      if (!statusValidos.includes(camposAtualizar.status)) {
+        return NextResponse.json(
+          { error: "Status inválido." },
+          { status: 400 }
+        );
+      }
     }
 
-    if (!["receita", "despesa"].includes(tipo)) {
-      return NextResponse.json(
-        { error: "O campo 'tipo' deve ser 'receita' ou 'despesa'." },
-        { status: 400 }
-      );
-    }
-
-    const empresaResult = await query(
-      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
-      [usuarioId]
+    const setClauses = Object.keys(camposAtualizar).map(
+      (key, index) => `${key} = $${index + 1}`
     );
 
-    if (empresaResult.length === 0) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado." },
-        { status: 404 }
-      );
-    }
+    const valores = Object.values(camposAtualizar);
 
-    const empresa_id = empresaResult[0].empresa_id || null;
+    setClauses.push(`"atualizado_em" = NOW()`);
 
     const result = await query(
-      `UPDATE "Lancamentos"
-       SET descricao = $1,
-           valor = $2,
-           tipo = $3,
-           data = $4,
-           categoria_id = $5,
-           empresa_id = $6,
-           "atualizado_em" = NOW()
-       WHERE id = $7 AND usuario_id = $8
-       RETURNING id, descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "atualizado_em"`,
-      [
-        descricao,
-        valor,
-        tipo,
-        data,
-        categoria_id || null,
-        empresa_id,
-        lancamentoId,
-        usuarioId,
-      ]
+      `
+      UPDATE "Lancamentos"
+      SET ${setClauses.join(", ")}
+      WHERE id = $${valores.length + 1} 
+        AND usuario_id = $${valores.length + 2}
+      RETURNING *
+    `,
+      [...valores, lancamentoId, usuarioId]
     );
 
     if (result.length === 0) {

@@ -21,8 +21,8 @@ export async function GET() {
     }
 
     const result = await query(
-      `SELECT l.id, l.descricao, l.valor, l.tipo,
-        TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
+      `SELECT l.id, l.descricao, l.valor, l.tipo, l.status,
+       TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
         l.categoria_id, c.nome AS categoria_nome, 
         l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
        FROM "Lancamentos" l
@@ -59,7 +59,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const { descricao, valor, tipo, categoria_id, data } = await req.json();
+    const { descricao, valor, tipo, categoria_id, data, status } =
+      await req.json();
+
+    const statusValidos = [
+      "pendente",
+      "pago",
+      "cancelado",
+      "agendado",
+      "atrasado",
+    ];
+
+    if (status && !statusValidos.includes(status)) {
+      return NextResponse.json({ error: "Status inválido." }, { status: 400 });
+    }
 
     if (!descricao || !valor || !tipo || !data) {
       return NextResponse.json(
@@ -100,13 +113,14 @@ export async function POST(req: Request) {
     const empresa_id = empresaResult[0].empresa_id || null;
 
     const result = await query(
-      `INSERT INTO "Lancamentos" (descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-       RETURNING id, descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "criado_em"`,
+      `INSERT INTO "Lancamentos" (descricao, valor, tipo, status, data, categoria_id, empresa_id, usuario_id, "criado_em", "atualizado_em")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      RETURNING id, descricao, valor, tipo, status, data, categoria_id, empresa_id, usuario_id, "criado_em"`,
       [
         descricao,
         valor,
         tipo,
+        status || "pendente",
         data,
         categoria_id || null,
         empresa_id,

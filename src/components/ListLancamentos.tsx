@@ -2,9 +2,18 @@
 
 import BarraPesquisa from "./lancamentos/BarraPesquisa";
 import Filtros from "./lancamentos/Filtros";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  CalendarClock,
+  CheckCircle,
+  Clock,
+  Edit,
+  Plus,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import PaginacaoMes from "./lancamentos/PaginacaoMensal";
 import { parseDateOnly, getMonth, getYear } from "@/lib/date";
 
@@ -16,6 +25,7 @@ interface Lancamento {
   data: string;
   categoria_nome?: string;
   criado_em: string;
+  status?: "pendente" | "pago" | "cancelado" | "agendado" | "atrasado";
 }
 
 export default function ListLancamentos() {
@@ -56,6 +66,9 @@ export default function ListLancamentos() {
     return mesmoMes && busca && filtraTipo && filtraCategoria;
   });
 
+  const [statusMenuAberto, setStatusMenuAberto] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
   async function carregarLancamentos() {
     setLoading(true);
 
@@ -90,6 +103,38 @@ export default function ListLancamentos() {
     }
   }
 
+  async function alterarStatus(id: number, novoStatus: string) {
+    try {
+      const res = await fetch(`/api/auth/lancamentos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: novoStatus }),
+      });
+
+      if (!res.ok) {
+        alert("Erro ao atualizar status.");
+        return;
+      }
+
+      setStatusMenuAberto(null);
+      carregarLancamentos();
+    } catch (e) {
+      console.error("Erro ao atualizar status:", e);
+    }
+  }
+
+  function StatusIcon({ status }: { status: string }) {
+    const icons = {
+      pendente: <Clock size={18} className="text-[#FFC107]" />,
+      pago: <CheckCircle size={18} className="text-[#00C853]" />,
+      cancelado: <XCircle size={18} className="text-[#FF5252]" />,
+      agendado: <CalendarClock size={18} className="text-[#2196F3]" />,
+      atrasado: <AlertCircle size={18} className="text-orange-400" />,
+    };
+
+    return icons[status as keyof typeof icons] || icons.pendente;
+  }
+
   function editarLancamento(id: number) {
     setLancamentoSelecionado(id);
     setModalMode("edit");
@@ -120,6 +165,20 @@ export default function ListLancamentos() {
 
   useEffect(() => {
     carregarLancamentos();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setStatusMenuAberto(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   if (loading)
@@ -173,6 +232,7 @@ export default function ListLancamentos() {
               <th className="px-3 py-2">Tipo</th>
               <th className="px-3 py-2">Data de Pagamento</th>
               <th className="px-3 py-2">Categoria</th>
+              <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>
           </thead>
@@ -204,6 +264,44 @@ export default function ListLancamentos() {
                 </td>
 
                 <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
+
+                <td className="px-3 py-2 text-center relative">
+                  <button
+                    onClick={() =>
+                      setStatusMenuAberto(
+                        statusMenuAberto === l.id ? null : l.id
+                      )
+                    }
+                    className="p-1 rounded-lg transition"
+                    title={(l.status || "pendente").charAt(0).toUpperCase() + (l.status || "pendente").slice(1)}
+                  >
+                    <StatusIcon status={l.status || "pendente"} />
+                  </button>
+
+                  {statusMenuAberto === l.id && (
+                    <div
+                      ref={menuRef}
+                      className="absolute left-1/2 -translate-x-1/2 mt-2 bg-[#0D1117] border border-gray-700 rounded-lg shadow-lg z-10 rounded-xl"
+                    >
+                      {[
+                        "pendente",
+                        "pago",
+                        "cancelado",
+                        "agendado",
+                        "atrasado",
+                      ].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => alterarStatus(l.id, s)}
+                          className="flex items-center gap-2 px-3 py-2 w-full hover:bg-[#161B22] text-left text-sm text-gray-300 rounded-xl transition"
+                        >
+                          <StatusIcon status={s} />
+                          {s.charAt(0).toUpperCase() + s.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </td>
 
                 <td className="px-3 py-2 text-center">
                   <button
