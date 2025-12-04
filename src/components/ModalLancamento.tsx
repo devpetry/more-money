@@ -40,13 +40,21 @@ export default function ModalLancamento({
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [isModalCategoriaOpen, setIsModalCategoriaOpen] = useState(false);
+  const [tipoSelecionado, setTipoSelecionado] = useState<
+    "receita" | "despesa" | ""
+  >("");
 
-  async function carregarCategorias() {
+  async function carregarCategorias(tipoFiltro?: "receita" | "despesa") {
     try {
       const res = await fetch("/api/auth/categorias");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) setCategorias(data);
+        if (Array.isArray(data))
+          setCategorias(
+            tipoFiltro
+              ? data.filter((c: Categoria) => c.tipo === tipoFiltro)
+              : data
+          );
       }
     } catch (err) {
       console.error("Erro ao carregar categorias:", err);
@@ -99,6 +107,13 @@ export default function ModalLancamento({
       carregarCategorias();
 
       if (mode === "edit") carregarLancamento();
+      if (mode === "edit" && tipo) {
+        setTipoSelecionado(tipo as "receita" | "despesa");
+        carregarCategorias(tipo as "receita" | "despesa");
+      }
+      if (mode === "create") {
+        setTipoSelecionado("");
+      }
     }
   }, [isOpen, mode, lancamentoId, carregarLancamento]);
 
@@ -254,6 +269,55 @@ export default function ModalLancamento({
                   onChange={(iso) => setData(iso)}
                   error={errors.data}
                 />
+              </div>
+              
+              {/* Tipo */}
+              <div className="mb-4">
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm text-[#E0E0E0] whitespace-nowrap">
+                    Tipo
+                  </label>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTipoSelecionado("receita");
+                        setTipo("receita");
+                        setCategoriaId("");
+                        carregarCategorias("receita");
+                      }}
+                      className={`px-3 py-1 rounded-xl border transition ${
+                        tipoSelecionado === "receita"
+                          ? "bg-[#00E676] text-[#161B22] border-[#00E676]"
+                          : "bg-[#0D1117] text-[#E0E0E0] border-gray-700 hover:border-[#00E676]/50"
+                      }`}
+                    >
+                      Receita
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTipoSelecionado("despesa");
+                        setTipo("despesa");
+                        setCategoriaId("");
+                        carregarCategorias("despesa");
+                      }}
+                      className={`px-3 py-1 rounded-xl border transition ${
+                        tipoSelecionado === "despesa"
+                          ? "bg-[#FF5252] text-[#161B22] border-[#FF5252]"
+                          : "bg-[#0D1117] text-[#E0E0E0] border-gray-700 hover:border-[#FF5252]/50"
+                      }`}
+                    >
+                      Despesa
+                    </button>
+                  </div>
+                </div>
+
+                {errors.tipo && (
+                  <p className="text-[#FF5252] text-xs mt-1">{errors.tipo}</p>
+                )}
               </div>
 
               {/* Categoria */}
