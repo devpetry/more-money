@@ -8,7 +8,6 @@ import {
   LogIn,
   LogOut,
   Menu,
-  Settings,
   Tag,
   Users,
   X,
