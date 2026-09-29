@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  BriefcaseBusiness,
   CircleDollarSign,
   ChartNoAxesCombined,
   LogIn,
@@ -68,18 +67,6 @@ export default function SidebarToggle() {
                 >
                   <Users size={16} />
                   Usuários
-                </a>
-              </li>
-            ) : null}
-            {session && tipoUsuario === "ADMIN" ? (
-              <li>
-                <a
-                  href="/lista-empresas"
-                  className="block p-2 rounded-lg text-[#E0E0E0] hover:text-[#64B5F6] hover:bg-[#0D1117] flex items-center gap-1"
-                  onClick={toggleSidebar}
-                >
-                  <BriefcaseBusiness size={16} />
-                  Empresas
                 </a>
               </li>
             ) : null}

@@ -12,7 +12,7 @@ export async function GET(
     const { id } = await context.params;
 
     const rows = await query(
-      `SELECT id, nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em"
+      `SELECT id, nome, tipo, usuario_id, "criado_em", "atualizado_em"
        FROM "Categorias"
        WHERE id = $1`,
       [id]
@@ -63,7 +63,7 @@ export async function PUT(
       );
     }
 
-    const { nome, tipo, empresa_id } = await req.json();
+    const { nome, tipo } = await req.json();
 
     if (!nome || !tipo) {
       return NextResponse.json(
@@ -84,12 +84,11 @@ export async function PUT(
        SET 
          nome = $1,
          tipo = $2,
-         empresa_id = $3,
-         usuario_id = $4,
+         usuario_id = $3,
          "atualizado_em" = NOW()
-       WHERE id = $5
-       RETURNING id, nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em"`,
-      [nome, tipo, empresa_id || null, usuarioId, categoriaId]
+       WHERE id = $4
+       RETURNING id, nome, tipo, usuario_id, "criado_em", "atualizado_em"`,
+      [nome, tipo, usuarioId, categoriaId]
     );
 
     if (rows.length === 0) {

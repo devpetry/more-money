@@ -24,7 +24,7 @@ export async function GET() {
       `SELECT l.id, l.descricao, l.valor, l.tipo,
         TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
         l.categoria_id, c.nome AS categoria_nome, 
-        l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
+        l.usuario_id, l.criado_em, l.atualizado_em
        FROM "Lancamentos" l
        LEFT JOIN "Categorias" c ON c.id = l.categoria_id
        WHERE l.usuario_id = $1
@@ -85,31 +85,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const empresaResult = await query(
-      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
-      [usuarioId]
-    );
-
-    if (empresaResult.length === 0) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado." },
-        { status: 404 }
-      );
-    }
-
-    const empresa_id = empresaResult[0].empresa_id || null;
-
     const result = await query(
-      `INSERT INTO "Lancamentos" (descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-       RETURNING id, descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "criado_em"`,
+      `INSERT INTO "Lancamentos" (descricao, valor, tipo, data, categoria_id, usuario_id, "criado_em", "atualizado_em")
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       RETURNING id, descricao, valor, tipo, data, categoria_id, usuario_id, "criado_em"`,
       [
         descricao,
         valor,
         tipo,
         data,
         categoria_id || null,
-        empresa_id,
         usuarioId,
       ]
     );

@@ -21,7 +21,7 @@ export async function GET() {
     }
 
     const result = await query(
-      `SELECT id, nome, tipo, empresa_id, usuario_id, "criado_em"
+      `SELECT id, nome, tipo, usuario_id, "criado_em"
        FROM "Categorias"
        WHERE usuario_id = $1
        ORDER BY id ASC`,
@@ -70,25 +70,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const empresaResult = await query(
-      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
-      [usuarioId]
-    );
-
-    if (empresaResult.length === 0) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado." },
-        { status: 404 }
-      );
-    }
-
-    const empresa_id = empresaResult[0].empresa_id;
-
     const result = await query(
-      `INSERT INTO "Categorias" (nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, NOW(), NOW())
-       RETURNING id, nome, tipo, empresa_id, usuario_id, "criado_em"`,
-      [nome, tipo, empresa_id || null, usuarioId]
+      `INSERT INTO "Categorias" (nome, tipo, usuario_id, "criado_em", "atualizado_em")
+       VALUES ($1, $2, $3, NOW(), NOW())
+       RETURNING id, nome, tipo, usuario_id, "criado_em"`,
+      [nome, tipo, usuarioId]
     );
 
     return NextResponse.json(result[0], { status: 201 });

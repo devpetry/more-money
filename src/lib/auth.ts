@@ -8,7 +8,6 @@ export type TipoUsuario = "ADMIN" | "GERENTE" | "COLABORADOR";
 export interface ExtendedUser extends DefaultUser {
   id: string;
   tipo_usuario: TipoUsuario;
-  empresa_id: number | null;
 }
 
 declare module "next-auth" {
@@ -21,13 +20,12 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     tipo_usuario: TipoUsuario;
-    empresa_id: number | null;
   }
 }
 
 async function findUserByEmail(email: string) {
   const res = await query(
-    `SELECT id, nome, email, "senha_hash", "tipo_usuario", "empresa_id"
+    `SELECT id, nome, email, "senha_hash", "tipo_usuario"
      FROM "Usuarios"
      WHERE email = $1`,
     [email]
@@ -87,7 +85,6 @@ export const authOptions: NextAuthOptions = {
           name: usuario.nome,
           email: usuario.email,
           tipo_usuario: usuario.tipo_usuario as TipoUsuario,
-          empresa_id: usuario.empresa_id,
         };
       },
     }),
@@ -104,7 +101,6 @@ export const authOptions: NextAuthOptions = {
         if (!extendedUser.id) throw new Error("Usuario sem ID no JWT");
         token.id = extendedUser.id;
         token.tipo_usuario = extendedUser.tipo_usuario;
-        token.empresa_id = extendedUser.empresa_id ?? null;
       }
       return token;
     },
@@ -112,7 +108,6 @@ export const authOptions: NextAuthOptions = {
       if (!token.id) throw new Error("JWT não possui ID do usuário");
       session.user.id = token.id;
       session.user.tipo_usuario = token.tipo_usuario;
-      session.user.empresa_id = token.empresa_id ?? null;
       return session;
     },
   },

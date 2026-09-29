@@ -16,7 +16,7 @@ export async function GET(
     const { id } = await context.params;
 
     const rows = await query(
-      `SELECT id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"
+      `SELECT id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"
        FROM "Usuarios"
        WHERE id = $1
        AND data_exclusao IS NULL`,
@@ -47,7 +47,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    const { nome, email, empresa_id, tipo_usuario } = await req.json();
+    const { nome, email, tipo_usuario } = await req.json();
 
     const enum_tipo_usuario =
       TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
@@ -59,14 +59,12 @@ export async function PUT(
       );
     }
 
-    const empresaId = empresa_id === "" ? null : empresa_id;
-
     const rows = await query(
       `UPDATE "Usuarios" 
-       SET nome = $1, email = $2, "empresa_id" = $3, "tipo_usuario" = $4, "atualizado_em" = NOW()
-       WHERE id = $5
-       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
-      [nome, email, empresaId, enum_tipo_usuario, id]
+       SET nome = $1, email = $2, "tipo_usuario" = $3, "atualizado_em" = NOW()
+       WHERE id = $4
+       RETURNING id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"`,
+      [nome, email, enum_tipo_usuario, id]
     );
 
     if (rows.length === 0) {

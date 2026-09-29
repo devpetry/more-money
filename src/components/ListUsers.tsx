@@ -8,19 +8,12 @@ interface Usuario {
   id: number;
   nome: string;
   email: string;
-  empresa_id: number | null;
   tipo_usuario: string;
   criado_em: string;
 }
 
-interface Empresa {
-  id: number;
-  nome: string;
-}
-
 export default function ListUsers() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,31 +21,6 @@ export default function ListUsers() {
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(
     null
   );
-
-  async function carregarEmpresas() {
-    try {
-      const res = await fetch("/api/auth/empresas");
-
-      if (!res.ok) {
-        console.error("Erro ao carregar empresas:", res.status);
-        alert("Falha ao carregar lista de empresas.");
-        setEmpresas([]);
-        return;
-      }
-
-      const data = await res.json();
-
-      if (Array.isArray(data)) setEmpresas(data);
-      else {
-        console.error("Formato inesperado:", data);
-        setEmpresas([]);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar empresas:", error);
-      alert("Erro ao carregar empresas.");
-      setEmpresas([]);
-    }
-  }
 
   async function carregarUsuarios() {
     try {
@@ -113,7 +81,6 @@ export default function ListUsers() {
 
   useEffect(() => {
     carregarUsuarios();
-    carregarEmpresas();
   }, []);
 
   if (loading)
@@ -145,48 +112,40 @@ export default function ListUsers() {
               <th className="px-3 py-2">ID</th>
               <th className="px-3 py-2">Nome</th>
               <th className="px-3 py-2">E-mail</th>
-              <th className="px-3 py-2">Empresa</th>
               <th className="px-3 py-2">Tipo</th>
               <th className="px-3 py-2 text-center">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((u) => {
-              const empresa = empresas.find((e) => e.id === u.empresa_id);
+            {usuarios.map((u) => (
+              <tr
+                key={u.id}
+                className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
+              >
+                <td className="px-3 py-2">{u.id}</td>
+                <td className="px-3 py-2">{u.nome}</td>
+                <td className="px-3 py-2">{u.email}</td>
+                <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
 
-              return (
-                <tr
-                  key={u.id}
-                  className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-                >
-                  <td className="px-3 py-2">{u.id}</td>
-                  <td className="px-3 py-2">{u.nome}</td>
-                  <td className="px-3 py-2">{u.email}</td>
-                  <td className="px-3 py-2">
-                    {empresa ? empresa.nome : "N/A"}
-                  </td>
-                  <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
+                <td className="px-3 py-2 text-center">
+                  <button
+                    onClick={() => editarUsuario(u.id)}
+                    className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
+                    title="Editar"
+                  >
+                    <Edit size={18} />
+                  </button>
 
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      onClick={() => editarUsuario(u.id)}
-                      className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
-                      title="Editar"
-                    >
-                      <Edit size={18} />
-                    </button>
-
-                    <button
-                      onClick={() => deletarUsuario(u.id)}
-                      className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                  <button
+                    onClick={() => deletarUsuario(u.id)}
+                    className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
+                    title="Excluir"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
