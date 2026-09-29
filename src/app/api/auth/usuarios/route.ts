@@ -4,9 +4,23 @@ import bcrypt from "bcryptjs";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "2": "GERENTE",
   "3": "COLABORADOR",
-};
+} as const;
+
+function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
+  if (
+    tipo_usuario === undefined ||
+    tipo_usuario === null ||
+    tipo_usuario === ""
+  ) {
+    return null;
+  }
+  const key = String(tipo_usuario);
+  if (key === "2") {
+    return null;
+  }
+  return TIPO_USUARIO_MAP[key as keyof typeof TIPO_USUARIO_MAP] ?? null;
+}
 
 // GET - Listar todos os usuários
 export async function GET() {
@@ -60,8 +74,14 @@ export async function POST(req: Request) {
 
     const senha_hash = await bcrypt.hash(String(senha), 10);
 
-    const enum_tipo_usuario =
-      TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+    const enum_tipo_usuario = resolveTipoUsuarioGravavel(tipo_usuario);
+
+    if (!enum_tipo_usuario) {
+      return NextResponse.json(
+        { error: "Tipo de usuário inválido." },
+        { status: 400 }
+      );
+    }
 
     const result = await query(
       `INSERT INTO "Usuarios" 

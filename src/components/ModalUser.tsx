@@ -20,7 +20,6 @@ type FormErrors = Partial<Record<string, string>>;
 
 const TIPOS_USUARIO = [
   { id: 1, nome: "ADMIN" },
-  { id: 2, nome: "GERENTE" },
   { id: 3, nome: "COLABORADOR" },
 ];
 

@@ -3,9 +3,23 @@ import { query } from "@/lib/db";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "2": "GERENTE",
   "3": "COLABORADOR",
 } as const;
+
+function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
+  if (
+    tipo_usuario === undefined ||
+    tipo_usuario === null ||
+    tipo_usuario === ""
+  ) {
+    return null;
+  }
+  const key = String(tipo_usuario);
+  if (key === "2") {
+    return null;
+  }
+  return TIPO_USUARIO_MAP[key as keyof typeof TIPO_USUARIO_MAP] ?? null;
+}
 
 // GET - Obter detalhes de um usuário específico
 export async function GET(
@@ -49,8 +63,7 @@ export async function PUT(
     const { id } = await context.params;
     const { nome, email, tipo_usuario } = await req.json();
 
-    const enum_tipo_usuario =
-      TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+    const enum_tipo_usuario = resolveTipoUsuarioGravavel(tipo_usuario);
 
     if (!enum_tipo_usuario) {
       return NextResponse.json(

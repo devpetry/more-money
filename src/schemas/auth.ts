@@ -62,7 +62,9 @@ export const UsuarioSchema = z.object({
     .string()
     .nonempty("A senha é obrigatória.")
     .min(6, "A senha deve ter pelo menos 6 caracteres."),
-  tipo_usuario: z.string(),
+  tipo_usuario: z.enum(["1", "3"], {
+    message: "Selecione um tipo de usuário válido.",
+  }),
   emresa_id: z.string().optional(),
 });
 
@@ -80,7 +82,9 @@ export const UsuarioEditSchema = z.object({
     .nonempty("O e-mail é obrigatório.")
     .trim()
     .email("Digite um e-mail válido."),
-  tipo_usuario: z.string().optional(),
+  tipo_usuario: z.enum(["1", "3"], {
+    message: "Selecione um tipo de usuário válido.",
+  }),
   emresa_id: z.string().optional(),
 });
 
