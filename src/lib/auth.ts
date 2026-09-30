@@ -27,7 +27,7 @@ async function findUserByEmail(email: string) {
   const res = await query(
     `SELECT id, nome, email, "senha_hash", "tipo_usuario"
      FROM "Usuarios"
-     WHERE email = $1`,
+     WHERE email = $1 AND data_exclusao IS NULL`,
     [email]
   );
 

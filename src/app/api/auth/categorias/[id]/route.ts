@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 
 // GET - Obter detalhes de uma categoria específica
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
 
     const rows = await query(
       `SELECT id, nome, tipo, usuario_id, "criado_em", "atualizado_em"
        FROM "Categorias"
-       WHERE id = $1`,
-      [id]
+       WHERE id = $1 AND usuario_id = $2`,
+      [id, auth.usuarioId]
     );
 
     if (rows.length === 0) {
@@ -40,20 +42,10 @@ export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user.id) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
-    if (isNaN(usuarioId)) {
-      return NextResponse.json(
-        { error: "ID do usuário inválido" },
-        { status: 400 }
-      );
-    }
-
     const { id } = await context.params;
     const categoriaId = Number(id);
     if (isNaN(categoriaId)) {
@@ -84,11 +76,10 @@ export async function PUT(
        SET 
          nome = $1,
          tipo = $2,
-         usuario_id = $3,
          "atualizado_em" = NOW()
-       WHERE id = $4
+       WHERE id = $3 AND usuario_id = $4
        RETURNING id, nome, tipo, usuario_id, "criado_em", "atualizado_em"`,
-      [nome, tipo, usuarioId, categoriaId]
+      [nome, tipo, categoriaId, auth.usuarioId]
     );
 
     if (rows.length === 0) {
@@ -113,6 +104,9 @@ export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
     const categoriaId = Number(id);
@@ -126,9 +120,9 @@ export async function DELETE(
 
     const rows = await query(
       `DELETE FROM "Categorias"
-       WHERE id = $1
+       WHERE id = $1 AND usuario_id = $2
        RETURNING id`,
-      [categoriaId]
+      [categoriaId, auth.usuarioId]
     );
 
     if (rows.length === 0) {

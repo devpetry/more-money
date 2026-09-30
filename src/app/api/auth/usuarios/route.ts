@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
@@ -24,6 +25,9 @@ function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
 
 // GET - Listar todos os usuários
 export async function GET() {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const result = await query(
       `SELECT id, nome, email, "tipo_usuario", "criado_em" 
@@ -44,6 +48,9 @@ export async function GET() {
 
 // POST - Criar novo usuário
 export async function POST(req: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { nome, email, tipo_usuario, senha } = body.data;

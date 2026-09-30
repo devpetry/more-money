@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
@@ -26,6 +27,9 @@ export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
 
@@ -59,6 +63,9 @@ export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
     const { nome, email, tipo_usuario } = await req.json();
@@ -75,7 +82,7 @@ export async function PUT(
     const rows = await query(
       `UPDATE "Usuarios" 
        SET nome = $1, email = $2, "tipo_usuario" = $3, "atualizado_em" = NOW()
-       WHERE id = $4
+       WHERE id = $4 AND data_exclusao IS NULL
        RETURNING id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"`,
       [nome, email, enum_tipo_usuario, id]
     );
@@ -102,6 +109,9 @@ export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
     const userId = String(id);
