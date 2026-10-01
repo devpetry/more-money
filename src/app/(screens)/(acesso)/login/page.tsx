@@ -7,9 +7,6 @@ export default async function LoginPage() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️   Já existe sessão: ", session);
-    }
     redirect("/dashboard");
   }
 

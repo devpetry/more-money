@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
@@ -10,16 +9,12 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -58,16 +53,12 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -142,16 +133,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 

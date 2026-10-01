@@ -14,9 +14,6 @@ export default async function AlterarSenhaPage(props: PageProps) {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️   Já existe sessão: ", session);
-    }
     redirect("/dashboard");
   }
 

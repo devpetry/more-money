@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 
 // GET - Listar todos os lançamentos do usuário autenticados
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
-    if (isNaN(usuarioId)) {
-      return NextResponse.json(
-        { error: "ID do usuário inválido" },
-        { status: 400 }
-      );
-    }
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
 
     const result = await query(
       `SELECT l.id, l.descricao, l.valor, l.tipo,
@@ -45,19 +34,9 @@ export async function GET() {
 // POST - Criar novo lançamento
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user.id) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
-    if (isNaN(usuarioId)) {
-      return NextResponse.json(
-        { error: "ID do usuário inválido" },
-        { status: 400 }
-      );
-    }
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
 
     const { descricao, valor, tipo, categoria_id, data } = await req.json();
 
