@@ -1,22 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "2": "GERENTE",
   "3": "COLABORADOR",
 } as const;
+
+function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
+  if (
+    tipo_usuario === undefined ||
+    tipo_usuario === null ||
+    tipo_usuario === ""
+  ) {
+    return null;
+  }
+  const key = String(tipo_usuario);
+  if (key === "2") {
+    return null;
+  }
+  return TIPO_USUARIO_MAP[key as keyof typeof TIPO_USUARIO_MAP] ?? null;
+}
 
 // GET - Obter detalhes de um usuário específico
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
 
     const rows = await query(
-      `SELECT id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"
+      `SELECT id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"
        FROM "Usuarios"
        WHERE id = $1
        AND data_exclusao IS NULL`,
@@ -45,12 +63,14 @@ export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
-    const { nome, email, empresa_id, tipo_usuario } = await req.json();
+    const { nome, email, tipo_usuario } = await req.json();
 
-    const enum_tipo_usuario =
-      TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+    const enum_tipo_usuario = resolveTipoUsuarioGravavel(tipo_usuario);
 
     if (!enum_tipo_usuario) {
       return NextResponse.json(
@@ -59,14 +79,12 @@ export async function PUT(
       );
     }
 
-    const empresaId = empresa_id === "" ? null : empresa_id;
-
     const rows = await query(
       `UPDATE "Usuarios" 
-       SET nome = $1, email = $2, "empresa_id" = $3, "tipo_usuario" = $4, "atualizado_em" = NOW()
-       WHERE id = $5
-       RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em", "atualizado_em"`,
-      [nome, email, empresaId, enum_tipo_usuario, id]
+       SET nome = $1, email = $2, "tipo_usuario" = $3, "atualizado_em" = NOW()
+       WHERE id = $4 AND data_exclusao IS NULL
+       RETURNING id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"`,
+      [nome, email, enum_tipo_usuario, id]
     );
 
     if (rows.length === 0) {
@@ -91,6 +109,9 @@ export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const { id } = await context.params;
     const userId = String(id);

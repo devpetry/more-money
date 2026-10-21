@@ -1,27 +1,16 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 
 // GET - Listar todas as categorias
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
-    if (isNaN(usuarioId)) {
-      return NextResponse.json(
-        { error: "ID do usuário inválido" },
-        { status: 400 }
-      );
-    }
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
 
     const result = await query(
-      `SELECT id, nome, tipo, empresa_id, usuario_id, "criado_em"
+      `SELECT id, nome, tipo, usuario_id, "criado_em"
        FROM "Categorias"
        WHERE usuario_id = $1
        ORDER BY id ASC`,
@@ -40,19 +29,9 @@ export async function GET() {
 // POST - Criar nova categoria
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user.id) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
-    if (isNaN(usuarioId)) {
-      return NextResponse.json(
-        { error: "ID do usuário inválido" },
-        { status: 400 }
-      );
-    }
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
 
     const { nome, tipo } = await req.json();
 
@@ -70,25 +49,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const empresaResult = await query(
-      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
-      [usuarioId]
-    );
-
-    if (empresaResult.length === 0) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado." },
-        { status: 404 }
-      );
-    }
-
-    const empresa_id = empresaResult[0].empresa_id;
-
     const result = await query(
-      `INSERT INTO "Categorias" (nome, tipo, empresa_id, usuario_id, "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, NOW(), NOW())
-       RETURNING id, nome, tipo, empresa_id, usuario_id, "criado_em"`,
-      [nome, tipo, empresa_id || null, usuarioId]
+      `INSERT INTO "Categorias" (nome, tipo, usuario_id, "criado_em", "atualizado_em")
+       VALUES ($1, $2, $3, NOW(), NOW())
+       RETURNING id, nome, tipo, usuario_id, "criado_em"`,
+      [nome, tipo, usuarioId]
     );
 
     return NextResponse.json(result[0], { status: 201 });

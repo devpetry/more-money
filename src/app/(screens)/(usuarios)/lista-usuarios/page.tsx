@@ -8,18 +8,12 @@ export default async function UsersPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️   Não existe sessão: ", session);
-    }
     redirect("/login");
   }
 
   const tipoUsuario = session.user?.tipo_usuario;
 
   if (tipoUsuario !== "ADMIN") {
-    if (process.env.NODE_ENV === "development") {
-      console.log("🚫   Acesso negado. Tipo de usuário:", tipoUsuario);
-    }
     redirect("/unauthorized");
   }
 

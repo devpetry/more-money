@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 import { query } from "@/lib/db";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id as string, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
 
     const { searchParams } = new URL(req.url);
     const mesParam = searchParams.get("mes");

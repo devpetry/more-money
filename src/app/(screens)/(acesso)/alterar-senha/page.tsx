@@ -4,20 +4,18 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 interface PageProps {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }
 
-export default async function AlterarSenhaPage({ searchParams }: PageProps) {
+export default async function AlterarSenhaPage(props: PageProps) {
+  const searchParams = await props.searchParams;
+  const token = searchParams?.token;
+
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️   Já existe sessão: ", session);
-    }
     redirect("/dashboard");
   }
-
-  const token = searchParams?.token;
 
   if (!token) {
     return (

@@ -1,18 +1,36 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "2": "GERENTE",
   "3": "COLABORADOR",
-};
+} as const;
+
+function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
+  if (
+    tipo_usuario === undefined ||
+    tipo_usuario === null ||
+    tipo_usuario === ""
+  ) {
+    return null;
+  }
+  const key = String(tipo_usuario);
+  if (key === "2") {
+    return null;
+  }
+  return TIPO_USUARIO_MAP[key as keyof typeof TIPO_USUARIO_MAP] ?? null;
+}
 
 // GET - Listar todos os usuários
 export async function GET() {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const result = await query(
-      `SELECT id, nome, email, "tipo_usuario", "empresa_id", "criado_em" 
+      `SELECT id, nome, email, "tipo_usuario", "criado_em" 
       FROM "Usuarios" 
       WHERE data_exclusao IS NULL 
       ORDER BY id ASC`,
@@ -30,10 +48,12 @@ export async function GET() {
 
 // POST - Criar novo usuário
 export async function POST(req: Request) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
-    const { nome, email, tipo_usuario, senha, empresa_id: empresaRaw } = body.data;
-    const empresa_id = !empresaRaw || empresaRaw === "" ? null : empresaRaw;
+    const { nome, email, tipo_usuario, senha } = body.data;
 
     if (!nome || !email || !tipo_usuario || !senha) {
       return NextResponse.json(
@@ -61,15 +81,21 @@ export async function POST(req: Request) {
 
     const senha_hash = await bcrypt.hash(String(senha), 10);
 
-    const enum_tipo_usuario =
-      TIPO_USUARIO_MAP[tipo_usuario as keyof typeof TIPO_USUARIO_MAP];
+    const enum_tipo_usuario = resolveTipoUsuarioGravavel(tipo_usuario);
+
+    if (!enum_tipo_usuario) {
+      return NextResponse.json(
+        { error: "Tipo de usuário inválido." },
+        { status: 400 }
+      );
+    }
 
     const result = await query(
       `INSERT INTO "Usuarios" 
-      (nome, email, "empresa_id", "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
-      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-      RETURNING id, nome, email, "tipo_usuario", "empresa_id", "criado_em"`,
-      [nome, email, empresa_id, enum_tipo_usuario, senha_hash]
+      (nome, email, "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
+      RETURNING id, nome, email, "tipo_usuario", "criado_em"`,
+      [nome, email, enum_tipo_usuario, senha_hash]
     );
 
     return NextResponse.json(result[0], { status: 201 });

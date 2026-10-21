@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { CategoriaSchema, TCategoriaSchema } from "@/schemas/auth";
 
-type FormErrors = Partial<TCategoriaSchema>;
+type FormErrors = { [K in keyof TCategoriaSchema]?: string };
 
 interface ModalCategoriaProps {
   isOpen: boolean;

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
@@ -10,23 +9,19 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const result = await query(
       `SELECT l.id, l.descricao, l.valor, l.tipo, l.data,
               l.categoria_id, c.nome AS categoria_nome,
-              l.empresa_id, l.usuario_id, l.criado_em, l.atualizado_em
+              l.usuario_id, l.criado_em, l.atualizado_em
        FROM "Lancamentos" l
        LEFT JOIN "Categorias" c ON c.id = l.categoria_id
        WHERE l.id = $1 AND l.usuario_id = $2
@@ -58,16 +53,12 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -97,20 +88,6 @@ export async function PUT(
       );
     }
 
-    const empresaResult = await query(
-      `SELECT empresa_id FROM "Usuarios" WHERE id = $1 LIMIT 1`,
-      [usuarioId]
-    );
-
-    if (empresaResult.length === 0) {
-      return NextResponse.json(
-        { error: "Usuário não encontrado." },
-        { status: 404 }
-      );
-    }
-
-    const empresa_id = empresaResult[0].empresa_id || null;
-
     const result = await query(
       `UPDATE "Lancamentos"
        SET descricao = $1,
@@ -118,17 +95,15 @@ export async function PUT(
            tipo = $3,
            data = $4,
            categoria_id = $5,
-           empresa_id = $6,
            "atualizado_em" = NOW()
-       WHERE id = $7 AND usuario_id = $8
-       RETURNING id, descricao, valor, tipo, data, categoria_id, empresa_id, usuario_id, "atualizado_em"`,
+       WHERE id = $6 AND usuario_id = $7
+       RETURNING id, descricao, valor, tipo, data, categoria_id, usuario_id, "atualizado_em"`,
       [
         descricao,
         valor,
         tipo,
         data,
         categoria_id || null,
-        empresa_id,
         lancamentoId,
         usuarioId,
       ]
@@ -158,16 +133,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const usuarioId = parseInt(session.user.id, 10);
+    const auth = await requireSession();
+    if (!auth.ok) return auth.response;
+    const { usuarioId } = auth;
     const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(usuarioId) || isNaN(lancamentoId)) {
+    if (isNaN(lancamentoId)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
