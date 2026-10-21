@@ -25,8 +25,9 @@ export async function POST(request: Request) {
     // Verifica se o token existe e ainda não expirou
     const res = await client.query(
       `SELECT "id", "senha_hash" FROM "Usuarios" 
-       WHERE "token_recuperacao" = $1 
-       AND "expiracao_token_recuperacao" > NOW()`,
+       WHERE "token_recuperacao" = $1
+       AND "expiracao_token_recuperacao" > NOW()
+       AND data_exclusao IS NULL`,
       [hashedToken]
     );
 
