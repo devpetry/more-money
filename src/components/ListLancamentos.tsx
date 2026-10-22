@@ -4,9 +4,19 @@ import BarraPesquisa from "./lancamentos/BarraPesquisa";
 import Filtros from "./lancamentos/Filtros";
 import { useEffect, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Plus, ReceiptText } from "lucide-react";
 import PaginacaoMes from "./lancamentos/PaginacaoMensal";
 import { parseDateOnly, getMonth, getYear } from "@/lib/date";
+import { formatCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import PageHeader from "./layout/PageHeader";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
+import { TipoBadge } from "./ui/badge";
+import { DataTable, RowActions } from "./ui/data-table";
+import { EmptyState, LoadingState, Skeleton } from "./ui/feedback";
+import { toast } from "./feedback/toast";
+import { useConfirm } from "./feedback/ConfirmProvider";
 
 interface Lancamento {
   id: number;
@@ -16,6 +26,21 @@ interface Lancamento {
   data: string;
   categoria_nome?: string;
   criado_em: string;
+}
+
+function ValorLancamento({ lancamento }: { lancamento: Lancamento }) {
+  const despesa = lancamento.tipo === "despesa";
+  return (
+    <span
+      className={cn(
+        "whitespace-nowrap font-semibold tabular-nums",
+        despesa ? "text-destructive" : "text-success"
+      )}
+    >
+      {despesa ? "- " : "+ "}
+      {formatCurrency(lancamento.valor)}
+    </span>
+  );
 }
 
 export default function ListLancamentos() {
@@ -36,6 +61,8 @@ export default function ListLancamentos() {
     const hoje = new Date();
     return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
   });
+
+  const confirm = useConfirm();
 
   const lancamentosFiltrados = lancamentos.filter((l) => {
     const [ano, mes] = mesAtual.split("-");
@@ -64,7 +91,7 @@ export default function ListLancamentos() {
 
       if (!res.ok) {
         console.error("Erro na requisição:", res.status, await res.text());
-        alert("Falha ao carregar lista de lançamentos.");
+        toast.error("Falha ao carregar lista de lançamentos.");
         setLancamentos([]);
         return;
       }
@@ -83,7 +110,7 @@ export default function ListLancamentos() {
       }
     } catch (e) {
       console.error("Erro ao carregar lançamentos:", e);
-      alert("Falha ao carregar lista de lançamentos.");
+      toast.error("Falha ao carregar lista de lançamentos.");
       setLancamentos([]);
     } finally {
       setLoading(false);
@@ -97,7 +124,13 @@ export default function ListLancamentos() {
   }
 
   async function deletarLancamento(id: number) {
-    if (!confirm("Tem certeza que deseja excluir este lançamento?")) return;
+    const confirmado = await confirm({
+      title: "Excluir lançamento",
+      description: "Tem certeza que deseja excluir este lançamento?",
+      confirmLabel: "Excluir",
+      destructive: true,
+    });
+    if (!confirmado) return;
 
     try {
       const res = await fetch(`/api/auth/lancamentos/${id}`, {
@@ -106,52 +139,55 @@ export default function ListLancamentos() {
 
       if (!res.ok) {
         console.error("Falha ao deletar lançamento. Status:", res.status);
-        alert("Não foi possível remover o lançamento.");
+        toast.error("Não foi possível remover o lançamento.");
       } else {
-        alert("Lançamento removido com sucesso!");
+        toast.success("Lançamento removido com sucesso!");
       }
 
       carregarLancamentos();
     } catch (error) {
       console.error("Erro na requisição DELETE:", error);
-      alert("Erro de conexão ao tentar excluir o lançamento.");
+      toast.error("Erro de conexão ao tentar excluir o lançamento.");
     }
+  }
+
+  function novoLancamento() {
+    setModalMode("create");
+    setLancamentoSelecionado(null);
+    setIsModalOpen(true);
   }
 
   useEffect(() => {
     carregarLancamentos();
   }, []);
 
-  if (loading)
-    return (
-      <p className="flex justify-center text-center py-8 text-[#E0E0E0]">
-        Carregando lançamentos...
-      </p>
-    );
+  const filtrando = Boolean(termo || tipo || categoria);
 
   return (
     <>
-      <div className="bg-[#0D1117] py-6 sm:p-6 rounded-2xl shadow-md">
-        <div className="flex flex-wrap gap-3 justify-between items-center mb-4 mt-4">
-          <button
-            onClick={() => {
-              setModalMode("create");
-              setLancamentoSelecionado(null);
-              setIsModalOpen(true);
-            }}
-            className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
-          >
-            <Plus size={16} />
+      <PageHeader
+        title="Lançamentos"
+        description="Receitas e despesas do mês selecionado."
+        actions={
+          <Button onClick={novoLancamento}>
+            <Plus aria-hidden />
             Adicionar
-          </button>
-        </div>
+          </Button>
+        }
+      />
 
-        <div className="flex flex-wrap gap-y-3 justify-between items-center">
-          <BarraPesquisa termo={termo} setTermo={setTermo} />
+      <Card>
+        {/* Mobile: busca + filtro, paginação abaixo; lg: tudo em uma linha */}
+        <div className="flex flex-wrap items-center gap-3 border-b p-4 sm:p-5">
+          <div className="min-w-0 flex-1 basis-40">
+            <BarraPesquisa termo={termo} setTermo={setTermo} />
+          </div>
 
-          <div className="flex flex-wrap gap-y-3 justify-between items-center">
+          <div className="order-last flex w-full justify-center lg:order-none lg:w-auto">
             <PaginacaoMes mesAtual={mesAtual} onChange={setMesAtual} />
-            <Filtros
+          </div>
+
+          <Filtros
               tipo={tipo}
               categoria={categoria}
               setTipo={setTipo}
@@ -162,79 +198,81 @@ export default function ListLancamentos() {
                 setCategoria(undefined);
               }}
             />
-          </div>
         </div>
 
-        <div className="overflow-x-auto mt-6">
-          <table className="w-full text-center border-collapse">
-            <thead>
-              <tr className="border-b border-gray-700 text-[#E0E0E0]">
-                <th className="px-3 py-2">Descrição</th>
-                <th className="px-3 py-2">Valor</th>
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2">Data de Pagamento</th>
-                <th className="px-3 py-2">Categoria</th>
-                <th className="px-3 py-2 text-center">Ações</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {lancamentosFiltrados.map((l) => (
-                <tr
-                  key={l.id}
-                  className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-                >
-                  <td className="px-3 py-2">{l.descricao}</td>
-
-                  <td className="px-3 py-2">
-                    {l.tipo === "despesa" ? (
-                      <span className="text-[#FF5252]">
-                        - R$ {Number(l.valor).toFixed(2)}
-                      </span>
-                    ) : (
-                      <span className="text-[#00E676]">
-                        + R$ {Number(l.valor).toFixed(2)}
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="px-3 py-2 capitalize">{l.tipo}</td>
-
-                  <td className="px-3 py-2">
-                    {l.data.slice(0, 10).split("-").reverse().join("/")}
-                  </td>
-
-                  <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
-
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      onClick={() => editarLancamento(l.id)}
-                      className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
-                      title="Editar"
-                    >
-                      <Edit size={18} />
-                    </button>
-
-                    <button
-                      onClick={() => deletarLancamento(l.id)}
-                      className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {lancamentos.length === 0 && (
-          <p className="text-center text-gray-400 mt-6">
-            Nenhum lançamento encontrado.
-          </p>
-        )}
-      </div>
+        <CardContent>
+          {loading ? (
+            <LoadingState label="Carregando lançamentos...">
+              <div className="space-y-3">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <Skeleton key={i} className="h-10" />
+                ))}
+              </div>
+            </LoadingState>
+          ) : (
+            <DataTable
+              data={lancamentosFiltrados}
+              caption="Lançamentos do mês selecionado"
+              rowKey={(l) => l.id}
+              columns={[
+                {
+                  key: "descricao",
+                  header: "Descrição",
+                  cell: (l) => <span className="font-medium">{l.descricao}</span>,
+                  hideOnCard: true,
+                },
+                {
+                  key: "valor",
+                  header: "Valor",
+                  cell: (l) => <ValorLancamento lancamento={l} />,
+                  align: "right",
+                  hideOnCard: true,
+                },
+                {
+                  key: "tipo",
+                  header: "Tipo",
+                  cell: (l) => <TipoBadge tipo={l.tipo} />,
+                },
+                {
+                  key: "data",
+                  header: "Data de Pagamento",
+                  cell: (l) => (
+                    <span className="whitespace-nowrap tabular-nums">
+                      {l.data.slice(0, 10).split("-").reverse().join("/")}
+                    </span>
+                  ),
+                },
+                {
+                  key: "categoria",
+                  header: "Categoria",
+                  cell: (l) => l.categoria_nome || "N/A",
+                },
+              ]}
+              cardTitle={(l) => l.descricao}
+              cardAside={(l) => <ValorLancamento lancamento={l} />}
+              actions={(l, layout) => (
+                <RowActions
+                  layout={layout}
+                  itemLabel={l.descricao}
+                  onEdit={() => editarLancamento(l.id)}
+                  onDelete={() => deletarLancamento(l.id)}
+                />
+              )}
+              empty={
+                <EmptyState
+                  icon={ReceiptText}
+                  title="Nenhum lançamento encontrado."
+                  description={
+                    filtrando
+                      ? "Ajuste a busca ou os filtros para ver outros lançamentos."
+                      : "Não há lançamentos neste mês."
+                  }
+                />
+              }
+            />
+          )}
+        </CardContent>
+      </Card>
 
       <ModalLancamento
         isOpen={isModalOpen}

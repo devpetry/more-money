@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
+import { Button } from "@/components/ui/button";
 
 dayjs.locale("pt-br");
 
@@ -24,27 +25,33 @@ export default function PaginacaoMensal({
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 select-none px-2">
-      {/* Botão voltar */}
-      <button
+    <div className="flex select-none items-center gap-1">
+      <Button
+        variant="outline"
+        size="icon"
         onClick={voltarMes}
-        className="touch-target rounded-xl bg-[#0D1117] border border-gray-700 hover:bg-gray-800 transition"
+        aria-label="Mês anterior"
+        className="touch-target"
       >
-        <ChevronLeft/>
-      </button>
+        <ChevronLeft aria-hidden />
+      </Button>
 
-      {/* Texto do mês */}
-      <span className="text-sm font-semibold text-center">
+      <span
+        aria-live="polite"
+        className="min-w-[9.5rem] text-center text-sm font-semibold tabular-nums"
+      >
         {data.format("MMMM[ de ]YYYY").replace(/^(.)/, (m) => m.toUpperCase())}
       </span>
 
-      {/* Botão avançar */}
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={avancarMes}
-        className="touch-target after:left-[calc(50%-2px)] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30 placeholder:text-gray-500"
+        aria-label="Próximo mês"
+        className="touch-target"
       >
-        <ChevronRight/>
-      </button>
+        <ChevronRight aria-hidden />
+      </Button>
     </div>
   );
 }

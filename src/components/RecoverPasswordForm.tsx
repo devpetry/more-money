@@ -1,11 +1,17 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import {
   PasswordRecoverySchema,
   TPasswordRecoverySchema,
 } from "@/schemas/auth";
+import { AuthCard } from "@/components/layout/PublicShell";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { InlineAlert } from "@/components/ui/feedback";
+import { useFocoAposFalha } from "@/lib/foco";
 
 type FormErrors = Partial<TPasswordRecoverySchema>;
 
@@ -14,6 +20,10 @@ export default function RecoverPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
+  const envioRef = useFocoAposFalha<HTMLButtonElement>(
+    loading,
+    message !== null
+  );
 
   async function recuperarSenha(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,73 +72,40 @@ export default function RecoverPasswordForm() {
   }
 
   return (
-    <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
-      {/* Logo */}
-      <div className="flex justify-center mb-6 rounded-xl">
-        <div className="h-20 flex items-center justify-center">
-          <Image
-            src="/images/logo-temporaria.png"
-            alt="Logo More Money"
-            width={320}
-            height={200}
-            priority
-            className="object-contain"
-          />
-        </div>
-      </div>
-
-      {/* Título */}
-      <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
-        Recuperação de senha
-      </h2>
-      <p className="text-center text-[#9E9E9E] text-sm mb-4">
-        Insira seu e-mail para recuperar sua senha
-      </p>
-
-      {message && (
-        <p
-          aria-live="polite"
-          className={`text-center text-sm mb-4 ${
-            success ? "text-[#00C853]" : "text-[#FF5252]"
-          }`}
-        >
-          {message}
-        </p>
-      )}
-
-      {/* Formulário */}
-      <form onSubmit={recuperarSenha} className="flex flex-col gap-4">
-        <input
-          name="email"
-          type="email"
-          placeholder="email@dominio.com"
-          disabled={loading}
-          aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          className={`px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-            errors.email
-              ? "border-2 border-[#FF5252]"
-              : "focus:ring-2 focus:ring-[#00C853]"
-          }`}
-        />
-        {errors.email && (
-          <p id="email-error" className="text-[#FF5252] text-xs -mt-3">
-            {errors.email}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-[#00C853] hover:bg-[#00C853]/75 text-[#0D1117] font-black py-2 transition rounded-xl disabled:opacity-50"
-        >
-          {loading ? "ENVIANDO..." : "ENVIAR E-MAIL DE RECUPERAÇÃO"}
-        </button>
-      </form>
-      <div className="mt-4 text-center">
-        <a href="/login" className="text-sm text-[#9E9E9E] hover:underline">
+    <AuthCard
+      title="Recuperação de senha"
+      description="Insira seu e-mail para recuperar sua senha"
+      footer={
+        <Link href="/login" className="font-medium text-foreground hover:underline">
           Voltar para o login
-        </a>
-      </div>
-    </section>
+        </Link>
+      }
+    >
+      <form onSubmit={recuperarSenha} className="flex flex-col gap-4">
+        {message && (
+          <InlineAlert tone={success ? "success" : "error"}>{message}</InlineAlert>
+        )}
+
+        <Field id="recuperar-email" label="E-mail" error={errors.email}>
+          <Input
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="email@dominio.com"
+            disabled={loading}
+          />
+        </Field>
+
+        <Button
+          ref={envioRef}
+          type="submit"
+          size="lg"
+          disabled={loading}
+          className="mt-2 w-full"
+        >
+          {loading ? "Enviando..." : "Enviar e-mail de recuperação"}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }
