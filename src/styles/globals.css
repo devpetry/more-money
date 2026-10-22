@@ -2,72 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset global */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/*
+ * Tokens de design (componentes HSL) consumidos pelo tailwind.config.js.
+ * O tema escuro usa a paleta original (public/paleta-de-cores.txt); o claro
+ * mantém os mesmos matizes, escurecendo verde/vermelho para contraste AA.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
 
-/* Fontes e corpo */
-html,
-body {
-  height: 100%;
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol",
-    "Noto Color Emoji";
-}
-
-body {
-  background-color: #0d1117; /* fundo principal */
-  color: #e0e0e0; /* texto principal */
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a2d2f;
-  border-radius: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-@keyframes gradient-x {
-  0%,
-  100% {
-    background-position: 0% 50%;
+    --background: 216 33% 97%;
+    --foreground: 216 28% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 28% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 28% 7%;
+    --primary: 207 90% 54%;
+    --primary-foreground: 216 28% 7%;
+    --secondary: 216 25% 93%;
+    --secondary-foreground: 216 28% 12%;
+    --muted: 216 25% 95%;
+    --muted-foreground: 215 14% 36%;
+    --accent: 216 30% 93%;
+    --accent-foreground: 216 28% 7%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 100% 23%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 100% 51%;
+    --warning-foreground: 216 28% 7%;
+    --brand: 145 100% 25%;
+    --brand-foreground: 0 0% 100%;
+    --border: 216 20% 88%;
+    --input: 216 12% 55%;
+    --ring: 207 90% 42%;
+    --radius: 0.625rem;
   }
-  50% {
-    background-position: 100% 50%;
-  }
-}
 
-.animate-gradient-x {
-  background-size: 200% 200%;
-  animation: gradient-x 4s ease infinite;
+  .dark {
+    color-scheme: dark;
+
+    --background: 216 28% 7%; /* #0D1117 */
+    --foreground: 0 0% 88%; /* #E0E0E0 */
+    --card: 215 21% 11%; /* #161B22 */
+    --card-foreground: 0 0% 88%;
+    --popover: 215 19% 13%;
+    --popover-foreground: 0 0% 88%;
+    --primary: 207 90% 54%; /* #2196F3 */
+    --primary-foreground: 216 28% 7%;
+    --secondary: 215 16% 17%;
+    --secondary-foreground: 0 0% 88%;
+    --muted: 215 16% 15%;
+    --muted-foreground: 0 0% 62%; /* #9E9E9E */
+    --accent: 215 16% 18%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 100% 66%; /* #FF5252 */
+    --destructive-foreground: 216 28% 7%;
+    --success: 145 100% 39%; /* #00C853 */
+    --success-foreground: 216 28% 7%;
+    --warning: 45 100% 51%; /* #FFC107 */
+    --warning-foreground: 216 28% 7%;
+    --brand: 145 100% 39%;
+    --brand-foreground: 216 28% 7%;
+    --border: 215 14% 20%;
+    --input: 215 10% 45%;
+    --ring: 207 89% 68%; /* #64B5F6 */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-dvh bg-background font-sans text-foreground antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+  }
+
+  /* Trava a rolagem da página enquanto um <dialog> modal está aberto */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer components {
-  .modal-input {
-    @apply h-10 px-3 rounded-lg border border-gray-300 text-base;
-  }
-
   /* Amplia a área de toque para 44x44px sem alterar o tamanho visual */
   .touch-target {
     @apply relative after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''];

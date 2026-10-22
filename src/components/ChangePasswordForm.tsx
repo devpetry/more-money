@@ -1,9 +1,14 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { PasswordChangeSchema, TPasswordChangeSchema } from "@/schemas/auth";
-import { Eye, EyeOff } from "lucide-react";
+import { AuthCard } from "@/components/layout/PublicShell";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { PasswordInput } from "@/components/ui/password-input";
+import { InlineAlert } from "@/components/ui/feedback";
+import { useFocoAposFalha } from "@/lib/foco";
 
 type FormErrors = Partial<TPasswordChangeSchema>;
 
@@ -16,8 +21,10 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const envioRef = useFocoAposFalha<HTMLButtonElement>(
+    loading,
+    message !== null
+  );
 
   async function alterarSenha(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,113 +74,50 @@ export default function ChangePasswordForm({ token }: ChangePasswordFormProps) {
   }
 
   return (
-    <div className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
-      {/* Logo */}
-      <div className="flex justify-center mb-6 rounded-xl">
-        <div className="h-20 flex items-center justify-center">
-          <Image
-            src="/images/logo-temporaria.png"
-            alt="Logo More Money"
-            width={320}
-            height={200}
-            priority
-            className="object-contain"
-          />
-        </div>
-      </div>
-
-      <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
-        Redefinição de senha
-      </h2>
-      <p className="text-center text-[#9E9E9E] text-sm mb-4">
-        Escolha uma nova senha para acessar sua conta
-      </p>
-
-      {message && (
-        <p
-          aria-live="polite"
-          className={`text-center text-sm mb-4 ${
-            success ? "text-[#00C853]" : "text-[#FF5252]"
-          }`}
-        >
-          {message}
-        </p>
-      )}
-
-      <form onSubmit={alterarSenha} className="flex flex-col gap-4">
-        <div className="relative">
-          <input
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="nova senha"
-            disabled={loading}
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-              errors.password
-                ? "border-2 border-[#FF5252]"
-                : "focus:ring-2 focus:ring-[#00C853]"
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-          {errors.password && (
-            <p id="password-error" className="text-[#FF5252] text-xs -mt-3">
-              {errors.password}
-            </p>
-          )}
-        </div>
-        <div className="relative">
-          <input
-            name="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="confirme a nova senha"
-            disabled={loading}
-            aria-invalid={!!errors.confirmPassword}
-            aria-describedby={
-              errors.confirmPassword ? "confirmPassword-error" : undefined
-            }
-            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-              errors.confirmPassword
-                ? "border-2 border-[#FF5252]"
-                : "focus:ring-2 focus:ring-[#00C853]"
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
-          >
-            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-          {errors.confirmPassword && (
-            <p
-              id="confirmPassword-error"
-              className="text-[#FF5252] text-xs -mt-3"
-            >
-              {errors.confirmPassword}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-[#00C853] hover:bg-[#00C853]/75 text-[#0D1117] font-black py-2 transition rounded-xl disabled:opacity-50"
-        >
-          {loading ? "ALTERANDO..." : "ALTERAR SENHA"}
-        </button>
-      </form>
-      <div className="mt-4 text-center">
-        <a href="/login" className="text-sm text-[#9E9E9E] hover:underline">
+    <AuthCard
+      title="Redefinição de senha"
+      description="Escolha uma nova senha para acessar sua conta"
+      footer={
+        <Link href="/login" className="font-medium text-foreground hover:underline">
           Voltar para o login
-        </a>
-      </div>
-    </div>
+        </Link>
+      }
+    >
+      <form onSubmit={alterarSenha} className="flex flex-col gap-4">
+        {message && (
+          <InlineAlert tone={success ? "success" : "error"}>{message}</InlineAlert>
+        )}
+
+        <Field id="nova-senha" label="Nova senha" error={errors.password}>
+          <PasswordInput
+            name="password"
+            autoComplete="new-password"
+            disabled={loading}
+          />
+        </Field>
+
+        <Field
+          id="confirmar-senha"
+          label="Confirme a nova senha"
+          error={errors.confirmPassword}
+        >
+          <PasswordInput
+            name="confirmPassword"
+            autoComplete="new-password"
+            disabled={loading}
+          />
+        </Field>
+
+        <Button
+          ref={envioRef}
+          type="submit"
+          size="lg"
+          disabled={loading}
+          className="mt-2 w-full"
+        >
+          {loading ? "Alterando..." : "Alterar senha"}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }

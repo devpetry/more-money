@@ -6,6 +6,14 @@ import { NumericFormat } from "react-number-format";
 import InputData from "./ui/InputData";
 import { Plus } from "lucide-react";
 import ModalCategoria from "./ModalCategoria";
+import { Button } from "./ui/button";
+import { Dialog, DialogFooter } from "./ui/dialog";
+import { Field } from "./ui/field";
+import { Input, fieldClasses } from "./ui/input";
+import { NativeSelect } from "./ui/select";
+import { InlineAlert, LoadingState, Skeleton } from "./ui/feedback";
+import { useFocoAposFalha } from "@/lib/foco";
+import { cn } from "@/lib/utils";
 
 interface ModalLancamentoProps {
   isOpen: boolean;
@@ -37,8 +45,10 @@ export default function ModalLancamento({
   const [categoriaId, setCategoriaId] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const envioRef = useFocoAposFalha<HTMLButtonElement>(salvando, erroEnvio !== null);
   const [isModalCategoriaOpen, setIsModalCategoriaOpen] = useState(false);
 
   async function carregarCategorias() {
@@ -61,7 +71,7 @@ export default function ModalLancamento({
     try {
       const res = await fetch(`/api/auth/lancamentos/${lancamentoId}`);
       if (!res.ok) {
-        alert("Falha ao carregar lançamento.");
+        setErroEnvio("Falha ao carregar lançamento.");
         return;
       }
 
@@ -79,7 +89,7 @@ export default function ModalLancamento({
       setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
     } catch (err) {
       console.error("Erro ao carregar lançamento:", err);
-      alert("Erro ao carregar lançamento.");
+      setErroEnvio("Erro ao carregar lançamento.");
     } finally {
       setLoading(false);
     }
@@ -110,6 +120,7 @@ export default function ModalLancamento({
       setData("");
       setCategoriaId("");
       setErrors({});
+      setErroEnvio(null);
       setLoading(false);
       setSalvando(false);
     }
@@ -118,6 +129,7 @@ export default function ModalLancamento({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErrors({});
+    setErroEnvio(null);
 
     const valorNumerico = Number(
       valor.replace(/[^\d,-]/g, "").replace(",", ".")
@@ -160,7 +172,7 @@ export default function ModalLancamento({
 
       if (!res.ok) {
         const errorData = await res.json();
-        alert(errorData.error || "Erro ao salvar lançamento");
+        setErroEnvio(errorData.error || "Erro ao salvar lançamento");
         return;
       }
 
@@ -168,7 +180,7 @@ export default function ModalLancamento({
       onClose();
     } catch (err) {
       console.error("Erro ao salvar lançamento:", err);
-      alert("Erro ao salvar lançamento.");
+      setErroEnvio("Erro ao salvar lançamento.");
     } finally {
       setSalvando(false);
     }
@@ -178,155 +190,112 @@ export default function ModalLancamento({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm">
-        <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md max-h-full overflow-y-auto shadow-2xl text-white">
-          {/* Cabeçalho */}
-          <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-            <h2 className="text-xl font-semibold text-[#E0E0E0]">
-              {mode === "create" ? "Novo Lançamento" : "Editar Lançamento"}
-            </h2>
+      <Dialog
+        open
+        onClose={onClose}
+        dismissible={!salvando}
+        title={mode === "create" ? "Novo Lançamento" : "Editar Lançamento"}
+      >
+        {loading ? (
+          <LoadingState label="Carregando dados...">
+            <div className="space-y-4">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
+          </LoadingState>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {erroEnvio && <InlineAlert tone="error">{erroEnvio}</InlineAlert>}
 
-            <button
-              onClick={onClose}
-              className="touch-target text-gray-400 hover:text-white text-2xl"
+            <Field
+              id="lancamento-descricao"
+              label="Descrição"
+              error={errors.descricao}
             >
-              &times;
-            </button>
-          </div>
+              <Input
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+              />
+            </Field>
 
-          {loading ? (
-            <p className="text-center py-6 text-[#E0E0E0]">
-              Carregando dados...
-            </p>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              {/* Descrição */}
-              <div className="mb-4">
-                <label className="block mb-1 text-sm text-[#E0E0E0]">
-                  Descrição
-                </label>
-                <input
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                    errors.descricao
-                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                  }`}
-                />
-                {errors.descricao && (
-                  <p className="text-[#FF5252] text-xs mt-1">
-                    {errors.descricao}
-                  </p>
-                )}
-              </div>
+            <Field id="lancamento-valor" label="Valor (R$)" error={errors.valor}>
+              <NumericFormat
+                value={valor}
+                onValueChange={(v) => setValor(v.formattedValue)}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                decimalScale={2}
+                fixedDecimalScale
+                allowNegative={false}
+                inputMode="decimal"
+                className={cn(fieldClasses, "h-11 px-3.5 tabular-nums")}
+              />
+            </Field>
 
-              {/* Valor */}
-              <div className="mb-4">
-                <label className="block mb-1 text-sm text-[#E0E0E0]">
-                  Valor (R$)
-                </label>
-                <NumericFormat
-                  value={valor}
-                  onValueChange={(v) => setValor(v.formattedValue)}
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  prefix="R$ "
-                  decimalScale={2}
-                  fixedDecimalScale
-                  allowNegative={false}
-                  className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                    errors.valor
-                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                  }`}
-                />
-                {errors.valor && (
-                  <p className="text-[#FF5252] text-xs mt-1">{errors.valor}</p>
-                )}
-              </div>
+            <Field
+              id="lancamento-data"
+              label="Data de Pagamento"
+              error={errors.data}
+            >
+              <InputData value={data} onChange={(iso) => setData(iso)} />
+            </Field>
 
-              {/* Data */}
-              <div className="mb-4">
-                <InputData
-                  label="Data de Pagamento"
-                  value={data}
-                  onChange={(iso) => setData(iso)}
-                  error={errors.data}
-                />
-              </div>
-
-              {/* Categoria */}
-              <div className="mb-4">
-                <div className="flex justify-between mb-1">
-                  <label className="text-sm text-[#E0E0E0]">Categoria</label>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsModalCategoriaOpen(true)}
-                    className="relative p-1 rounded-xl border border-gray-700 hover:border-[#2196F3]/60 transition after:absolute after:-inset-x-3 after:-top-5 after:-bottom-1 after:content-['']"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-
-                <select
-                  value={categoriaId}
-                  onChange={(e) => setCategoriaId(e.target.value)}
-                  className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                    errors.categoria_id
-                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                  }`}
-                >
-                  <option value="" disabled>
-                    Selecione uma categoria
-                  </option>
-
-                  {categorias.map((c) => (
-                    <option key={c.id} value={String(c.id)}>
-                      {c.nome} ({c.tipo})
-                    </option>
-                  ))}
-                </select>
-
-                {errors.categoria_id && (
-                  <p className="text-[#FF5252] text-xs mt-1">
-                    {errors.categoria_id}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-2">
+            <Field
+              id="lancamento-categoria"
+              label="Categoria"
+              error={errors.categoria_id}
+              action={
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold px-4 h-[44px] rounded-xl"
-                  disabled={salvando}
+                  onClick={() => setIsModalCategoriaOpen(true)}
+                  className="touch-target -my-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
-                  Cancelar
+                  <Plus aria-hidden className="size-3.5" />
+                  Nova categoria
                 </button>
+              }
+            >
+              <NativeSelect
+                value={categoriaId}
+                onChange={(e) => setCategoriaId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Selecione uma categoria
+                </option>
 
-                <button
-                  type="submit"
-                  disabled={salvando}
-                  className={`${
-                    salvando
-                      ? "bg-[#2196F3]/50 cursor-not-allowed"
-                      : "bg-[#2196F3] hover:bg-[#2196F3]/75"
-                  } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
-                >
-                  {salvando
-                    ? "Salvando..."
-                    : mode === "create"
-                      ? "Salvar"
-                      : "Atualizar"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
+                {categorias.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    {c.nome} ({c.tipo})
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+
+            <DialogFooter className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={onClose}
+                disabled={salvando}
+              >
+                Cancelar
+              </Button>
+
+              <Button ref={envioRef} type="submit" size="lg" disabled={salvando}>
+                {salvando
+                  ? "Salvando..."
+                  : mode === "create"
+                    ? "Salvar"
+                    : "Atualizar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </Dialog>
 
       <ModalCategoria
         isOpen={isModalCategoriaOpen}
