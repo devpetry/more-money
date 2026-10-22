@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   try {
     // Verifica se o e-mail pertence a um usuário existente
     const res = await client.query(
-      'SELECT id, nome FROM "Usuarios" WHERE email = $1',
+      'SELECT id, nome FROM "Usuarios" WHERE email = $1 AND data_exclusao IS NULL',
       [email]
     );
     const usuario = res.rows[0];
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       html: `
         <p>Olá ${usuario.nome},</p>
         <p>Recebemos uma solicitação para redefinir sua senha.</p>
-        <p><a href="${recoveryLink}" target="_blank">Clique aqui</a> para criar uma nova senha (link válido por 1 hora).</p>
+        <p><a href="${recoveryLink}" target="_blank">Clique aqui</a> para criar uma nova senha (link válido por 10 minutos).</p>
         <p>Se não foi você, ignore este e-mail.</p>
       `,
     });

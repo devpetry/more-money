@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import ModalUser from "./ModalUser";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Plus, Users } from "lucide-react";
+import PageHeader from "./layout/PageHeader";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { DataTable, RowActions } from "./ui/data-table";
+import { EmptyState, LoadingState, Skeleton } from "./ui/feedback";
+import { toast } from "./feedback/toast";
+import { useConfirm } from "./feedback/ConfirmProvider";
 
 interface Usuario {
   id: number;
@@ -22,15 +30,17 @@ export default function ListUsers() {
     null
   );
 
+  const confirm = useConfirm();
+
   async function carregarUsuarios() {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/auth/usuarios");
+      const res = await fetch("/api/usuarios");
 
       if (!res.ok) {
         console.error("Erro ao carregar usuários:", res.status);
-        alert("Falha ao carregar usuários.");
+        toast.error("Falha ao carregar usuários.");
         setUsuarios([]);
         return;
       }
@@ -44,7 +54,7 @@ export default function ListUsers() {
       }
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
-      alert("Erro ao carregar lista de usuários.");
+      toast.error("Erro ao carregar lista de usuários.");
       setUsuarios([]);
     } finally {
       setLoading(false);
@@ -57,104 +67,122 @@ export default function ListUsers() {
     setIsModalOpen(true);
   }
 
-  async function deletarUsuario(id: number) {
-    if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
+  async function deletarUsuario(usuario: Usuario) {
+    const confirmado = await confirm({
+      title: "Excluir usuário",
+      description: "Tem certeza que deseja excluir este usuário?",
+      confirmLabel: "Excluir",
+      destructive: true,
+    });
+    if (!confirmado) return;
 
     try {
-      const res = await fetch(`/api/auth/usuarios/${id}`, {
+      const res = await fetch(`/api/usuarios/${usuario.id}`, {
         method: "DELETE",
       });
 
       if (!res.ok) {
         console.error("Falha ao deletar usuário:", res.status);
-        alert("Não foi possível remover o usuário.");
+        toast.error("Não foi possível remover o usuário.");
       } else {
-        alert("Usuário removido com sucesso!");
+        toast.success("Usuário removido com sucesso!");
       }
 
       carregarUsuarios();
     } catch (error) {
       console.error("Erro ao excluir:", error);
-      alert("Erro de conexão ao excluir o usuário.");
+      toast.error("Erro de conexão ao excluir o usuário.");
     }
+  }
+
+  function novoUsuario() {
+    setModalMode("create");
+    setUsuarioSelecionado(null);
+    setIsModalOpen(true);
   }
 
   useEffect(() => {
     carregarUsuarios();
   }, []);
 
-  if (loading)
-    return (
-      <p className="flex justify-center text-center py-8 text-[#E0E0E0]">
-        Carregando usuários...
-      </p>
-    );
-
   return (
     <>
-      <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
-        <button
-          onClick={() => {
-            setModalMode("create");
-            setUsuarioSelecionado(null);
-            setIsModalOpen(true);
-          }}
-          className="h-10 flex items-center bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] font-bold py-2 px-4 rounded-xl transition duration-200 shadow-md"
-        >
-          <Plus size={16} />
-          Adicionar
-        </button>
+      <PageHeader
+        title="Usuários"
+        description="Gerencie quem tem acesso à plataforma."
+        actions={
+          <Button onClick={novoUsuario}>
+            <Plus aria-hidden />
+            Adicionar
+          </Button>
+        }
+      />
 
-        {/* Tabela */}
-        <table className="w-full text-center border-collapse mt-6">
-          <thead>
-            <tr className="border-b border-gray-700 text-[#E0E0E0]">
-              <th className="px-3 py-2">ID</th>
-              <th className="px-3 py-2">Nome</th>
-              <th className="px-3 py-2">E-mail</th>
-              <th className="px-3 py-2">Tipo</th>
-              <th className="px-3 py-2 text-center">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr
-                key={u.id}
-                className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-              >
-                <td className="px-3 py-2">{u.id}</td>
-                <td className="px-3 py-2">{u.nome}</td>
-                <td className="px-3 py-2">{u.email}</td>
-                <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
-
-                <td className="px-3 py-2 text-center">
-                  <button
-                    onClick={() => editarUsuario(u.id)}
-                    className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
-                    title="Editar"
-                  >
-                    <Edit size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => deletarUsuario(u.id)}
-                    className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {usuarios.length === 0 && (
-          <p className="text-center text-gray-400 mt-6">
-            Nenhum usuário encontrado.
-          </p>
-        )}
-      </div>
+      <Card>
+        <CardContent>
+          {loading ? (
+            <LoadingState label="Carregando usuários...">
+              <div className="space-y-3">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <Skeleton key={i} className="h-10" />
+                ))}
+              </div>
+            </LoadingState>
+          ) : (
+            <DataTable
+              data={usuarios}
+              caption="Usuários cadastrados"
+              rowKey={(u) => u.id}
+              columns={[
+                {
+                  key: "id",
+                  header: "ID",
+                  cell: (u) => (
+                    <span className="tabular-nums text-muted-foreground">{u.id}</span>
+                  ),
+                  className: "w-16",
+                },
+                {
+                  key: "nome",
+                  header: "Nome",
+                  cell: (u) => <span className="font-medium">{u.nome}</span>,
+                  hideOnCard: true,
+                },
+                {
+                  key: "email",
+                  header: "E-mail",
+                  cell: (u) => u.email,
+                },
+                {
+                  key: "tipo",
+                  header: "Tipo",
+                  cell: (u) => (
+                    <Badge variant={u.tipo_usuario === "ADMIN" ? "primary" : "neutral"}>
+                      {u.tipo_usuario?.toLowerCase()}
+                    </Badge>
+                  ),
+                  hideOnCard: true,
+                },
+              ]}
+              cardTitle={(u) => u.nome}
+              cardAside={(u) => (
+                <Badge variant={u.tipo_usuario === "ADMIN" ? "primary" : "neutral"}>
+                  {u.tipo_usuario?.toLowerCase()}
+                </Badge>
+              )}
+              actions={(u, layout) => (
+                <RowActions
+                  layout={layout}
+                  itemLabel={u.nome}
+                  onEdit={() => editarUsuario(u.id)}
+                  onDelete={() => deletarUsuario(u)}
+                />
+              )}
+              empty={<EmptyState icon={Users} title="Nenhum usuário encontrado." />}
+            />
+          )}
+        </CardContent>
+      </Card>
 
       <ModalUser
         isOpen={isModalOpen}

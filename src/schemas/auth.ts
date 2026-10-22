@@ -27,13 +27,22 @@ export const PasswordRecoverySchema = z.object({
 export type TPasswordRecoverySchema = z.infer<typeof PasswordRecoverySchema>;
 
 /* ---------------------- REDEFINIÇÃO DE SENHA ---------------------- */
+// O bcrypt só considera os primeiros 72 bytes (UTF-8) da senha; acima disso
+// ela seria truncada em silêncio. Vale para cadastro e redefinição.
+const senhaAte72Bytes = (senha: string) =>
+  new TextEncoder().encode(senha).length <= 72;
+const MSG_SENHA_BYTES =
+  "A senha deve ter no máximo 72 bytes (acentos e emojis ocupam mais de 1).";
+
+export const NovaSenhaSchema = z
+  .string()
+  .nonempty("A nova senha é obrigatória.")
+  .min(6, "A nova senha deve ter pelo menos 6 caracteres.")
+  .refine(senhaAte72Bytes, MSG_SENHA_BYTES);
+
 export const PasswordChangeSchema = z
   .object({
-    password: z
-      .string()
-      .nonempty("A nova senha é obrigatória.")
-      .min(6, "A nova senha deve ter pelo menos 6 caracteres.")
-      .max(100, "A senha não pode ultrapassar 100 caracteres."),
+    password: NovaSenhaSchema,
     confirmPassword: z
       .string()
       .nonempty("Confirme sua nova senha.")
@@ -69,6 +78,27 @@ export const UsuarioSchema = z.object({
 });
 
 export type TUsuarioSchema = z.infer<typeof UsuarioSchema>;
+
+/* ---------------------------- CADASTRO PÚBLICO ---------------------------- */
+// Só nome, e-mail e senha: o perfil nunca vem do cliente. Os limites valem
+// apenas aqui.
+export const CadastroSchema = UsuarioSchema.pick({
+  nome: true,
+  email: true,
+  senha: true,
+}).extend({
+  nome: UsuarioSchema.shape.nome.max(
+    100,
+    "O nome deve ter no máximo 100 caracteres."
+  ),
+  email: UsuarioSchema.shape.email.max(
+    254,
+    "O e-mail deve ter no máximo 254 caracteres."
+  ),
+  senha: UsuarioSchema.shape.senha.refine(senhaAte72Bytes, MSG_SENHA_BYTES),
+});
+
+export type TCadastroSchema = z.infer<typeof CadastroSchema>;
 
 /* ---------------------------- EDIÇÃO DE USUÁRIO ---------------------------- */
 export const UsuarioEditSchema = z.object({
@@ -124,6 +154,7 @@ export const Schemas = {
   recovery: PasswordRecoverySchema,
   passwordChange: PasswordChangeSchema,
   usuario: UsuarioSchema,
+  cadastro: CadastroSchema,
   usuarioEdit: UsuarioEditSchema,
   categora: CategoriaSchema,
   lancamento: LancamentoSchema,

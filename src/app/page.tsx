@@ -1,40 +1,45 @@
+import Link from "next/link";
 import packageJson from "../../package.json";
-import { LogIn } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
+import PublicShell from "@/components/layout/PublicShell";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col items-center">
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex flex-col items-center justify-center text-center min-h-[80vh] px-6">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-            Bem-vindo ao{" "}
-            <span className="bg-gradient-to-r from-[#00E676] via-[#00C853] to-[#00E676] bg-clip-text text-transparent animate-gradient-x">
-              More Money
-            </span>
-          </h1>
+    <PublicShell>
+      <div className="mx-auto flex max-w-3xl flex-col items-center py-10 text-center sm:py-16">
+        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-6xl">
+          Bem-vindo ao <span className="text-brand">More Money</span>
+        </h1>
 
-          <h2 className="text-2xl md:text-3xl mb-3">
-            Organize suas finanças com facilidade.
-          </h2>
+        <p className="mt-6 text-xl font-medium sm:text-2xl">
+          Organize suas finanças com facilidade.
+        </p>
 
-          <h3 className="text-lg md:text-xl max-w-2xl mb-8">
-            Controle seus gastos, defina metas e alcance a liberdade financeira.
-          </h3>
-          <a
-            href="/login"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl hover:text-[#0D1117] hover:bg-[#00C853] border border-[#161B22] transition-all duration-200"
-          >
-            <LogIn size={18} />
-            Entrar
-          </a>
-          <p className="mt-6 text-sm text-[#9E9E9E]">
-            Versão{" "}
-            <span className="text-[#00E676] font-semibold">
-              {packageJson.version}
-            </span>
-          </p>
+        <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          Controle seus gastos, defina metas e alcance a liberdade financeira.
+        </p>
+
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg" className="px-8">
+            <Link href="/login">
+              <LogIn aria-hidden />
+              Entrar
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="px-8">
+            <Link href="/cadastro">
+              <UserPlus aria-hidden />
+              Criar conta
+            </Link>
+          </Button>
         </div>
-      </main>
-    </div>
+
+        <p className="mt-8 text-sm text-muted-foreground">
+          Versão{" "}
+          <span className="font-semibold text-brand">{packageJson.version}</span>
+        </p>
+      </div>
+    </PublicShell>
   );
 }

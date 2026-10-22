@@ -1,11 +1,16 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { LoginSchema, TLoginSchema } from "@/schemas/auth";
-import { Eye, EyeOff } from "lucide-react";
+import { AuthCard } from "@/components/layout/PublicShell";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { InlineAlert } from "@/components/ui/feedback";
 
 type FormErrors = Partial<TLoginSchema>;
 
@@ -14,7 +19,6 @@ export default function LoginForm() {
   const nextAuthError = searchParams.get("error");
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,93 +65,48 @@ export default function LoginForm() {
   const authErrorMessage = getNextAuthErrorMessage(nextAuthError);
 
   return (
-    <section className="w-full max-w-sm p-8 rounded-2xl bg-[#0D1117]">
-      {/* Logo */}
-      <div className="flex justify-center mb-6 rounded-xl">
-        <div className="h-20 flex items-center justify-center">
-          <Image
-            src="/images/logo-temporaria.png"
-            alt="Logo More Money"
-            width={320}
-            height={200}
-            priority
-            className="object-contain"
-          />
-        </div>
-      </div>
-
-      {/* Título */}
-      <h2 className="text-center text-[#E0E0E0] text-xl font-bold">
-        Acesse sua conta
-      </h2>
-      <p className="text-center text-[#9E9E9E] text-sm mb-6">
-        Preencha os campos abaixo para seguir
-      </p>
-
-      {/* Formulário */}
+    <AuthCard
+      title="Acesse sua conta"
+      description="Preencha os campos abaixo para seguir"
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <input
+        {authErrorMessage && (
+          <InlineAlert tone="error">{authErrorMessage}</InlineAlert>
+        )}
+
+        <Field id="login-email" label="E-mail" error={errors.email}>
+          <Input
             name="email"
             type="email"
+            autoComplete="email"
             placeholder="email@dominio.com"
-            className={`w-full px-4 py-2 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-              errors.email
-                ? "border-2 border-[#FF5252]"
-                : "focus:ring-2 focus:ring-[#00C853]"
-            }`}
           />
-          {errors.email && (
-            <p className="text-[#FF5252] text-xs mt-1">{errors.email}</p>
-          )}
-        </div>
+        </Field>
 
-        <div className="relative">
-          <input
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="senha"
-            className={`w-full px-4 py-2 pr-10 bg-[#E0E0E0] text-[#0D1117] outline-none rounded-xl ${
-              errors.password
-                ? "border-2 border-[#FF5252]"
-                : "focus:ring-2 focus:ring-[#00C853]"
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D1117]/70 hover:text-[#0D1117]"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-          {errors.password && (
-            <p className="text-[#FF5252] text-xs mt-1">{errors.password}</p>
-          )}
-        </div>
+        <Field id="login-senha" label="Senha" error={errors.password}>
+          <PasswordInput name="password" autoComplete="current-password" />
+        </Field>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-[#00C853] hover:bg-[#00C853]/80 disabled:opacity-75 text-[#0D1117] font-black py-2 rounded-xl transition"
-        >
-          {loading ? "ENTRANDO..." : "ENTRAR"}
-        </button>
-
-        {authErrorMessage && (
-          <p className="text-[#FF5252] text-sm text-center mt-2">
-            {authErrorMessage}
-          </p>
-        )}
+        <Button type="submit" size="lg" disabled={loading} className="mt-2 w-full">
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
       </form>
 
-      <div className="mt-4 text-center">
-        <a
+      <div className="mt-5 text-center">
+        <Link
           href="/recuperar-senha"
-          className="text-sm text-[#9E9E9E] hover:underline"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
         >
           Esqueci minha senha
-        </a>
+        </Link>
       </div>
-    </section>
+
+      <div className="mt-3 text-center text-sm text-muted-foreground">
+        Não tem conta?{" "}
+        <Link href="/cadastro" className="font-medium text-foreground hover:underline">
+          Criar conta
+        </Link>
+      </div>
+    </AuthCard>
   );
 }

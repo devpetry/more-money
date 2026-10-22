@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface BarraPesquisaProps {
   termo: string;
@@ -9,19 +10,22 @@ interface BarraPesquisaProps {
 
 export default function BarraPesquisa({ termo, setTermo }: BarraPesquisaProps) {
   return (
-    <div className="flex w-full sm:w-1/3">
-      <div className="relative w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-
-        <input
-          id="pesquisa"
-          type="text"
-          value={termo}
-          onChange={(e) => setTermo(e.target.value)}
-          placeholder="Digite uma descrição..."
-          className="w-full pl-10 pr-4 h-10 bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30 placeholder:text-gray-500"
-        />
-      </div>
+    <div className="relative w-full lg:max-w-sm">
+      <label htmlFor="pesquisa" className="sr-only">
+        Pesquisar lançamentos por descrição
+      </label>
+      <Search
+        aria-hidden
+        className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+      />
+      <Input
+        id="pesquisa"
+        type="text"
+        value={termo}
+        onChange={(e) => setTermo(e.target.value)}
+        placeholder="Buscar descrição"
+        className="h-10 pl-10"
+      />
     </div>
   );
 }

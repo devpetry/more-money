@@ -7,6 +7,13 @@ import {
   TUsuarioSchema,
   TUsuarioEditSchema,
 } from "@/schemas/auth";
+import { Button } from "./ui/button";
+import { Dialog, DialogFooter } from "./ui/dialog";
+import { Field } from "./ui/field";
+import { Input } from "./ui/input";
+import { NativeSelect } from "./ui/select";
+import { InlineAlert, LoadingState, Skeleton } from "./ui/feedback";
+import { useFocoAposFalha } from "@/lib/foco";
 
 interface ModalUserProps {
   isOpen: boolean;
@@ -44,17 +51,19 @@ export default function ModalUser({
   const [tipoUsuario, setTipoUsuario] = useState<string>("");
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const envioRef = useFocoAposFalha<HTMLButtonElement>(salvando, erroEnvio !== null);
 
   const carregarUsuario = useCallback(async () => {
     if (!userId) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/auth/usuarios/${userId}`);
+      const res = await fetch(`/api/usuarios/${userId}`);
       if (!res.ok) {
-        alert("Falha ao carregar usuário.");
+        setErroEnvio("Falha ao carregar usuário.");
         return;
       }
       const data = await res.json();
@@ -63,7 +72,7 @@ export default function ModalUser({
       setTipoUsuario(getTipoIdByNome(data.tipo_usuario ?? null));
     } catch (err) {
       console.error("Erro ao carregar usuário:", err);
-      alert("Erro ao carregar usuário.");
+      setErroEnvio("Erro ao carregar usuário.");
     } finally {
       setLoading(false);
     }
@@ -82,6 +91,7 @@ export default function ModalUser({
       setSenha("");
       setTipoUsuario("");
       setErrors({});
+      setErroEnvio(null);
       setLoading(false);
       setSalvando(false);
     }
@@ -90,6 +100,7 @@ export default function ModalUser({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErrors({});
+    setErroEnvio(null);
 
     const dataToSend = {
       nome,
@@ -120,8 +131,8 @@ export default function ModalUser({
 
     try {
       const url = isEdit
-        ? `/api/auth/usuarios/${userId}`
-        : "/api/auth/usuarios";
+        ? `/api/usuarios/${userId}`
+        : "/api/usuarios";
       const method = isEdit ? "PUT" : "POST";
       const body = isEdit
         ? JSON.stringify(dataToSend)
@@ -135,7 +146,7 @@ export default function ModalUser({
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        alert(errorData.error || "Erro ao salvar usuário");
+        setErroEnvio(errorData.error || "Erro ao salvar usuário");
         return;
       }
 
@@ -143,7 +154,7 @@ export default function ModalUser({
       onClose();
     } catch (err) {
       console.error("Erro ao salvar usuário:", err);
-      alert("Erro de conexão ao salvar usuário.");
+      setErroEnvio("Erro de conexão ao salvar usuário.");
     } finally {
       setSalvando(false);
     }
@@ -152,170 +163,99 @@ export default function ModalUser({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
-      <div className="bg-[#161B22] p-6 rounded-2xl w-full max-w-md shadow-2xl text-white">
-        <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-          <h2 className="text-xl font-semibold text-[#E0E0E0]">
-            {isEdit ? "Editar Usuário" : "Novo Usuário"}
-          </h2>
+    <Dialog
+      open
+      onClose={onClose}
+      dismissible={!salvando}
+      title={isEdit ? "Editar Usuário" : "Novo Usuário"}
+    >
+      {loading ? (
+        <LoadingState label="Carregando dados...">
+          <div className="space-y-4">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        </LoadingState>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {erroEnvio && <InlineAlert tone="error">{erroEnvio}</InlineAlert>}
 
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl"
-            aria-label="Fechar Modal"
+          <Field id="usuario-nome" label="Nome" error={errors.nome}>
+            <Input
+              name="nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </Field>
+
+          <Field id="usuario-email" label="E-mail" error={errors.email}>
+            <Input
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Field>
+
+          {!isEdit && (
+            <Field
+              id="usuario-senha"
+              label="Senha"
+              error={errors.senha}
+              hint="* Recomendamos que o novo usuário altere a senha no primeiro login"
+            >
+              <Input
+                name="senha"
+                type="password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+              />
+            </Field>
+          )}
+
+          <Field
+            id="usuario-tipo"
+            label="Tipo de Usuário"
+            error={errors.tipo_usuario}
           >
-            &times;
-          </button>
-        </div>
-
-        {loading ? (
-          <p className="text-center py-6 text-[#E0E0E0]">
-            Carregando dados...
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                htmlFor="nome"
-                className="block mb-1 text-sm text-[#E0E0E0]"
-              >
-                Nome
-              </label>
-              <input
-                id="nome"
-                name="nome"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                  errors.nome
-                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                }`}
-              />
-              {errors.nome && (
-                <p className="text-[#FF5252] text-xs mt-1">{errors.nome}</p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <label
-                htmlFor="email"
-                className="block mb-1 text-sm text-[#E0E0E0]"
-              >
-                E-mail
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                  errors.email
-                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                }`}
-              />
-              {errors.email && (
-                <p className="text-[#FF5252] text-xs mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            {!isEdit && (
-              <div className="mb-4">
-                <label
-                  htmlFor="senha"
-                  className="block mb-1 text-sm text-[#E0E0E0]"
-                >
-                  Senha
-                </label>
-                <input
-                  id="senha"
-                  name="senha"
-                  type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                    errors.senha
-                      ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                      : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                  }`}
-                />
-                {errors.senha && (
-                  <p className="text-[#FF5252] text-xs mt-1">
-                    {errors.senha}
-                  </p>
-                )}
-                <label className="text-xs text-[#9E9E9E] mt-1 block">
-                  * Recomendamos que o novo usuário altere a senha no primeiro
-                  login
-                </label>
-              </div>
-            )}
-
-            <div className="mb-4">
-              <label
-                htmlFor="tipo_usuario"
-                className="block mb-1 text-sm text-[#E0E0E0]"
-              >
-                Tipo de Usuário
-              </label>
-              <select
-                id="tipo_usuario"
-                name="tipo_usuario"
-                value={tipoUsuario}
-                onChange={(e) => setTipoUsuario(e.target.value)}
-                className={`w-full px-4 h-[44px] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition ${
-                  errors.tipo_usuario
-                    ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"
-                    : "border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]"
-                }`}
-              >
-                <option value="" disabled>
-                  Selecione o tipo de usuário
+            <NativeSelect
+              name="tipo_usuario"
+              value={tipoUsuario}
+              onChange={(e) => setTipoUsuario(e.target.value)}
+            >
+              <option value="" disabled>
+                Selecione o tipo de usuário
+              </option>
+              {TIPOS_USUARIO.map((t) => (
+                <option key={t.id} value={String(t.id)}>
+                  {t.nome}
                 </option>
-                {TIPOS_USUARIO.map((t) => (
-                  <option key={t.id} value={String(t.id)}>
-                    {t.nome}
-                  </option>
-                ))}
-              </select>
-              {errors.tipo_usuario && (
-                <p className="text-[#FF5252] text-xs mt-1">
-                  {errors.tipo_usuario}
-                </p>
-              )}
-            </div>
+              ))}
+            </NativeSelect>
+          </Field>
 
-            <div className="flex justify-end space-x-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-gray-600 hover:bg-gray-700 text-[#161B22] font-bold px-4 h-[44px] rounded-xl"
-                disabled={salvando}
-              >
-                Cancelar
-              </button>
+          <DialogFooter className="mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={onClose}
+              disabled={salvando}
+            >
+              Cancelar
+            </Button>
 
-              <button
-                type="submit"
-                disabled={salvando}
-                className={`${
-                  salvando
-                    ? "bg-[#2196F3]/50 cursor-not-allowed"
-                    : "bg-[#2196F3] hover:bg-[#2196F3]/75"
-                } text-[#161B22] font-bold py-2 px-4 rounded-xl transition`}
-              >
-                {salvando
-                  ? "Salvando..."
-                  : mode === "create"
-                    ? "Salvar"
-                    : "Atualizar"}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
+            <Button ref={envioRef} type="submit" size="lg" disabled={salvando}>
+              {salvando
+                ? "Salvando..."
+                : mode === "create"
+                  ? "Salvar"
+                  : "Atualizar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      )}
+    </Dialog>
   );
 }

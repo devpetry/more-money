@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { NovaSenhaSchema } from "@/schemas/auth";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -10,6 +11,19 @@ export async function POST(request: Request) {
   if (!token || !password) {
     return NextResponse.json(
       { success: false, message: "Token e nova senha são obrigatórios." },
+      { status: 400 }
+    );
+  }
+
+  const senhaValida = NovaSenhaSchema.safeParse(password);
+  if (!senhaValida.success) {
+    const issue = senhaValida.error.issues[0];
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          issue.code === "invalid_type" ? "Senha inválida." : issue.message,
+      },
       { status: 400 }
     );
   }
@@ -25,8 +39,9 @@ export async function POST(request: Request) {
     // Verifica se o token existe e ainda não expirou
     const res = await client.query(
       `SELECT "id", "senha_hash" FROM "Usuarios" 
-       WHERE "token_recuperacao" = $1 
-       AND "expiracao_token_recuperacao" > NOW()`,
+       WHERE "token_recuperacao" = $1
+       AND "expiracao_token_recuperacao" > NOW()
+       AND data_exclusao IS NULL`,
       [hashedToken]
     );
 

@@ -152,7 +152,7 @@ O More Money foi criado para oferecer uma experiência financeira mais simples, 
 
 ## Banco de dados
 
-- PostgreSQL
+- PostgreSQL (Neon)
 - SQL puro
 
 ## Infraestrutura
@@ -181,7 +181,7 @@ import { query } from "@/lib/db";
 
 # 🧩 Diagrama do banco de dados
 
-O banco de dados foi modelado utilizando PostgreSQL e hospedado no Supabase.
+O banco de dados foi modelado utilizando PostgreSQL e hospedado no Neon.
 
 A estrutura atual do sistema possui relacionamento entre:
 
@@ -388,20 +388,18 @@ NEXTAUTH_SECRET=
 
 RESEND_API_KEY=
 
-DB_USER=
-DB_HOST=
-DB_DATABASE=
-DB_PASSWORD=
-DB_PORT=
+DATABASE_URL=postgresql://usuario:senha@host/banco?sslmode=require
 ```
+
+Em produção (Neon), use a string de conexão com *pooling* (host com `-pooler`).
 
 ---
 
 ## 5. Configure o banco PostgreSQL
 
-1. Crie um banco PostgreSQL localmente
+1. Crie um banco PostgreSQL (localmente ou um projeto no [Neon](https://neon.tech))
 2. Execute os scripts SQL acima
-3. Configure as variáveis do `.env`
+3. Configure a `DATABASE_URL` no `.env`
 
 ## 6. 🧪 Dados iniciais (seed)
 
@@ -516,3 +514,12 @@ Desenvolvido por João Augusto Petry.
 </div>
 
 
+
+## Migrations do banco
+
+A estrutura do banco (sem dados) é versionada em `db/migrations/*.sql`, aplicadas em ordem alfabética e registradas na tabela `schema_migrations`.
+
+- Toda mudança de estrutura vira um novo arquivo (ex.: `0002_adicionar_coluna_x.sql`), commitado no mesmo PR da mudança de código. Não edite migrations já aplicadas.
+- Localmente: `npm run db:migrate` aplica as pendentes no banco da `DATABASE_URL`.
+- Em produção: o `npm run build` da Vercel roda as migrations pendentes antes do `next build` quando `VERCEL_ENV=production`. Se a migration falhar, o build falha e a versão anterior continua no ar. Previews não alteram o banco.
+- Prefira mudanças aditivas (criar tabela/coluna). Renomear ou apagar coluna deve ser feito em duas etapas, pois o código antigo continua no ar durante o build.
