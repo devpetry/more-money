@@ -67,4 +67,9 @@ body {
   .modal-input {
     @apply h-10 px-3 rounded-lg border border-gray-300 text-base;
   }
+
+  /* Amplia a área de toque para 44x44px sem alterar o tamanho visual */
+  .touch-target {
+    @apply relative after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''];
+  }
 }

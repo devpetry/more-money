@@ -50,7 +50,7 @@ export default function InputData({
       )}
 
       <div
-        className={`flex items-center justify-between bg-[#0D1117] rounded-lg border text-sm text-[#E0E0E0] transition-all duration-200 rounded-xl
+        className={`flex items-center justify-between bg-[#0D1117] rounded-lg border text-base lg:text-sm text-[#E0E0E0] transition-all duration-200 rounded-xl
           ${
             error
               ? "border-[#FF5252] ring-1 ring-[#FF5252]/40"

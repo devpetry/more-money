@@ -92,7 +92,7 @@ export default function ListUsers() {
 
   return (
     <>
-      <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
+      <div className="bg-[#0D1117] py-6 sm:p-6 rounded-2xl shadow-md">
         <button
           onClick={() => {
             setModalMode("create");
@@ -106,48 +106,50 @@ export default function ListUsers() {
         </button>
 
         {/* Tabela */}
-        <table className="w-full text-center border-collapse mt-6">
-          <thead>
-            <tr className="border-b border-gray-700 text-[#E0E0E0]">
-              <th className="px-3 py-2">ID</th>
-              <th className="px-3 py-2">Nome</th>
-              <th className="px-3 py-2">E-mail</th>
-              <th className="px-3 py-2">Tipo</th>
-              <th className="px-3 py-2 text-center">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr
-                key={u.id}
-                className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-              >
-                <td className="px-3 py-2">{u.id}</td>
-                <td className="px-3 py-2">{u.nome}</td>
-                <td className="px-3 py-2">{u.email}</td>
-                <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
-
-                <td className="px-3 py-2 text-center">
-                  <button
-                    onClick={() => editarUsuario(u.id)}
-                    className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
-                    title="Editar"
-                  >
-                    <Edit size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => deletarUsuario(u.id)}
-                    className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto mt-6">
+          <table className="w-full text-center border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700 text-[#E0E0E0]">
+                <th className="px-3 py-2">ID</th>
+                <th className="px-3 py-2">Nome</th>
+                <th className="px-3 py-2">E-mail</th>
+                <th className="px-3 py-2">Tipo</th>
+                <th className="px-3 py-2 text-center">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {usuarios.map((u) => (
+                <tr
+                  key={u.id}
+                  className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
+                >
+                  <td className="px-3 py-2">{u.id}</td>
+                  <td className="px-3 py-2">{u.nome}</td>
+                  <td className="px-3 py-2">{u.email}</td>
+                  <td className="px-3 py-2 capitalize">{u.tipo_usuario}</td>
+
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      onClick={() => editarUsuario(u.id)}
+                      className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
+                      title="Editar"
+                    >
+                      <Edit size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => deletarUsuario(u.id)}
+                      className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {usuarios.length === 0 && (
           <p className="text-center text-gray-400 mt-6">

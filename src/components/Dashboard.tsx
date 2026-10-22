@@ -105,7 +105,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
+      <div className="py-6 sm:p-6 bg-[#0D1117] min-h-screen text-[#E0E0E0]">
         <FiltroMes
           mesSelecionado={mesSelecionado}
           setMesSelecionado={setMesSelecionado}
@@ -218,129 +218,135 @@ export default function Dashboard() {
           {/* Despesas */}
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <h2 className="text-lg font-medium mb-4">Despesas por Categoria</h2>
-            <table className="w-full text-left border-collapse table-fixed">
-              <thead>
-                <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                  <th className="pb-2">Categoria</th>
-                  <th className="pb-2 text-center">Nº de Lançamentos</th>
-                  <th className="pb-2 w-[25%] text-right">Valor Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dados.despesasPorCategoria.length > 0 ? (
-                  dados.despesasPorCategoria.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                    >
-                      <td className="py-2 capitalize">{item.categoria}</td>
-                      <td className="py-2 text-center">{item.quantidade}</td>
-                      <td className="py-2 text-right">
-                        R$ {Number(item.total).toFixed(2)}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse lg:table-fixed max-lg:[&_:is(th,td):not(:last-child)]:pr-4 max-lg:[&_:is(th,td):not(:first-child)]:whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                    <th className="pb-2">Categoria</th>
+                    <th className="pb-2 text-center">Nº de Lançamentos</th>
+                    <th className="pb-2 w-[25%] text-right">Valor Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dados.despesasPorCategoria.length > 0 ? (
+                    dados.despesasPorCategoria.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                      >
+                        <td className="py-2 capitalize">{item.categoria}</td>
+                        <td className="py-2 text-center">{item.quantidade}</td>
+                        <td className="py-2 text-right">
+                          R$ {Number(item.total).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="text-center max-lg:text-left py-4 text-gray-500 text-sm"
+                      >
+                        Nenhuma despesa encontrada.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="text-center py-4 text-gray-500 text-sm"
-                    >
-                      Nenhuma despesa encontrada.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Receitas */}
           <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
             <h2 className="text-lg font-medium mb-4">Receitas por Categoria</h2>
-            <table className="w-full text-left border-collapse table-fixed">
-              <thead>
-                <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                  <th className="pb-2">Categoria</th>
-                  <th className="pb-2 text-center">Nº de Lançamentos</th>
-                  <th className="pb-2 w-[25%] text-right">Valor Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dados.receitasPorCategoria.length > 0 ? (
-                  dados.receitasPorCategoria.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-800 hover:bg-[#0D1117] transition"
-                    >
-                      <td className="py-2 capitalize">{item.categoria}</td>
-                      <td className="py-2 text-center">{item.quantidade}</td>
-                      <td className="py-2 text-right">
-                        R$ {Number(item.total).toFixed(2)}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse lg:table-fixed max-lg:[&_:is(th,td):not(:last-child)]:pr-4 max-lg:[&_:is(th,td):not(:first-child)]:whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                    <th className="pb-2">Categoria</th>
+                    <th className="pb-2 text-center">Nº de Lançamentos</th>
+                    <th className="pb-2 w-[25%] text-right">Valor Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dados.receitasPorCategoria.length > 0 ? (
+                    dados.receitasPorCategoria.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-800 hover:bg-[#0D1117] transition"
+                      >
+                        <td className="py-2 capitalize">{item.categoria}</td>
+                        <td className="py-2 text-center">{item.quantidade}</td>
+                        <td className="py-2 text-right">
+                          R$ {Number(item.total).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="text-center max-lg:text-left py-4 text-gray-500 text-sm"
+                      >
+                        Nenhuma receita encontrada.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="text-center py-4 text-gray-500 text-sm"
-                    >
-                      Nenhuma receita encontrada.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
         {/* Últimos Lançamentos */}
         <div className="bg-[#161B22] p-5 rounded-2xl shadow-md border border-gray-800">
           <h2 className="text-lg font-medium mb-4">Últimos Lançamentos</h2>
-          <table className="w-full text-left border-collapse table-fixed">
-            <thead>
-              <tr className="border-b border-gray-700 text-gray-400 text-sm">
-                <th className="pb-2">Descrição</th>
-                <th className="pb-2">Tipo</th>
-                <th className="pb-2">Valor</th>
-                <th className="pb-2">Lançamento</th>
-                <th className="pb-2 w-[10%]">Pagamento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dados.ultimosLancamentos.length > 0 ? (
-                dados.ultimosLancamentos.map((lanc, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-800 hover:bg-[#0D1117]"
-                  >
-                    <td className="py-2">{lanc.descricao}</td>
-                    <td
-                      className={`py-2 capitalize ${
-                        lanc.tipo === "receita"
-                          ? "text-[#2196F3]"
-                          : "text-[#FF5252]"
-                      }`}
-                    >
-                      {lanc.tipo}
-                    </td>
-                    <td className="py-2">R$ {Number(lanc.valor).toFixed(2)}</td>
-                    <td className="py-2">{formatTimestamp(lanc.criado_em)}</td>
-                    <td className="py-2">{formatDate(lanc.data)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="text-center py-4 text-gray-500 text-sm"
-                  >
-                    Nenhum lançamento encontrado.
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse lg:table-fixed max-lg:[&_:is(th,td):not(:last-child)]:pr-4 max-lg:[&_:is(th,td):not(:first-child)]:whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-gray-700 text-gray-400 text-sm">
+                  <th className="pb-2">Descrição</th>
+                  <th className="pb-2">Tipo</th>
+                  <th className="pb-2">Valor</th>
+                  <th className="pb-2">Lançamento</th>
+                  <th className="pb-2 w-[10%]">Pagamento</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {dados.ultimosLancamentos.length > 0 ? (
+                  dados.ultimosLancamentos.map((lanc, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-800 hover:bg-[#0D1117]"
+                    >
+                      <td className="py-2">{lanc.descricao}</td>
+                      <td
+                        className={`py-2 capitalize ${
+                          lanc.tipo === "receita"
+                            ? "text-[#2196F3]"
+                            : "text-[#FF5252]"
+                        }`}
+                      >
+                        {lanc.tipo}
+                      </td>
+                      <td className="py-2">R$ {Number(lanc.valor).toFixed(2)}</td>
+                      <td className="py-2">{formatTimestamp(lanc.criado_em)}</td>
+                      <td className="py-2">{formatDate(lanc.data)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center max-lg:text-left py-4 text-gray-500 text-sm"
+                    >
+                      Nenhum lançamento encontrado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

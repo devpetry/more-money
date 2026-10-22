@@ -131,7 +131,7 @@ export default function ListLancamentos() {
 
   return (
     <>
-      <div className="bg-[#0D1117] p-6 rounded-2xl shadow-md">
+      <div className="bg-[#0D1117] py-6 sm:p-6 rounded-2xl shadow-md">
         <div className="flex flex-wrap gap-3 justify-between items-center mb-4 mt-4">
           <button
             onClick={() => {
@@ -146,10 +146,10 @@ export default function ListLancamentos() {
           </button>
         </div>
 
-        <div className="flex flex-wrap justify-between items-center">
+        <div className="flex flex-wrap gap-y-3 justify-between items-center">
           <BarraPesquisa termo={termo} setTermo={setTermo} />
 
-          <div className="flex flex-wrap justify-between items-center">
+          <div className="flex flex-wrap gap-y-3 justify-between items-center">
             <PaginacaoMes mesAtual={mesAtual} onChange={setMesAtual} />
             <Filtros
               tipo={tipo}
@@ -165,67 +165,69 @@ export default function ListLancamentos() {
           </div>
         </div>
 
-        <table className="w-full text-center border-collapse mt-6">
-          <thead>
-            <tr className="border-b border-gray-700 text-[#E0E0E0]">
-              <th className="px-3 py-2">Descrição</th>
-              <th className="px-3 py-2">Valor</th>
-              <th className="px-3 py-2">Tipo</th>
-              <th className="px-3 py-2">Data de Pagamento</th>
-              <th className="px-3 py-2">Categoria</th>
-              <th className="px-3 py-2 text-center">Ações</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {lancamentosFiltrados.map((l) => (
-              <tr
-                key={l.id}
-                className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
-              >
-                <td className="px-3 py-2">{l.descricao}</td>
-
-                <td className="px-3 py-2">
-                  {l.tipo === "despesa" ? (
-                    <span className="text-[#FF5252]">
-                      - R$ {Number(l.valor).toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-[#00E676]">
-                      + R$ {Number(l.valor).toFixed(2)}
-                    </span>
-                  )}
-                </td>
-
-                <td className="px-3 py-2 capitalize">{l.tipo}</td>
-
-                <td className="px-3 py-2">
-                  {l.data.slice(0, 10).split("-").reverse().join("/")}
-                </td>
-
-                <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
-
-                <td className="px-3 py-2 text-center">
-                  <button
-                    onClick={() => editarLancamento(l.id)}
-                    className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
-                    title="Editar"
-                  >
-                    <Edit size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => deletarLancamento(l.id)}
-                    className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto mt-6">
+          <table className="w-full text-center border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700 text-[#E0E0E0]">
+                <th className="px-3 py-2">Descrição</th>
+                <th className="px-3 py-2">Valor</th>
+                <th className="px-3 py-2">Tipo</th>
+                <th className="px-3 py-2">Data de Pagamento</th>
+                <th className="px-3 py-2">Categoria</th>
+                <th className="px-3 py-2 text-center">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {lancamentosFiltrados.map((l) => (
+                <tr
+                  key={l.id}
+                  className="border-b border-gray-800 text-[#9E9E9E] hover:bg-[#161B22] transition"
+                >
+                  <td className="px-3 py-2">{l.descricao}</td>
+
+                  <td className="px-3 py-2">
+                    {l.tipo === "despesa" ? (
+                      <span className="text-[#FF5252]">
+                        - R$ {Number(l.valor).toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-[#00E676]">
+                        + R$ {Number(l.valor).toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-3 py-2 capitalize">{l.tipo}</td>
+
+                  <td className="px-3 py-2">
+                    {l.data.slice(0, 10).split("-").reverse().join("/")}
+                  </td>
+
+                  <td className="px-3 py-2">{l.categoria_nome || "N/A"}</td>
+
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      onClick={() => editarLancamento(l.id)}
+                      className="bg-[#2196F3] hover:bg-[#2196F3]/75 text-[#0D1117] p-2 rounded-xl mr-2 transition"
+                      title="Editar"
+                    >
+                      <Edit size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => deletarLancamento(l.id)}
+                      className="bg-[#FF5252] hover:bg-[#FF5252]/75 text-[#0D1117] p-2 rounded-xl transition"
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {lancamentos.length === 0 && (
           <p className="text-center text-gray-400 mt-6">

@@ -28,7 +28,7 @@ export default function PaginacaoMensal({
       {/* Botão voltar */}
       <button
         onClick={voltarMes}
-        className="rounded-xl bg-[#0D1117] border border-gray-700 hover:bg-gray-800 transition"
+        className="touch-target rounded-xl bg-[#0D1117] border border-gray-700 hover:bg-gray-800 transition"
       >
         <ChevronLeft/>
       </button>
@@ -41,7 +41,7 @@ export default function PaginacaoMensal({
       {/* Botão avançar */}
       <button
         onClick={avancarMes}
-        className="bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30 placeholder:text-gray-500"
+        className="touch-target after:left-[calc(50%-2px)] bg-[#0D1117] text-[#E0E0E0] rounded-xl outline-none border transition-all duration-200 border-gray-700 hover:border-[#2196F3]/50 focus:border-[#2196F3]/60 focus:ring-1 focus:ring-[#2196F3]/30 placeholder:text-gray-500"
       >
         <ChevronRight/>
       </button>

@@ -142,7 +142,7 @@ export default function FiltroMes({
                       : new Date().getFullYear();
                     setMesSelecionado(new Date(ano, parseInt(valor), 1));
                   }}
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
                 >
                   <option value="" disabled>
                     Selecione o mês
@@ -168,7 +168,7 @@ export default function FiltroMes({
                       : new Date().getMonth();
                     setMesSelecionado(new Date(parseInt(valor), mes, 1));
                   }}
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
                 >
                   <option value="" disabled>
                     Selecione o ano
@@ -198,7 +198,7 @@ export default function FiltroMes({
                       inicio: e.target.value,
                     })
                   }
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
                 />
               </div>
 
@@ -214,7 +214,7 @@ export default function FiltroMes({
                       fim: e.target.value,
                     })
                   }
-                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
+                  className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] hover:border-[#2196F3]/40 transition-all"
                 />
               </div>
             </div>

@@ -98,7 +98,7 @@ export default function Filtros({
                 setTipoTemp(value);
                 setCategoriaTemp(undefined);
               }}
-              className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
+              className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
             >
               <option value="" disabled>
                 Todos
@@ -115,7 +115,7 @@ export default function Filtros({
             <select
               value={categoriaTemp ?? ""}
               onChange={(e) => setCategoriaTemp(e.target.value || undefined)}
-              className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
+              className="bg-[#0D1117] border border-gray-700 rounded-xl p-2 text-base lg:text-sm text-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#2196F3] transition-all"
             >
               <option value="" disabled>
                 Todas
