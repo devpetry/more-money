@@ -36,7 +36,7 @@ export default function ListUsers() {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/auth/usuarios");
+      const res = await fetch("/api/usuarios");
 
       if (!res.ok) {
         console.error("Erro ao carregar usuários:", res.status);
@@ -77,7 +77,7 @@ export default function ListUsers() {
     if (!confirmado) return;
 
     try {
-      const res = await fetch(`/api/auth/usuarios/${usuario.id}`, {
+      const res = await fetch(`/api/usuarios/${usuario.id}`, {
         method: "DELETE",
       });
 

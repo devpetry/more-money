@@ -39,7 +39,7 @@ export default function ModalCategoria({
   useEffect(() => {
     if (mode === "edit" && isOpen && categoriaId) {
       setLoading(true);
-      fetch(`/api/auth/categorias/${categoriaId}`)
+      fetch(`/api/categorias/${categoriaId}`)
         .then((res) => res.json())
         .then((data) => {
           setNome(data.nome || "");
@@ -76,8 +76,8 @@ export default function ModalCategoria({
     try {
       const res = await fetch(
         mode === "create"
-          ? "/api/auth/categorias"
-          : `/api/auth/categorias/${categoriaId}`,
+          ? "/api/categorias"
+          : `/api/categorias/${categoriaId}`,
         {
           method: mode === "create" ? "POST" : "PUT",
           headers: { "Content-Type": "application/json" },

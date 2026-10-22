@@ -94,8 +94,8 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
   async function carregarDashboard(mes?: string) {
     try {
       const url = mes
-        ? `/api/auth/dashboard?mes=${mes}`
-        : "/api/auth/dashboard";
+        ? `/api/dashboard?mes=${mes}`
+        : "/api/dashboard";
       const res = await fetch(url);
       const data: DashboardData = await res.json();
       setDados(data);

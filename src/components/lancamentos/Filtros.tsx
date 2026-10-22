@@ -52,7 +52,7 @@ export default function Filtros({
   useEffect(() => {
     async function carregar() {
       try {
-        const res = await fetch("/api/auth/categorias", { cache: "no-store" });
+        const res = await fetch("/api/categorias", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           setCategorias(data || []);

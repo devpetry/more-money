@@ -87,7 +87,7 @@ export default function ListLancamentos() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/lancamentos");
+      const res = await fetch("/api/lancamentos");
 
       if (!res.ok) {
         console.error("Erro na requisição:", res.status, await res.text());
@@ -133,7 +133,7 @@ export default function ListLancamentos() {
     if (!confirmado) return;
 
     try {
-      const res = await fetch(`/api/auth/lancamentos/${id}`, {
+      const res = await fetch(`/api/lancamentos/${id}`, {
         method: "DELETE",
       });
 

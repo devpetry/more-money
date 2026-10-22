@@ -61,7 +61,7 @@ export default function ModalUser({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/auth/usuarios/${userId}`);
+      const res = await fetch(`/api/usuarios/${userId}`);
       if (!res.ok) {
         setErroEnvio("Falha ao carregar usuário.");
         return;
@@ -131,8 +131,8 @@ export default function ModalUser({
 
     try {
       const url = isEdit
-        ? `/api/auth/usuarios/${userId}`
-        : "/api/auth/usuarios";
+        ? `/api/usuarios/${userId}`
+        : "/api/usuarios";
       const method = isEdit ? "PUT" : "POST";
       const body = isEdit
         ? JSON.stringify(dataToSend)

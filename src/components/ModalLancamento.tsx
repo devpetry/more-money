@@ -53,7 +53,7 @@ export default function ModalLancamento({
 
   async function carregarCategorias() {
     try {
-      const res = await fetch("/api/auth/categorias");
+      const res = await fetch("/api/categorias");
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setCategorias(data);
@@ -69,7 +69,7 @@ export default function ModalLancamento({
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/auth/lancamentos/${lancamentoId}`);
+      const res = await fetch(`/api/lancamentos/${lancamentoId}`);
       if (!res.ok) {
         setErroEnvio("Falha ao carregar lançamento.");
         return;
@@ -159,8 +159,8 @@ export default function ModalLancamento({
     try {
       const url =
         mode === "create"
-          ? "/api/auth/lancamentos"
-          : `/api/auth/lancamentos/${lancamentoId}`;
+          ? "/api/lancamentos"
+          : `/api/lancamentos/${lancamentoId}`;
 
       const method = mode === "create" ? "POST" : "PUT";
 

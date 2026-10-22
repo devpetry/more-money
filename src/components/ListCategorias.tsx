@@ -35,7 +35,7 @@ export default function ListCategorias() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/categorias");
+      const res = await fetch("/api/categorias");
 
       if (!res.ok) {
         console.error("Erro na requisição:", res.status, await res.text());
@@ -77,7 +77,7 @@ export default function ListCategorias() {
     if (!confirmado) return;
 
     try {
-      const res = await fetch(`/api/auth/categorias/${categoria.id}`, {
+      const res = await fetch(`/api/categorias/${categoria.id}`, {
         method: "DELETE",
       });
 
