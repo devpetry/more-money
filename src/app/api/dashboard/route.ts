@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       SELECT 
         COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) AS total_receitas,
         COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) AS total_despesas
-      FROM "Lancamentos" l
+      FROM lancamentos l
       WHERE l.usuario_id = $1
         AND ($2::date IS NULL OR l.data >= $2)
         AND ($3::date IS NULL OR l.data < $3)
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
         TO_CHAR(l.data, 'MM/YYYY') AS mes,
         COALESCE(SUM(CASE WHEN l.tipo = 'receita' THEN l.valor ELSE 0 END), 0) AS receita,
         COALESCE(SUM(CASE WHEN l.tipo = 'despesa' THEN l.valor ELSE 0 END), 0) AS despesa
-      FROM "Lancamentos" l
+      FROM lancamentos l
       WHERE l.usuario_id = $1
         AND ($2::date IS NULL OR l.data >= $2)
         AND ($3::date IS NULL OR l.data < $3)
@@ -73,8 +73,8 @@ export async function GET(req: Request) {
         c.nome AS categoria,
         COUNT(l.id) AS quantidade,
         COALESCE(SUM(l.valor), 0) AS total
-      FROM "Lancamentos" l
-      JOIN "Categorias" c ON l.categoria_id = c.id
+      FROM lancamentos l
+      JOIN categorias c ON l.categoria_id = c.id
       WHERE l.usuario_id = $1
         AND l.tipo = 'despesa'
         AND ($2::date IS NULL OR l.data >= $2)
@@ -91,8 +91,8 @@ export async function GET(req: Request) {
         c.nome AS categoria,
         COUNT(l.id) AS quantidade,
         COALESCE(SUM(l.valor), 0) AS total
-      FROM "Lancamentos" l
-      JOIN "Categorias" c ON l.categoria_id = c.id
+      FROM lancamentos l
+      JOIN categorias c ON l.categoria_id = c.id
       WHERE l.usuario_id = $1
         AND l.tipo = 'receita'
         AND ($2::date IS NULL OR l.data >= $2)
@@ -107,7 +107,7 @@ export async function GET(req: Request) {
       `
       SELECT descricao, tipo, valor, criado_em,
         TO_CHAR(data, 'YYYY-MM-DD') AS data
-      FROM "Lancamentos"
+      FROM lancamentos
       WHERE usuario_id = $1
         AND ($2::date IS NULL OR data >= $2)
         AND ($3::date IS NULL OR data < $3)

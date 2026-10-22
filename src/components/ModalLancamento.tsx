@@ -20,11 +20,11 @@ interface ModalLancamentoProps {
   onClose: () => void;
   onSuccess: () => void;
   mode: "create" | "edit";
-  lancamentoId: number | null;
+  lancamentoId: string | null;
 }
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
   tipo: string;
 }

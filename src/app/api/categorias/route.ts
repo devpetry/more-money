@@ -11,9 +11,9 @@ export async function GET() {
 
     const result = await query(
       `SELECT id, nome, tipo, usuario_id, "criado_em"
-       FROM "Categorias"
+       FROM categorias
        WHERE usuario_id = $1
-       ORDER BY id ASC`,
+       ORDER BY criado_em ASC, id ASC`,
       [usuarioId]
     );
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     }
 
     const result = await query(
-      `INSERT INTO "Categorias" (nome, tipo, usuario_id, "criado_em", "atualizado_em")
+      `INSERT INTO categorias (nome, tipo, usuario_id, "criado_em", "atualizado_em")
        VALUES ($1, $2, $3, NOW(), NOW())
        RETURNING id, nome, tipo, usuario_id, "criado_em"`,
       [nome, tipo, usuarioId]

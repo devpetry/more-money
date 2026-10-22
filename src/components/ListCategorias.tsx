@@ -13,7 +13,7 @@ import { toast } from "./feedback/toast";
 import { useConfirm } from "./feedback/ConfirmProvider";
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
   tipo: string;
   criado_em: string;
@@ -26,7 +26,7 @@ export default function ListCategorias() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<
-    number | null
+    string | null
   >(null);
 
   const confirm = useConfirm();
@@ -61,7 +61,7 @@ export default function ListCategorias() {
     }
   }
 
-  async function editarCategoria(id: number) {
+  async function editarCategoria(id: string) {
     setCategoriaSelecionada(id);
     setModalMode("edit");
     setIsModalOpen(true);

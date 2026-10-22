@@ -1,11 +1,15 @@
 import { getServerSession, type Session } from "next-auth";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
+
+export const isUuid = (valor: unknown): valor is string =>
+  z.uuid().safeParse(valor).success;
 
 type AuthSuccess = {
   ok: true;
   session: Session;
-  usuarioId: number;
+  usuarioId: string;
 };
 
 type AuthFailure = {
@@ -28,8 +32,8 @@ export async function requireSession(): Promise<AuthResult> {
     };
   }
 
-  const usuarioId = parseInt(session.user.id, 10);
-  if (isNaN(usuarioId)) {
+  const usuarioId = session.user.id;
+  if (!isUuid(usuarioId)) {
     return {
       ok: false,
       response: NextResponse.json(

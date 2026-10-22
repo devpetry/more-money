@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { requireSession } from "@/lib/api-auth";
+import { isUuid, requireSession } from "@/lib/api-auth";
 
 // GET - Listar todos os lançamentos do usuário autenticados
 export async function GET() {
@@ -14,10 +14,10 @@ export async function GET() {
         TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
         l.categoria_id, c.nome AS categoria_nome, 
         l.usuario_id, l.criado_em, l.atualizado_em
-       FROM "Lancamentos" l
-       LEFT JOIN "Categorias" c ON c.id = l.categoria_id
+       FROM lancamentos l
+       LEFT JOIN categorias c ON c.id = l.categoria_id
        WHERE l.usuario_id = $1
-       ORDER BY l.data DESC, l.id DESC`,
+       ORDER BY l.data DESC, l.criado_em DESC, l.id DESC`,
       [usuarioId]
     );
 
@@ -50,6 +50,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (categoria_id && !isUuid(categoria_id)) {
+      return NextResponse.json(
+        { error: "O campo 'categoria_id' é inválido." },
+        { status: 400 }
+      );
+    }
+
     if (isNaN(parseFloat(valor))) {
       return NextResponse.json(
         { error: "O campo 'valor' deve ser numérico." },
@@ -65,7 +72,7 @@ export async function POST(req: Request) {
     }
 
     const result = await query(
-      `INSERT INTO "Lancamentos" (descricao, valor, tipo, data, categoria_id, usuario_id, "criado_em", "atualizado_em")
+      `INSERT INTO lancamentos (descricao, valor, tipo, data, categoria_id, usuario_id, "criado_em", "atualizado_em")
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING id, descricao, valor, tipo, data, categoria_id, usuario_id, "criado_em"`,
       [

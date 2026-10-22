@@ -19,7 +19,7 @@ import { toast } from "./feedback/toast";
 import { useConfirm } from "./feedback/ConfirmProvider";
 
 interface Lancamento {
-  id: number;
+  id: string;
   descricao: string;
   valor: number;
   tipo: string;
@@ -50,7 +50,7 @@ export default function ListLancamentos() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [lancamentoSelecionado, setLancamentoSelecionado] = useState<
-    number | null
+    string | null
   >(null);
 
   const [termo, setTermo] = useState("");
@@ -117,13 +117,13 @@ export default function ListLancamentos() {
     }
   }
 
-  function editarLancamento(id: number) {
+  function editarLancamento(id: string) {
     setLancamentoSelecionado(id);
     setModalMode("edit");
     setIsModalOpen(true);
   }
 
-  async function deletarLancamento(id: number) {
+  async function deletarLancamento(id: string) {
     const confirmado = await confirm({
       title: "Excluir lançamento",
       description: "Tem certeza que deseja excluir este lançamento?",

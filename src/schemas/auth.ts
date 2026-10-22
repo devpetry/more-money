@@ -74,7 +74,6 @@ export const UsuarioSchema = z.object({
   tipo_usuario: z.enum(["1", "3"], {
     message: "Selecione um tipo de usuário válido.",
   }),
-  emresa_id: z.string().optional(),
 });
 
 export type TUsuarioSchema = z.infer<typeof UsuarioSchema>;
@@ -115,7 +114,6 @@ export const UsuarioEditSchema = z.object({
   tipo_usuario: z.enum(["1", "3"], {
     message: "Selecione um tipo de usuário válido.",
   }),
-  emresa_id: z.string().optional(),
 });
 
 export type TUsuarioEditSchema = z.infer<typeof UsuarioEditSchema>;

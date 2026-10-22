@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { requireSession } from "@/lib/api-auth";
+import { isUuid, requireSession } from "@/lib/api-auth";
 
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
@@ -12,9 +12,8 @@ export async function GET(
     const auth = await requireSession();
     if (!auth.ok) return auth.response;
     const { usuarioId } = auth;
-    const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(lancamentoId)) {
+    if (!isUuid(id)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -22,11 +21,11 @@ export async function GET(
       `SELECT l.id, l.descricao, l.valor, l.tipo, l.data,
               l.categoria_id, c.nome AS categoria_nome,
               l.usuario_id, l.criado_em, l.atualizado_em
-       FROM "Lancamentos" l
-       LEFT JOIN "Categorias" c ON c.id = l.categoria_id
+       FROM lancamentos l
+       LEFT JOIN categorias c ON c.id = l.categoria_id
        WHERE l.id = $1 AND l.usuario_id = $2
        LIMIT 1`,
-      [lancamentoId, usuarioId]
+      [id, usuarioId]
     );
 
     if (result.length === 0) {
@@ -56,9 +55,8 @@ export async function PUT(
     const auth = await requireSession();
     if (!auth.ok) return auth.response;
     const { usuarioId } = auth;
-    const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(lancamentoId)) {
+    if (!isUuid(id)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
@@ -70,6 +68,13 @@ export async function PUT(
           error:
             "Campos 'descricao', 'valor', 'tipo' e 'data' são obrigatórios.",
         },
+        { status: 400 }
+      );
+    }
+
+    if (categoria_id && !isUuid(categoria_id)) {
+      return NextResponse.json(
+        { error: "O campo 'categoria_id' é inválido." },
         { status: 400 }
       );
     }
@@ -89,7 +94,7 @@ export async function PUT(
     }
 
     const result = await query(
-      `UPDATE "Lancamentos"
+      `UPDATE lancamentos
        SET descricao = $1,
            valor = $2,
            tipo = $3,
@@ -104,7 +109,7 @@ export async function PUT(
         tipo,
         data,
         categoria_id || null,
-        lancamentoId,
+        id,
         usuarioId,
       ]
     );
@@ -136,17 +141,16 @@ export async function DELETE(
     const auth = await requireSession();
     if (!auth.ok) return auth.response;
     const { usuarioId } = auth;
-    const lancamentoId = parseInt(id, 10);
 
-    if (isNaN(lancamentoId)) {
+    if (!isUuid(id)) {
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const result = await query(
-      `DELETE FROM "Lancamentos"
+      `DELETE FROM lancamentos
        WHERE id = $1 AND usuario_id = $2
        RETURNING id`,
-      [lancamentoId, usuarioId]
+      [id, usuarioId]
     );
 
     if (result.length === 0) {

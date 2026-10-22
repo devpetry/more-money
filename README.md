@@ -186,9 +186,10 @@ O banco de dados foi modelado utilizando PostgreSQL e hospedado no Neon.
 A estrutura atual do sistema possui relacionamento entre:
 
 - Usuários
-- Empresas
 - Categorias
 - Lançamentos
+
+Todos os IDs são `uuid` (`gen_random_uuid()`). O schema é versionado em `db/migrations/` (veja [Migrations do banco](#migrations-do-banco)).
 
 ---
 
@@ -196,17 +197,8 @@ A estrutura atual do sistema possui relacionamento entre:
 
 ```mermaid
 erDiagram
-    EMPRESAS {
-        int4 id PK
-        varchar nome
-        varchar cnpj
-        timestamptz criado_em
-        timestamptz atualizado_em
-        timestamptz data_exclusao
-    }
-
     USUARIOS {
-        int4 id PK
+        uuid id PK
         varchar nome
         varchar email
         varchar senha_hash
@@ -215,36 +207,29 @@ erDiagram
         varchar token_recuperacao
         timestamptz expiracao_token_recuperacao
         tipo_usuario_enum tipo_usuario
-        int4 empresa_id FK
         timestamptz data_exclusao
     }
 
     CATEGORIAS {
-        int4 id PK
+        uuid id PK
         varchar nome
         varchar tipo
-        int4 empresa_id FK
-        int4 usuario_id FK
+        uuid usuario_id FK
         timestamptz criado_em
         timestamptz atualizado_em
     }
 
     LANCAMENTOS {
-        int4 id PK
+        uuid id PK
         text descricao
         numeric valor
         varchar tipo
         date data
-        int4 categoria_id FK
-        int4 empresa_id FK
-        int4 usuario_id FK
+        uuid categoria_id FK
+        uuid usuario_id FK
         timestamptz criado_em
         timestamptz atualizado_em
     }
-
-    EMPRESAS ||--o{ USUARIOS : possui
-    EMPRESAS ||--o{ CATEGORIAS : possui
-    EMPRESAS ||--o{ LANCAMENTOS : possui
 
     USUARIOS ||--o{ CATEGORIAS : cria
     USUARIOS ||--o{ LANCAMENTOS : registra
@@ -252,103 +237,7 @@ erDiagram
     CATEGORIAS ||--o{ LANCAMENTOS : categoriza
 ```
 
----
-
-# 🧱 Modelagem SQL atual
-
-## 🏢 Tabela Empresas
-
-```sql
-CREATE TABLE "Empresas" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    cnpj VARCHAR(20),
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-    data_exclusao TIMESTAMPTZ
-);
-```
-
----
-
-## 👤 Tabela Usuarios
-
-```sql
-CREATE TYPE tipo_usuario_enum AS ENUM ('ADMIN', 'USUARIO');
-
-CREATE TABLE "Usuarios" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    senha_hash VARCHAR(255) NOT NULL,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-    token_recuperacao VARCHAR(255),
-    expiracao_token_recuperacao TIMESTAMPTZ,
-    tipo_usuario tipo_usuario_enum NOT NULL DEFAULT 'USUARIO',
-    empresa_id INT,
-    data_exclusao TIMESTAMPTZ,
-
-    CONSTRAINT fk_empresa_usuario
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id)
-);
-```
-
----
-
-## 🗂️ Tabela Categorias
-
-```sql
-CREATE TABLE "Categorias" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    empresa_id INT,
-    usuario_id INT,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-
-    CONSTRAINT fk_empresa_categoria
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id),
-
-    CONSTRAINT fk_usuario_categoria
-        FOREIGN KEY (usuario_id)
-        REFERENCES "Usuarios"(id)
-);
-```
-
----
-
-## 💸 Tabela Lancamentos
-
-```sql
-CREATE TABLE "Lancamentos" (
-    id SERIAL PRIMARY KEY,
-    descricao TEXT,
-    valor NUMERIC(10,2) NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    data DATE NOT NULL,
-    categoria_id INT,
-    empresa_id INT,
-    usuario_id INT,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-
-    CONSTRAINT fk_categoria_lancamento
-        FOREIGN KEY (categoria_id)
-        REFERENCES "Categorias"(id),
-
-    CONSTRAINT fk_empresa_lancamento
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id),
-
-    CONSTRAINT fk_usuario_lancamento
-        FOREIGN KEY (usuario_id)
-        REFERENCES "Usuarios"(id)
-);
-```
+O tipo de usuário (`tipo_usuario_enum`) aceita `ADMIN` e `PADRAO`.
 
 ---
 
@@ -398,8 +287,8 @@ Em produção (Neon), use a string de conexão com *pooling* (host com `-pooler`
 ## 5. Configure o banco PostgreSQL
 
 1. Crie um banco PostgreSQL (localmente ou um projeto no [Neon](https://neon.tech))
-2. Execute os scripts SQL acima
-3. Configure a `DATABASE_URL` no `.env`
+2. Configure a `DATABASE_URL` no `.env`
+3. Execute `npm run db:migrate` para criar o schema
 
 ## 6. 🧪 Dados iniciais (seed)
 
@@ -410,7 +299,7 @@ Para facilitar o primeiro acesso ao sistema, é necessário criar um usuário ad
 - Email: admin@moremoney.com
 - Senha: definida manualmente via hash bcrypt
 ```sql
-INSERT INTO "Usuarios" (
+INSERT INTO usuarios (
     nome,
     email,
     senha_hash,

@@ -17,7 +17,7 @@ interface ModalCategoriaProps {
   onClose: () => void;
   onSuccess: () => void;
   mode: "create" | "edit";
-  categoriaId?: number | null;
+  categoriaId?: string | null;
 }
 
 export default function ModalCategoria({
