@@ -101,7 +101,20 @@ export const authOptions: NextAuthOptions = {
         if (!extendedUser.id) throw new Error("Usuario sem ID no JWT");
         token.id = extendedUser.id;
         token.tipo_usuario = extendedUser.tipo_usuario;
+        return token;
       }
+
+      // Leituras seguintes: o perfil e a exclusão vêm do banco, não do token.
+      // Se o usuário não existe mais ou a consulta falha, o erro faz o NextAuth
+      // devolver sessão nula (fail-closed).
+      if (!token.id) throw new Error("JWT não possui ID do usuário");
+      const res = await query(
+        `SELECT "tipo_usuario" FROM "Usuarios"
+         WHERE id = $1 AND data_exclusao IS NULL`,
+        [token.id]
+      );
+      if (!res[0]) throw new Error("Usuário inexistente ou excluído");
+      token.tipo_usuario = res[0].tipo_usuario as TipoUsuario;
       return token;
     },
     async session({ session, token }) {

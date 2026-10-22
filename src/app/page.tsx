@@ -1,6 +1,6 @@
 import Link from "next/link";
 import packageJson from "../../package.json";
-import { LogIn } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
 import PublicShell from "@/components/layout/PublicShell";
 import { Button } from "@/components/ui/button";
 
@@ -20,12 +20,20 @@ export default function HomePage() {
           Controle seus gastos, defina metas e alcance a liberdade financeira.
         </p>
 
-        <Button asChild size="lg" className="mt-10 px-8">
-          <Link href="/login">
-            <LogIn aria-hidden />
-            Entrar
-          </Link>
-        </Button>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg" className="px-8">
+            <Link href="/login">
+              <LogIn aria-hidden />
+              Entrar
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="px-8">
+            <Link href="/cadastro">
+              <UserPlus aria-hidden />
+              Criar conta
+            </Link>
+          </Button>
+        </div>
 
         <p className="mt-8 text-sm text-muted-foreground">
           Versão{" "}

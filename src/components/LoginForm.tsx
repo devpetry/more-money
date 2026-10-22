@@ -100,6 +100,13 @@ export default function LoginForm() {
           Esqueci minha senha
         </Link>
       </div>
+
+      <div className="mt-3 text-center text-sm text-muted-foreground">
+        Não tem conta?{" "}
+        <Link href="/cadastro" className="font-medium text-foreground hover:underline">
+          Criar conta
+        </Link>
+      </div>
     </AuthCard>
   );
 }
