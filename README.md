@@ -514,3 +514,12 @@ Desenvolvido por João Augusto Petry.
 </div>
 
 
+
+## Migrations do banco
+
+A estrutura do banco (sem dados) é versionada em `db/migrations/*.sql`, aplicadas em ordem alfabética e registradas na tabela `schema_migrations`.
+
+- Toda mudança de estrutura vira um novo arquivo (ex.: `0002_adicionar_coluna_x.sql`), commitado no mesmo PR da mudança de código. Não edite migrations já aplicadas.
+- Localmente: `npm run db:migrate` aplica as pendentes no banco da `DATABASE_URL`.
+- Em produção: o `npm run build` da Vercel roda as migrations pendentes antes do `next build` quando `VERCEL_ENV=production`. Se a migration falhar, o build falha e a versão anterior continua no ar. Previews não alteram o banco.
+- Prefira mudanças aditivas (criar tabela/coluna). Renomear ou apagar coluna deve ser feito em duas etapas, pois o código antigo continua no ar durante o build.
