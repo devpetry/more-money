@@ -13,6 +13,7 @@ import { Input, fieldClasses } from "./ui/input";
 import { NativeSelect } from "./ui/select";
 import { InlineAlert, LoadingState, Skeleton } from "./ui/feedback";
 import { useFocoAposFalha } from "@/lib/foco";
+import { TipoBadge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 
 interface ModalLancamentoProps {
@@ -96,15 +97,6 @@ export default function ModalLancamento({
   }, [lancamentoId]);
 
   useEffect(() => {
-    if (categoriaId) {
-      const c = categorias.find((c) => String(c.id) === categoriaId);
-      if (c) setTipo(c.tipo);
-    } else {
-      setTipo("");
-    }
-  }, [categoriaId, categorias]);
-
-  useEffect(() => {
     if (isOpen) {
       carregarCategorias();
 
@@ -186,7 +178,16 @@ export default function ModalLancamento({
     }
   }
 
+  function escolherTipo(novoTipo: string) {
+    setTipo(novoTipo);
+    setCategoriaId("");
+  }
+
   if (!isOpen) return null;
+
+  const escolhendoTipo = mode === "create" && !tipo;
+  const tipoCategoria =
+    tipo === "receita" || tipo === "despesa" ? tipo : undefined;
 
   return (
     <>
@@ -205,9 +206,53 @@ export default function ModalLancamento({
               <Skeleton className="h-16" />
             </div>
           </LoadingState>
+        ) : escolhendoTipo ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Qual o tipo do lançamento?
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => escolherTipo("despesa")}
+              >
+                Despesa
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => escolherTipo("receita")}
+              >
+                Receita
+              </Button>
+            </div>
+            <DialogFooter className="mt-2">
+              <Button type="button" variant="outline" size="lg" onClick={onClose}>
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {erroEnvio && <InlineAlert tone="error">{erroEnvio}</InlineAlert>}
+
+            {tipo && (
+              <div className="flex items-center justify-between gap-3">
+                <TipoBadge tipo={tipo} />
+                {mode === "create" && (
+                  <button
+                    type="button"
+                    onClick={() => escolherTipo("")}
+                    className="touch-target rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    Alterar tipo
+                  </button>
+                )}
+              </div>
+            )}
 
             <Field
               id="lancamento-descricao"
@@ -266,11 +311,13 @@ export default function ModalLancamento({
                   Selecione uma categoria
                 </option>
 
-                {categorias.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nome} ({c.tipo})
-                  </option>
-                ))}
+                {categorias
+                  .filter((c) => c.tipo === tipo)
+                  .map((c) => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.nome}
+                    </option>
+                  ))}
               </NativeSelect>
             </Field>
 
@@ -302,6 +349,7 @@ export default function ModalLancamento({
         onClose={() => setIsModalCategoriaOpen(false)}
         onSuccess={carregarCategorias}
         mode="create"
+        tipoFixo={tipoCategoria}
       />
     </>
   );

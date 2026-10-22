@@ -18,6 +18,8 @@ interface ModalCategoriaProps {
   onSuccess: () => void;
   mode: "create" | "edit";
   categoriaId?: string | null;
+  // Quando informado, o tipo vem pré-definido e não pode ser alterado
+  tipoFixo?: "receita" | "despesa";
 }
 
 export default function ModalCategoria({
@@ -26,9 +28,11 @@ export default function ModalCategoria({
   onSuccess,
   mode,
   categoriaId,
+  tipoFixo,
 }: ModalCategoriaProps) {
   const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState<"receita" | "despesa" | "">("");
+  const [tipoEscolhido, setTipo] = useState<"receita" | "despesa" | "">("");
+  const tipo = tipoFixo ?? tipoEscolhido;
   const [errors, setErrors] = useState<FormErrors>({});
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -130,6 +134,7 @@ export default function ModalCategoria({
           <Field id="categoria-tipo" label="Tipo" error={errors.tipo}>
             <NativeSelect
               value={tipo}
+              disabled={Boolean(tipoFixo)}
               onChange={(e) =>
                 setTipo(e.target.value as "receita" | "despesa" | "")
               }
