@@ -5,8 +5,13 @@ import Filtros from "./lancamentos/Filtros";
 import { useEffect, useState } from "react";
 import ModalLancamento from "./ModalLancamento";
 import { Plus, ReceiptText } from "lucide-react";
-import PaginacaoMes from "./lancamentos/PaginacaoMensal";
-import { parseDateOnly, getMonth, getYear } from "@/lib/date";
+import SeletorPeriodo from "./lancamentos/SeletorPeriodo";
+import {
+  dataNoPeriodo,
+  descreverVisualizacao,
+  visualizacaoPadrao,
+  type Visualizacao,
+} from "@/lib/lancamentos-periodo";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import PageHeader from "./layout/PageHeader";
@@ -69,21 +74,15 @@ export default function ListLancamentos() {
   const [tipo, setTipo] = useState<string>();
   const [categoria, setCategoria] = useState<string>();
 
-  const [mesAtual, setMesAtual] = useState(() => {
-    const hoje = new Date();
-    return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-  });
+  const [visualizacao, setVisualizacao] =
+    useState<Visualizacao>(visualizacaoPadrao);
 
   const confirm = useConfirm();
 
+  const descricaoPeriodo = descreverVisualizacao(visualizacao);
+
   const lancamentosFiltrados = lancamentos.filter((l) => {
-    const [ano, mes] = mesAtual.split("-");
-
-    const lDate = parseDateOnly(l.data);
-    if (!lDate) return false;
-
-    const mesmoMes =
-      getMonth(lDate) === Number(mes) && getYear(lDate) === Number(ano);
+    const noPeriodo = dataNoPeriodo(l.data, visualizacao);
 
     const busca = termo
       ? l.descricao.toLowerCase().includes(termo.toLowerCase())
@@ -92,7 +91,7 @@ export default function ListLancamentos() {
     const filtraTipo = tipo ? l.tipo === tipo : true;
     const filtraCategoria = categoria ? l.categoria_nome === categoria : true;
 
-    return mesmoMes && busca && filtraTipo && filtraCategoria;
+    return noPeriodo && busca && filtraTipo && filtraCategoria;
   });
 
   async function carregarLancamentos() {
@@ -181,7 +180,7 @@ export default function ListLancamentos() {
     <>
       <PageHeader
         title="Lançamentos"
-        description="Receitas e despesas do mês selecionado."
+        description={`Receitas e despesas ${descricaoPeriodo}.`}
         actions={
           <Button onClick={novoLancamento}>
             <Plus aria-hidden />
@@ -198,7 +197,10 @@ export default function ListLancamentos() {
           </div>
 
           <div className="order-last flex w-full justify-center lg:order-none lg:w-auto">
-            <PaginacaoMes mesAtual={mesAtual} onChange={setMesAtual} />
+            <SeletorPeriodo
+              visualizacao={visualizacao}
+              onChange={setVisualizacao}
+            />
           </div>
 
           <Filtros
@@ -226,7 +228,7 @@ export default function ListLancamentos() {
           ) : (
             <DataTable
               data={lancamentosFiltrados}
-              caption="Lançamentos do mês selecionado"
+              caption={`Lançamentos ${descricaoPeriodo}`}
               rowKey={(l) => l.id}
               columns={[
                 {
@@ -279,7 +281,7 @@ export default function ListLancamentos() {
                   description={
                     filtrando
                       ? "Ajuste a busca ou os filtros para ver outros lançamentos."
-                      : "Não há lançamentos neste mês."
+                      : `Não há lançamentos ${descricaoPeriodo}.`
                   }
                 />
               }

@@ -10,24 +10,32 @@ export async function GET(req: Request) {
     const { usuarioId } = auth;
 
     const { searchParams } = new URL(req.url);
-    const mesParam = searchParams.get("mes");
+    // inicio/fim (YYYY-MM-DD, inclusivos); "tudo=1" = sem limite de datas.
+    // Sem parâmetros: ano corrente.
+    const dataISO = /^\d{4}-\d{2}-\d{2}$/;
+    const inicioParam = searchParams.get("inicio");
+    const fimParam = searchParams.get("fim");
 
     let startDate: string | null = null;
     let nextMonthStart: string | null = null;
 
-    if (mesParam) {
-      const [anoStr, mesStr] = mesParam.split("-");
-      const ano = parseInt(anoStr, 10);
-      const mes = parseInt(mesStr, 10);
-
-      if (!Number.isNaN(ano) && !Number.isNaN(mes) && mes >= 1 && mes <= 12) {
-        const mm = String(mes).padStart(2, "0");
-        startDate = `${anoStr}-${mm}-01`;
-
-        const nextMonth = mes === 12 ? 1 : mes + 1;
-        const nextYear = mes === 12 ? ano + 1 : ano;
-        const nextMm = String(nextMonth).padStart(2, "0");
-        nextMonthStart = `${nextYear}-${nextMm}-01`;
+    if (searchParams.get("tudo") === "1") {
+      // sem filtro
+    } else if (inicioParam || fimParam) {
+      if (
+        (inicioParam && !dataISO.test(inicioParam)) ||
+        (fimParam && !dataISO.test(fimParam))
+      ) {
+        return NextResponse.json({ error: "Período inválido" }, { status: 400 });
+      }
+      startDate = inicioParam;
+      if (fimParam) {
+        const dia = new Date(`${fimParam}T00:00:00Z`);
+        if (Number.isNaN(dia.getTime())) {
+          return NextResponse.json({ error: "Período inválido" }, { status: 400 });
+        }
+        dia.setUTCDate(dia.getUTCDate() + 1);
+        nextMonthStart = dia.toISOString().slice(0, 10);
       }
     } else {
       const anoAtual = new Date().getFullYear();

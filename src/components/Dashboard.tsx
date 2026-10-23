@@ -23,7 +23,13 @@ import {
   TrendingDown,
   Wallet,
 } from "lucide-react";
-import FiltroMes from "./dashboard/FiltroMes";
+import SeletorPeriodo from "./lancamentos/SeletorPeriodo";
+import {
+  descreverVisualizacao,
+  intervaloDaVisualizacao,
+  visualizacaoAnoAtual,
+  type Visualizacao,
+} from "@/lib/lancamentos-periodo";
 import ModalLancamento from "./ModalLancamento";
 import { formatDate } from "@/lib/date";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/currency";
@@ -78,24 +84,21 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalLancamentoOpen, setIsModalLancamentoOpen] = useState(false);
-  const [mesAplicado, setMesAplicado] = useState<Date | undefined>(undefined);
-  const [periodoPersonalizado, setPeriodoPersonalizado] = useState<
-    { inicio: string; fim: string } | undefined
-  >();
-  const [mesSelecionado, setMesSelecionado] = useState<Date | undefined>(
-    undefined
-  );
+  const [visualizacao, setVisualizacao] =
+    useState<Visualizacao>(visualizacaoAnoAtual);
 
   useEffect(() => {
-    carregarDashboard();
-  }, []);
+    carregarDashboard(visualizacao);
+  }, [visualizacao]);
 
-  async function carregarDashboard(mes?: string) {
+  async function carregarDashboard(v: Visualizacao) {
     try {
-      const url = mes
-        ? `/api/dashboard?mes=${mes}`
-        : "/api/dashboard";
-      const res = await fetch(url);
+      const { inicio, fim } = intervaloDaVisualizacao(v);
+      const params = new URLSearchParams();
+      if (!inicio && !fim) params.set("tudo", "1");
+      if (inicio) params.set("inicio", inicio);
+      if (fim) params.set("fim", fim);
+      const res = await fetch(`/api/dashboard?${params}`);
       const data: DashboardData = await res.json();
       setDados(data);
     } catch (error) {
@@ -105,23 +108,7 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
     }
   }
 
-  const periodoEmExibicao = periodoPersonalizado
-    ? `Período em exibição: ${formatDate(periodoPersonalizado.inicio)} até ${formatDate(periodoPersonalizado.fim)}`
-    : mesAplicado
-      ? (() => {
-          const ano = mesAplicado.getFullYear();
-          const mes = mesAplicado.getMonth();
-          const inicio = new Date(ano, mes, 1);
-          const fim = new Date(ano, mes + 1, 0);
-          const formatar = (d: Date) =>
-            d.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "2-digit",
-            });
-          return `Período em exibição: ${formatar(inicio)} até ${formatar(fim)}`;
-        })()
-      : `Período em exibição: ${new Date().getFullYear()}`;
+  const periodoEmExibicao = `Período em exibição: ${descreverVisualizacao(visualizacao)}`;
 
   return (
     <>
@@ -130,13 +117,9 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
         description="Acompanhe suas receitas, despesas e saldo."
         actions={
           <>
-            <FiltroMes
-              mesSelecionado={mesSelecionado}
-              setMesSelecionado={setMesSelecionado}
-              carregarDashboard={carregarDashboard}
-              mesAplicado={mesAplicado}
-              setMesAplicado={setMesAplicado}
-              setPeriodoPersonalizado={setPeriodoPersonalizado}
+            <SeletorPeriodo
+              visualizacao={visualizacao}
+              onChange={setVisualizacao}
             />
             <Button onClick={() => setIsModalLancamentoOpen(true)}>
               <Plus aria-hidden />
@@ -332,7 +315,7 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
       <ModalLancamento
         isOpen={isModalLancamentoOpen}
         onClose={() => setIsModalLancamentoOpen(false)}
-        onSuccess={() => carregarDashboard()}
+        onSuccess={() => carregarDashboard(visualizacao)}
         mode="create"
         lancamentoId={null}
       />
