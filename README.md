@@ -103,6 +103,7 @@ O projeto foi desenvolvido com foco em:
 - Dashboard financeiro
 - CRUD de lançamentos
 - CRUD de categorias
+- Cartões de crédito com faturas, fechamento e pagamentos parciais
 - Controle de receitas e despesas
 - Histórico de movimentações
 - Filtro por período
@@ -186,9 +187,10 @@ O banco de dados foi modelado utilizando PostgreSQL e hospedado no Neon.
 A estrutura atual do sistema possui relacionamento entre:
 
 - Usuários
-- Empresas
 - Categorias
 - Lançamentos
+
+Todos os IDs são `uuid` (`gen_random_uuid()`). O schema é versionado em `db/migrations/` (veja [Migrations do banco](#migrations-do-banco)).
 
 ---
 
@@ -196,17 +198,8 @@ A estrutura atual do sistema possui relacionamento entre:
 
 ```mermaid
 erDiagram
-    EMPRESAS {
-        int4 id PK
-        varchar nome
-        varchar cnpj
-        timestamptz criado_em
-        timestamptz atualizado_em
-        timestamptz data_exclusao
-    }
-
     USUARIOS {
-        int4 id PK
+        uuid id PK
         varchar nome
         varchar email
         varchar senha_hash
@@ -215,140 +208,106 @@ erDiagram
         varchar token_recuperacao
         timestamptz expiracao_token_recuperacao
         tipo_usuario_enum tipo_usuario
-        int4 empresa_id FK
         timestamptz data_exclusao
     }
 
     CATEGORIAS {
-        int4 id PK
+        uuid id PK
         varchar nome
         varchar tipo
-        int4 empresa_id FK
-        int4 usuario_id FK
+        uuid usuario_id FK
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+
+    CARTEIRAS {
+        uuid id PK
+        varchar nome
+        uuid usuario_id FK
         timestamptz criado_em
         timestamptz atualizado_em
     }
 
     LANCAMENTOS {
-        int4 id PK
+        uuid id PK
         text descricao
         numeric valor
         varchar tipo
         date data
-        int4 categoria_id FK
-        int4 empresa_id FK
-        int4 usuario_id FK
+        uuid categoria_id FK
+        uuid carteira_id FK "nula em compra de cartão"
+        uuid fatura_id FK "preenchido só em compra de cartão"
+        uuid usuario_id FK
         timestamptz criado_em
         timestamptz atualizado_em
     }
 
-    EMPRESAS ||--o{ USUARIOS : possui
-    EMPRESAS ||--o{ CATEGORIAS : possui
-    EMPRESAS ||--o{ LANCAMENTOS : possui
+    CARTOES {
+        uuid id PK
+        varchar nome
+        uuid usuario_id FK
+        smallint dia_fechamento
+        smallint dia_vencimento
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+
+    FATURAS {
+        uuid id PK
+        uuid cartao_id FK
+        uuid usuario_id FK
+        date ciclo "dia 1 do mês do ciclo"
+        date data_fechamento
+        date data_vencimento
+        timestamptz fechada_em "só fechamento manual"
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+
+    PAGAMENTOS_FATURA {
+        uuid id PK
+        uuid fatura_id FK
+        uuid usuario_id FK
+        uuid carteira_id FK
+        numeric valor
+        date data
+        timestamptz estornado_em
+        timestamptz criado_em
+    }
 
     USUARIOS ||--o{ CATEGORIAS : cria
+    USUARIOS ||--o{ CARTEIRAS : possui
+    CARTEIRAS ||--o{ LANCAMENTOS : recebe
     USUARIOS ||--o{ LANCAMENTOS : registra
 
     CATEGORIAS ||--o{ LANCAMENTOS : categoriza
+    USUARIOS ||--o{ CARTOES : possui
+    CARTOES ||--o{ FATURAS : gera
+    FATURAS ||--o{ LANCAMENTOS : agrupa
+    FATURAS ||--o{ PAGAMENTOS_FATURA : recebe
+    CARTEIRAS ||--o{ PAGAMENTOS_FATURA : paga
 ```
 
----
+### Cartões e faturas (issue #23)
 
-# 🧱 Modelagem SQL atual
+- Cada cartão tem dias padrão de fechamento e vencimento. A fatura de cada mês (`ciclo`) é criada só quando necessário (compra, fechamento manual ou ajuste de datas) e guarda suas próprias datas, que podem ser ajustadas enquanto ela não estiver paga. Dias maiores que o mês (ex.: 31 em fevereiro) usam o último dia do mês; o vencimento fica no mês do fechamento se o dia for posterior ao do fechamento, senão no mês seguinte.
+- Compra de cartão é um lançamento de **despesa** com `fatura_id` e sem `carteira_id`: não altera o saldo das carteiras. Compra feita no dia do fechamento entra na fatura seguinte.
+- O estado da fatura é **derivado**, não gravado: *aberta*, *fechada com pagamento pendente*, *parcialmente paga* ou *paga*. Fechada = fechamento manual (`fechada_em`) ou `data_fechamento` já alcançada em `America/Sao_Paulo` (fechamento automático, sem job agendado). Fatura fechada de valor zero é considerada paga, sem pagamento fictício.
+- Pagamentos (parciais ou totais) ficam em `pagamentos_fatura` com data efetiva e carteira; o estorno preserva o registro (`estornado_em`). Só o pagamento reduz o saldo da carteira escolhida e entra nos indicadores do dashboard, distribuído entre as categorias na proporção dos lançamentos da fatura.
+- Fatura paga não aceita inclusão, edição ou exclusão de lançamentos nem ajuste de datas (estorne o pagamento antes). Em fatura fechada e não paga essas alterações são permitidas com aviso, desde que o total pago não passe do total da fatura.
+- Pagamentos, estornos e alterações de lançamentos de um cartão rodam em transação, travando a linha do cartão (`SELECT ... FOR UPDATE`).
+- Cartão com faturas (histórico) não pode ser excluído (FK sem `CASCADE`).
 
-## 🏢 Tabela Empresas
+### Testes
 
-```sql
-CREATE TABLE "Empresas" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    cnpj VARCHAR(20),
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-    data_exclusao TIMESTAMPTZ
-);
+`npm test` usa o `node:test` nativo (sem dependências). Os testes de regras de datas rodam sempre; os de integração só rodam com `TEST_DATABASE_URL` apontando para um Postgres **descartável** (o nome do banco precisa conter `test`; o schema `public` é recriado a cada execução):
+
+```bash
+docker run -d --rm --name mm-test-pg -e POSTGRES_PASSWORD=teste -e POSTGRES_DB=more_money_test -p 127.0.0.1:55432:5432 postgres:16-alpine
+TEST_DATABASE_URL=postgres://postgres:teste@127.0.0.1:55432/more_money_test npm test
 ```
 
----
-
-## 👤 Tabela Usuarios
-
-```sql
-CREATE TYPE tipo_usuario_enum AS ENUM ('ADMIN', 'USUARIO');
-
-CREATE TABLE "Usuarios" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    senha_hash VARCHAR(255) NOT NULL,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-    token_recuperacao VARCHAR(255),
-    expiracao_token_recuperacao TIMESTAMPTZ,
-    tipo_usuario tipo_usuario_enum NOT NULL DEFAULT 'USUARIO',
-    empresa_id INT,
-    data_exclusao TIMESTAMPTZ,
-
-    CONSTRAINT fk_empresa_usuario
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id)
-);
-```
-
----
-
-## 🗂️ Tabela Categorias
-
-```sql
-CREATE TABLE "Categorias" (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    empresa_id INT,
-    usuario_id INT,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-
-    CONSTRAINT fk_empresa_categoria
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id),
-
-    CONSTRAINT fk_usuario_categoria
-        FOREIGN KEY (usuario_id)
-        REFERENCES "Usuarios"(id)
-);
-```
-
----
-
-## 💸 Tabela Lancamentos
-
-```sql
-CREATE TABLE "Lancamentos" (
-    id SERIAL PRIMARY KEY,
-    descricao TEXT,
-    valor NUMERIC(10,2) NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    data DATE NOT NULL,
-    categoria_id INT,
-    empresa_id INT,
-    usuario_id INT,
-    criado_em TIMESTAMPTZ DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ DEFAULT NOW(),
-
-    CONSTRAINT fk_categoria_lancamento
-        FOREIGN KEY (categoria_id)
-        REFERENCES "Categorias"(id),
-
-    CONSTRAINT fk_empresa_lancamento
-        FOREIGN KEY (empresa_id)
-        REFERENCES "Empresas"(id),
-
-    CONSTRAINT fk_usuario_lancamento
-        FOREIGN KEY (usuario_id)
-        REFERENCES "Usuarios"(id)
-);
-```
+O tipo de usuário (`tipo_usuario_enum`) aceita `ADMIN` e `PADRAO`.
 
 ---
 
@@ -398,8 +357,8 @@ Em produção (Neon), use a string de conexão com *pooling* (host com `-pooler`
 ## 5. Configure o banco PostgreSQL
 
 1. Crie um banco PostgreSQL (localmente ou um projeto no [Neon](https://neon.tech))
-2. Execute os scripts SQL acima
-3. Configure a `DATABASE_URL` no `.env`
+2. Configure a `DATABASE_URL` no `.env`
+3. Execute `npm run db:migrate` para criar o schema
 
 ## 6. 🧪 Dados iniciais (seed)
 
@@ -410,7 +369,7 @@ Para facilitar o primeiro acesso ao sistema, é necessário criar um usuário ad
 - Email: admin@moremoney.com
 - Senha: definida manualmente via hash bcrypt
 ```sql
-INSERT INTO "Usuarios" (
+INSERT INTO usuarios (
     nome,
     email,
     senha_hash,
@@ -425,6 +384,13 @@ INSERT INTO "Usuarios" (
     NOW(),
     NOW()
 );
+
+-- Carteiras do administrador (a tabela já existe após o `npm run db:migrate` do passo 5)
+INSERT INTO carteiras (usuario_id, nome)
+SELECT u.id, n.nome
+FROM usuarios u CROSS JOIN (VALUES ('Física'), ('Digital')) AS n(nome)
+WHERE u.email = 'admin@moremoney.com'
+ON CONFLICT (usuario_id, nome) DO NOTHING;
 ```
 
 ---
@@ -523,3 +489,33 @@ A estrutura do banco (sem dados) é versionada em `db/migrations/*.sql`, aplicad
 - Localmente: `npm run db:migrate` aplica as pendentes no banco da `DATABASE_URL`.
 - Em produção: o `npm run build` da Vercel roda as migrations pendentes antes do `next build` quando `VERCEL_ENV=production`. Se a migration falhar, o build falha e a versão anterior continua no ar. Previews não alteram o banco.
 - Prefira mudanças aditivas (criar tabela/coluna). Renomear ou apagar coluna deve ser feito em duas etapas, pois o código antigo continua no ar durante o build.
+
+### Carteiras (issue #22): migração em duas etapas
+
+Cada usuário tem as carteiras **Física** e **Digital** (criadas no cadastro). A `0003_carteiras.sql` cria a tabela, associa os lançamentos existentes à Digital e deixa `lancamentos.carteira_id` **nullable**, com um trigger temporário (`lancamentos_carteira_padrao`) que preenche a Digital para o código antigo, que ainda não envia `carteira_id` durante o build. Ela aborta se houver lançamentos com `usuario_id` NULL.
+
+**Etapa 2** é uma nova migration, em PR separado. Ela **não** deve ser incluída no mesmo deploy da 0003 (as migrations rodam antes do build, e o código antigo ainda estaria no ar).
+
+Pré-condições, nesta ordem:
+
+1. O deploy com o código da issue #22 foi promovido para produção e está estável (o código novo é o deployment atual).
+2. Verifique os lançamentos sem carteira (o resultado esperado é 0; um valor maior é tratado pela própria etapa 2, mas investigue a origem):
+   ```sql
+   SELECT count(*) FROM lancamentos WHERE carteira_id IS NULL;
+   ```
+3. Faça o deploy da etapa 2 **logo após** a promoção do código novo. Usuários cadastrados pelo código antigo durante a janela de deploy podem estar sem carteiras (o trigger só cria a Digital quando eles lançam algo); sem a etapa 2 eles não têm carteira para escolher no modal. A etapa 2 cria as carteiras ausentes.
+
+> **Sem rollback após a etapa 2.** Com o trigger removido e `carteira_id` `NOT NULL`, o código anterior à issue #22 não consegue criar lançamentos (nem usuários com carteiras). Não reverta o deployment para versões anteriores sem antes definir um procedimento de compatibilidade específico.
+
+SQL da etapa 2:
+
+```sql
+INSERT INTO carteiras (usuario_id, nome)
+SELECT u.id, n.nome FROM usuarios u CROSS JOIN (VALUES ('Física'), ('Digital')) n(nome)
+ON CONFLICT (usuario_id, nome) DO NOTHING;
+UPDATE lancamentos l SET carteira_id = c.id FROM carteiras c
+WHERE l.carteira_id IS NULL AND c.usuario_id = l.usuario_id AND c.nome = 'Digital';
+DROP TRIGGER lancamentos_carteira_padrao ON lancamentos;
+DROP FUNCTION lancamentos_carteira_padrao();
+ALTER TABLE lancamentos ALTER COLUMN carteira_id SET NOT NULL;
+```

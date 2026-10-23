@@ -13,20 +13,32 @@ import { Input, fieldClasses } from "./ui/input";
 import { NativeSelect } from "./ui/select";
 import { InlineAlert, LoadingState, Skeleton } from "./ui/feedback";
 import { useFocoAposFalha } from "@/lib/foco";
+import { TipoBadge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { toast } from "./feedback/toast";
 
 interface ModalLancamentoProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   mode: "create" | "edit";
-  lancamentoId: number | null;
+  lancamentoId: string | null;
 }
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
   tipo: string;
+}
+
+interface Carteira {
+  id: string;
+  nome: string;
+}
+
+interface Cartao {
+  id: string;
+  nome: string;
 }
 
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
@@ -44,6 +56,11 @@ export default function ModalLancamento({
   const [data, setData] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [carteiraId, setCarteiraId] = useState("");
+  const [carteiras, setCarteiras] = useState<Carteira[]>([]);
+  const [cartaoId, setCartaoId] = useState("");
+  const [cartoes, setCartoes] = useState<Cartao[]>([]);
+  const [pagarComCartao, setPagarComCartao] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +77,33 @@ export default function ModalLancamento({
       }
     } catch (err) {
       console.error("Erro ao carregar categorias:", err);
+    }
+  }
+
+  async function carregarCarteiras() {
+    try {
+      const res = await fetch("/api/carteiras");
+      if (!res.ok) {
+        setErroEnvio("Falha ao carregar carteiras.");
+        return;
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) setCarteiras(data);
+    } catch (err) {
+      console.error("Erro ao carregar carteiras:", err);
+      setErroEnvio("Erro ao carregar carteiras.");
+    }
+  }
+
+  async function carregarCartoes() {
+    try {
+      const res = await fetch("/api/cartoes");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setCartoes(data);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar cartões:", err);
     }
   }
 
@@ -87,6 +131,9 @@ export default function ModalLancamento({
       setTipo(data.tipo || "");
       setData(data.data ? data.data.split("T")[0] : "");
       setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
+      setCarteiraId(data.carteira_id ? String(data.carteira_id) : "");
+      setCartaoId(data.cartao_id ? String(data.cartao_id) : "");
+      setPagarComCartao(Boolean(data.cartao_id));
     } catch (err) {
       console.error("Erro ao carregar lançamento:", err);
       setErroEnvio("Erro ao carregar lançamento.");
@@ -96,17 +143,10 @@ export default function ModalLancamento({
   }, [lancamentoId]);
 
   useEffect(() => {
-    if (categoriaId) {
-      const c = categorias.find((c) => String(c.id) === categoriaId);
-      if (c) setTipo(c.tipo);
-    } else {
-      setTipo("");
-    }
-  }, [categoriaId, categorias]);
-
-  useEffect(() => {
     if (isOpen) {
       carregarCategorias();
+      carregarCarteiras();
+      carregarCartoes();
 
       if (mode === "edit") carregarLancamento();
     }
@@ -119,6 +159,9 @@ export default function ModalLancamento({
       setTipo("");
       setData("");
       setCategoriaId("");
+      setCarteiraId("");
+      setCartaoId("");
+      setPagarComCartao(false);
       setErrors({});
       setErroEnvio(null);
       setLoading(false);
@@ -135,21 +178,29 @@ export default function ModalLancamento({
       valor.replace(/[^\d,-]/g, "").replace(",", ".")
     );
 
+    const usaCartao = tipo === "despesa" && pagarComCartao;
+
     const dataForm = {
       descricao,
       valor: valorNumerico,
       tipo,
       data,
       categoria_id: categoriaId || null,
+      carteira_id: usaCartao ? null : carteiraId,
+      cartao_id: usaCartao ? cartaoId : null,
     };
 
     const validation = LancamentoSchema.safeParse(dataForm);
 
-    if (!validation.success) {
+    if (!validation.success || (usaCartao && !cartaoId)) {
       const errs: FormErrors = {};
-      validation.error.issues.forEach((issue) => {
-        errs[issue.path[0] as keyof TLancamentoSchema] = issue.message;
-      });
+      if (usaCartao && !cartaoId) errs.cartao_id = "O cartão é obrigatório.";
+      if (!validation.success) {
+        validation.error.issues.forEach((issue) => {
+          if (usaCartao && issue.path[0] === "carteira_id") return;
+          errs[issue.path[0] as keyof TLancamentoSchema] = issue.message;
+        });
+      }
       setErrors(errs);
       return;
     }
@@ -176,6 +227,9 @@ export default function ModalLancamento({
         return;
       }
 
+      const salvo = await res.json();
+      if (salvo.aviso) toast.warning(`Lançamento salvo. ${salvo.aviso}`);
+
       onSuccess();
       onClose();
     } catch (err) {
@@ -186,7 +240,18 @@ export default function ModalLancamento({
     }
   }
 
+  function escolherTipo(novoTipo: string) {
+    setTipo(novoTipo);
+    setCategoriaId("");
+    if (novoTipo !== "despesa") setPagarComCartao(false);
+  }
+
   if (!isOpen) return null;
+
+  const escolhendoTipo = mode === "create" && !tipo;
+  const usaCartaoNaTela = tipo === "despesa" && pagarComCartao;
+  const tipoCategoria =
+    tipo === "receita" || tipo === "despesa" ? tipo : undefined;
 
   return (
     <>
@@ -205,9 +270,53 @@ export default function ModalLancamento({
               <Skeleton className="h-16" />
             </div>
           </LoadingState>
+        ) : escolhendoTipo ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Qual o tipo do lançamento?
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => escolherTipo("despesa")}
+              >
+                Despesa
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => escolherTipo("receita")}
+              >
+                Receita
+              </Button>
+            </div>
+            <DialogFooter className="mt-2">
+              <Button type="button" variant="outline" size="lg" onClick={onClose}>
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {erroEnvio && <InlineAlert tone="error">{erroEnvio}</InlineAlert>}
+
+            {tipo && (
+              <div className="flex items-center justify-between gap-3">
+                <TipoBadge tipo={tipo} />
+                {mode === "create" && (
+                  <button
+                    type="button"
+                    onClick={() => escolherTipo("")}
+                    className="touch-target rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    Alterar tipo
+                  </button>
+                )}
+              </div>
+            )}
 
             <Field
               id="lancamento-descricao"
@@ -237,7 +346,7 @@ export default function ModalLancamento({
 
             <Field
               id="lancamento-data"
-              label="Data de Pagamento"
+              label={usaCartaoNaTela ? "Data da Compra" : "Data de Pagamento"}
               error={errors.data}
             >
               <InputData value={data} onChange={(iso) => setData(iso)} />
@@ -266,13 +375,72 @@ export default function ModalLancamento({
                   Selecione uma categoria
                 </option>
 
-                {categorias.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nome} ({c.tipo})
-                  </option>
-                ))}
+                {categorias
+                  .filter((c) => c.tipo === tipo)
+                  .map((c) => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.nome}
+                    </option>
+                  ))}
               </NativeSelect>
             </Field>
+
+            {tipo === "despesa" && (
+              <Field id="lancamento-forma" label="Pagar com">
+                <NativeSelect
+                  value={pagarComCartao ? "cartao" : "carteira"}
+                  onChange={(e) => setPagarComCartao(e.target.value === "cartao")}
+                >
+                  <option value="carteira">Carteira</option>
+                  <option value="cartao">Cartão de crédito</option>
+                </NativeSelect>
+              </Field>
+            )}
+
+            {usaCartaoNaTela ? (
+              <Field
+                id="lancamento-cartao"
+                label="Cartão"
+                error={errors.cartao_id}
+                hint="O valor só sai da carteira quando a fatura for paga."
+              >
+                <NativeSelect
+                  value={cartaoId}
+                  onChange={(e) => setCartaoId(e.target.value)}
+                >
+                  <option value="" disabled>
+                    Selecione um cartão
+                  </option>
+
+                  {cartoes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+            ) : (
+              <Field
+                id="lancamento-carteira"
+                label="Carteira"
+                error={errors.carteira_id}
+              >
+                <NativeSelect
+                  value={carteiraId}
+                  onChange={(e) => setCarteiraId(e.target.value)}
+                >
+                  <option value="" disabled>
+                    Selecione uma carteira
+                  </option>
+
+                  {carteiras.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+            )}
 
             <DialogFooter className="mt-2">
               <Button
@@ -302,6 +470,7 @@ export default function ModalLancamento({
         onClose={() => setIsModalCategoriaOpen(false)}
         onSuccess={carregarCategorias}
         mode="create"
+        tipoFixo={tipoCategoria}
       />
     </>
   );

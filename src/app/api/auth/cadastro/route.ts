@@ -5,7 +5,7 @@ import { CadastroSchema } from "@/schemas/auth";
 
 const MSG_EMAIL_DUPLICADO = "Já existe uma conta com este e-mail.";
 
-// POST - Cadastro público. O perfil é sempre COLABORADOR (literal no SQL);
+// POST - Cadastro público. O perfil é sempre PADRAO (literal no SQL);
 // qualquer outro campo enviado pelo cliente é descartado pelo schema.
 export async function POST(req: Request) {
   // Exigir JSON impede que um site de terceiros dispare o cadastro com uma
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   try {
     const existingUser = await query(
-      `SELECT id FROM "Usuarios" 
+      `SELECT id FROM usuarios 
       WHERE email = $1 AND data_exclusao IS NULL 
       LIMIT 1`,
       [email]
@@ -55,11 +55,18 @@ export async function POST(req: Request) {
     const senha_hash = await bcrypt.hash(senha, 10);
 
     const result = await query(
-      `INSERT INTO "Usuarios" 
-      (nome, email, "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
-      VALUES ($1, $2, 'COLABORADOR', $3, NOW(), NOW())
-      ON CONFLICT (email) DO NOTHING
-      RETURNING id, nome, email`,
+      `WITH novo AS (
+        INSERT INTO usuarios 
+        (nome, email, "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
+        VALUES ($1, $2, 'PADRAO', $3, NOW(), NOW())
+        ON CONFLICT (email) DO NOTHING
+        RETURNING id, nome, email
+      ), carteiras_novas AS (
+        INSERT INTO carteiras (usuario_id, nome)
+        SELECT novo.id, c.nome FROM novo, (VALUES ('Física'), ('Digital')) AS c(nome)
+        ON CONFLICT (usuario_id, nome) DO NOTHING
+      )
+      SELECT id, nome, email FROM novo`,
       [nome, email, senha_hash]
     );
 

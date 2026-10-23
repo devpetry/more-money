@@ -135,13 +135,13 @@ export default function FiltroMes({
                     : new Date().getFullYear();
                   setMesSelecionado(new Date(ano, parseInt(valor), 1));
                 }}
-                className="h-10 capitalize"
+                className="h-10"
               >
                 <option value="" disabled>
                   Selecione o mês
                 </option>
                 {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i}>
+                  <option key={i} value={i} className="capitalize">
                     {format(new Date(2025, i, 1), "MMMM", { locale: ptBR })}
                   </option>
                 ))}

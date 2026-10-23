@@ -20,14 +20,14 @@ interface ModalUserProps {
   onClose: () => void;
   onSuccess: () => void;
   mode: "create" | "edit";
-  userId: number | null;
+  userId: string | null;
 }
 
 type FormErrors = Partial<Record<string, string>>;
 
 const TIPOS_USUARIO = [
   { id: 1, nome: "ADMIN" },
-  { id: 3, nome: "COLABORADOR" },
+  { id: 3, nome: "PADRAO" },
 ];
 
 const getTipoIdByNome = (nome?: string | null): string => {

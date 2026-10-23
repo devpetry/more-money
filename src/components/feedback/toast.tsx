@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { AlertCircle, CheckCircle2, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, TriangleAlert, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type ToastTone = "success" | "error";
+type ToastTone = "success" | "warning" | "error";
 interface ToastItem {
   id: number;
   tone: ToastTone;
@@ -31,12 +31,13 @@ function push(tone: ToastTone, message: string) {
   const id = ++nextId;
   items = [...items, { id, tone, message }];
   emit();
-  // Erros ficam até serem fechados, como o alert() que substituem
+  // Avisos e erros ficam até serem fechados, como o alert() que substituem
   if (tone === "success") setTimeout(() => dismiss(id), 5000);
 }
 
 export const toast = {
   success: (message: string) => push("success", message),
+  warning: (message: string) => push("warning", message),
   error: (message: string) => push("error", message),
 };
 
@@ -48,14 +49,22 @@ function subscribe(listener: () => void) {
 }
 
 function ToastCard({ item }: { item: ToastItem }) {
-  const Icon = item.tone === "success" ? CheckCircle2 : AlertCircle;
+  const Icon =
+    item.tone === "success" ? CheckCircle2 : item.tone === "warning" ? TriangleAlert : AlertCircle;
   return (
-    <div className="pointer-events-auto flex items-start gap-3 rounded-xl border bg-popover p-4 text-sm text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-bottom-2">
+    <div
+      className={cn(
+        "pointer-events-auto flex items-start gap-3 rounded-xl border bg-popover p-4 text-sm text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-bottom-2",
+        item.tone === "warning" && "border-warning/50"
+      )}
+    >
       <Icon
         aria-hidden
         className={cn(
           "mt-0.5 size-4 shrink-0",
-          item.tone === "success" ? "text-success" : "text-destructive"
+          item.tone === "success" && "text-success",
+          item.tone === "warning" && "text-warning",
+          item.tone === "error" && "text-destructive"
         )}
       />
       <p className="flex-1 font-medium">{item.message}</p>
@@ -111,7 +120,7 @@ export function Toaster() {
       <div ref={pilhaRef} className="flex w-full max-w-sm flex-col gap-2">
         <div role="status" aria-atomic="false" className="flex flex-col gap-2">
           {toasts
-            .filter((item) => item.tone === "success")
+            .filter((item) => item.tone !== "error")
             .map((item) => (
               <ToastCard key={item.id} item={item} />
             ))}

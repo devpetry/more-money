@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { query } from "@/lib/db";
 
-export type TipoUsuario = "ADMIN" | "GERENTE" | "COLABORADOR";
+export type TipoUsuario = "ADMIN" | "PADRAO";
 
 export interface ExtendedUser extends DefaultUser {
   id: string;
@@ -26,7 +26,7 @@ declare module "next-auth/jwt" {
 async function findUserByEmail(email: string) {
   const res = await query(
     `SELECT id, nome, email, "senha_hash", "tipo_usuario"
-     FROM "Usuarios"
+     FROM usuarios
      WHERE email = $1 AND data_exclusao IS NULL`,
     [email]
   );
@@ -109,7 +109,7 @@ export const authOptions: NextAuthOptions = {
       // devolver sessão nula (fail-closed).
       if (!token.id) throw new Error("JWT não possui ID do usuário");
       const res = await query(
-        `SELECT "tipo_usuario" FROM "Usuarios"
+        `SELECT "tipo_usuario" FROM usuarios
          WHERE id = $1 AND data_exclusao IS NULL`,
         [token.id]
       );

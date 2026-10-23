@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/popover";
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
   tipo: "receita" | "despesa";
 }

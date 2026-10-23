@@ -13,7 +13,7 @@ import { toast } from "./feedback/toast";
 import { useConfirm } from "./feedback/ConfirmProvider";
 
 interface Usuario {
-  id: number;
+  id: string;
   nome: string;
   email: string;
   tipo_usuario: string;
@@ -26,7 +26,7 @@ export default function ListUsers() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<string | null>(
     null
   );
 
@@ -61,7 +61,7 @@ export default function ListUsers() {
     }
   }
 
-  async function editarUsuario(id: number) {
+  async function editarUsuario(id: string) {
     setUsuarioSelecionado(id);
     setModalMode("edit");
     setIsModalOpen(true);
@@ -134,14 +134,6 @@ export default function ListUsers() {
               caption="Usuários cadastrados"
               rowKey={(u) => u.id}
               columns={[
-                {
-                  key: "id",
-                  header: "ID",
-                  cell: (u) => (
-                    <span className="tabular-nums text-muted-foreground">{u.id}</span>
-                  ),
-                  className: "w-16",
-                },
                 {
                   key: "nome",
                   header: "Nome",

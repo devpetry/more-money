@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .d{fill:#0D1117}
+    @media (prefers-color-scheme:dark){.d{fill:#E0E0E0}}
+  </style>
+  <defs>
+    <linearGradient id="a" x1="374" y1="540" x2="815" y2="65" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00C853"/>
+      <stop offset="1" stop-color="#2196F3"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(1 8.32) scale(0.08267) translate(-65 -62)">
+    <path class="d" d="M65 470V250C65 215 105 160 170 160C195 160 208 172 222 186L418 383L385 430L245 298Z"/>
+    <path class="d" d="M65 525L245 345L378 478V538L240 428V612Q240 635 217 635H88Q65 635 65 612Z"/>
+    <path fill="url(#a)" d="M374 478L690 142L650 98L805 65Q815 63 815 75V232L765 200L440 528Q410 545 374 538Z"/>
+    <path fill="#00C853" d="M640 365L765 240L815 285V612Q815 635 792 635H663Q640 635 640 612Z"/>
+  </g>
+</svg>

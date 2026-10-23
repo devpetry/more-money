@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { requireAdmin } from "@/lib/api-auth";
+import { isUuid, requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "3": "COLABORADOR",
+  "3": "PADRAO",
 } as const;
 
 function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
@@ -32,10 +32,13 @@ export async function GET(
 
   try {
     const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
 
     const rows = await query(
       `SELECT id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"
-       FROM "Usuarios"
+       FROM usuarios
        WHERE id = $1
        AND data_exclusao IS NULL`,
       [id]
@@ -68,6 +71,9 @@ export async function PUT(
 
   try {
     const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
+    }
     const { nome, email, tipo_usuario } = await req.json();
 
     const enum_tipo_usuario = resolveTipoUsuarioGravavel(tipo_usuario);
@@ -80,7 +86,7 @@ export async function PUT(
     }
 
     const rows = await query(
-      `UPDATE "Usuarios" 
+      `UPDATE usuarios 
        SET nome = $1, email = $2, "tipo_usuario" = $3, "atualizado_em" = NOW()
        WHERE id = $4 AND data_exclusao IS NULL
        RETURNING id, nome, email, "tipo_usuario", "criado_em", "atualizado_em"`,
@@ -114,22 +120,18 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    const userId = String(id);
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "ID do usuário ausente na rota." },
-        { status: 400 }
-      );
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const rows = await query(
-      `UPDATE "Usuarios"
+      `UPDATE usuarios
        SET data_exclusao = NOW()
        WHERE id = $1
        AND data_exclusao IS NULL
        RETURNING id`,
-      [userId]
+      [id]
     );
 
     if (rows.length === 0) {

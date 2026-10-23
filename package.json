@@ -1,13 +1,14 @@
 {
   "name": "more-money",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "test": "node --test \"tests/**/*.test.mjs\""
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.15",

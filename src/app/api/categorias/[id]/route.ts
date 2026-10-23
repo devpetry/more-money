@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { requireSession } from "@/lib/api-auth";
+import { isUuid, requireSession } from "@/lib/api-auth";
 
 // GET - Obter detalhes de uma categoria específica
 export async function GET(
@@ -12,10 +12,16 @@ export async function GET(
 
   try {
     const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json(
+        { error: "ID da categoria inválido" },
+        { status: 400 }
+      );
+    }
 
     const rows = await query(
       `SELECT id, nome, tipo, usuario_id, "criado_em", "atualizado_em"
-       FROM "Categorias"
+       FROM categorias
        WHERE id = $1 AND usuario_id = $2`,
       [id, auth.usuarioId]
     );
@@ -47,8 +53,7 @@ export async function PUT(
 
   try {
     const { id } = await context.params;
-    const categoriaId = Number(id);
-    if (isNaN(categoriaId)) {
+    if (!isUuid(id)) {
       return NextResponse.json(
         { error: "ID da categoria inválido" },
         { status: 400 }
@@ -72,14 +77,14 @@ export async function PUT(
     }
 
     const rows = await query(
-      `UPDATE "Categorias"
+      `UPDATE categorias
        SET 
          nome = $1,
          tipo = $2,
          "atualizado_em" = NOW()
        WHERE id = $3 AND usuario_id = $4
        RETURNING id, nome, tipo, usuario_id, "criado_em", "atualizado_em"`,
-      [nome, tipo, categoriaId, auth.usuarioId]
+      [nome, tipo, id, auth.usuarioId]
     );
 
     if (rows.length === 0) {
@@ -109,20 +114,19 @@ export async function DELETE(
 
   try {
     const { id } = await context.params;
-    const categoriaId = Number(id);
 
-    if (!categoriaId) {
+    if (!isUuid(id)) {
       return NextResponse.json(
-        { error: "ID da categoria ausente na rota." },
+        { error: "ID da categoria inválido" },
         { status: 400 }
       );
     }
 
     const rows = await query(
-      `DELETE FROM "Categorias"
+      `DELETE FROM categorias
        WHERE id = $1 AND usuario_id = $2
        RETURNING id`,
-      [categoriaId, auth.usuarioId]
+      [id, auth.usuarioId]
     );
 
     if (rows.length === 0) {

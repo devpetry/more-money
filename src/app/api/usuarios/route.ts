@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/api-auth";
 
 const TIPO_USUARIO_MAP = {
   "1": "ADMIN",
-  "3": "COLABORADOR",
+  "3": "PADRAO",
 } as const;
 
 function resolveTipoUsuarioGravavel(tipo_usuario: unknown): string | null {
@@ -31,9 +31,9 @@ export async function GET() {
   try {
     const result = await query(
       `SELECT id, nome, email, "tipo_usuario", "criado_em" 
-      FROM "Usuarios" 
+      FROM usuarios 
       WHERE data_exclusao IS NULL 
-      ORDER BY id ASC`,
+      ORDER BY criado_em ASC, id ASC`,
       []
     );
     return NextResponse.json(result);
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     }
 
     const existingUser = await query(
-      `SELECT id FROM "Usuarios" 
+      `SELECT id FROM usuarios 
       WHERE email = $1 AND data_exclusao IS NULL 
       LIMIT 1`,
       [email]
@@ -91,10 +91,17 @@ export async function POST(req: Request) {
     }
 
     const result = await query(
-      `INSERT INTO "Usuarios" 
-      (nome, email, "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
-      RETURNING id, nome, email, "tipo_usuario", "criado_em"`,
+      `WITH novo AS (
+        INSERT INTO usuarios 
+        (nome, email, "tipo_usuario", "senha_hash", "criado_em", "atualizado_em") 
+        VALUES ($1, $2, $3, $4, NOW(), NOW())
+        RETURNING id, nome, email, "tipo_usuario", "criado_em"
+      ), carteiras_novas AS (
+        INSERT INTO carteiras (usuario_id, nome)
+        SELECT novo.id, c.nome FROM novo, (VALUES ('Física'), ('Digital')) AS c(nome)
+        ON CONFLICT (usuario_id, nome) DO NOTHING
+      )
+      SELECT id, nome, email, "tipo_usuario", "criado_em" FROM novo`,
       [nome, email, enum_tipo_usuario, senha_hash]
     );
 
