@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, transaction } from "@/lib/db";
 import { isUuid, requireSession } from "@/lib/api-auth";
+import { respostaDeErro } from "@/lib/api-erro";
+import { atualizarLancamento, excluirLancamento } from "@/lib/faturas";
 
 // GET - Obter detalhes de um lançamento específico
 export async function GET(
@@ -20,9 +22,11 @@ export async function GET(
     const result = await query(
       `SELECT l.id, l.descricao, l.valor, l.tipo, l.data,
               l.categoria_id, c.nome AS categoria_nome,
-              l.carteira_id, l.usuario_id, l.criado_em, l.atualizado_em
+              l.carteira_id, l.fatura_id, f.cartao_id,
+              l.usuario_id, l.criado_em, l.atualizado_em
        FROM lancamentos l
        LEFT JOIN categorias c ON c.id = l.categoria_id
+       LEFT JOIN faturas f ON f.id = l.fatura_id
        WHERE l.id = $1 AND l.usuario_id = $2
        LIMIT 1`,
       [id, usuarioId]
@@ -45,7 +49,7 @@ export async function GET(
   }
 }
 
-// PUT - Atualizar um lançamento existente
+// PUT - Atualizar um lançamento existente (pode alternar entre carteira e cartão)
 export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -60,7 +64,7 @@ export async function PUT(
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const { descricao, valor, tipo, categoria_id, carteira_id, data } =
+    const { descricao, valor, tipo, categoria_id, carteira_id, cartao_id, data } =
       await req.json();
 
     if (!descricao || !valor || !tipo || !data) {
@@ -80,9 +84,13 @@ export async function PUT(
       );
     }
 
-    if (!isUuid(carteira_id)) {
+    if (cartao_id ? !isUuid(cartao_id) : !isUuid(carteira_id)) {
       return NextResponse.json(
-        { error: "O campo 'carteira_id' é obrigatório e deve ser válido." },
+        {
+          error: cartao_id
+            ? "O campo 'cartao_id' é inválido."
+            : "O campo 'carteira_id' é obrigatório e deve ser válido.",
+        },
         { status: 400 }
       );
     }
@@ -101,55 +109,21 @@ export async function PUT(
       );
     }
 
-    const carteira = await query(
-      `SELECT 1 FROM carteiras WHERE id = $1 AND usuario_id = $2`,
-      [carteira_id, usuarioId]
-    );
-
-    if (carteira.length === 0) {
-      return NextResponse.json(
-        { error: "O campo 'carteira_id' é inválido." },
-        { status: 400 }
-      );
-    }
-
-    const result = await query(
-      `UPDATE lancamentos
-       SET descricao = $1,
-           valor = $2,
-           tipo = $3,
-           data = $4,
-           categoria_id = $5,
-           carteira_id = $6,
-           "atualizado_em" = NOW()
-       WHERE id = $7 AND usuario_id = $8
-       RETURNING id, descricao, valor, tipo, data, categoria_id, carteira_id, usuario_id, "atualizado_em"`,
-      [
+    const { lancamento, aviso } = await transaction((db) =>
+      atualizarLancamento(db, usuarioId, id, {
         descricao,
         valor,
         tipo,
         data,
-        categoria_id || null,
-        carteira_id,
-        id,
-        usuarioId,
-      ]
+        categoriaId: categoria_id || null,
+        carteiraId: cartao_id ? null : carteira_id,
+        cartaoId: cartao_id || null,
+      })
     );
 
-    if (result.length === 0) {
-      return NextResponse.json(
-        { error: "Lançamento não encontrado ou não pertence ao usuário." },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(result[0]);
+    return NextResponse.json({ ...lancamento, aviso });
   } catch (error) {
-    console.error("Erro ao atualizar lançamento:", error);
-    return NextResponse.json(
-      { error: "Erro ao atualizar lançamento." },
-      { status: 500 }
-    );
+    return respostaDeErro(error, "Erro ao atualizar lançamento.");
   }
 }
 
@@ -168,26 +142,12 @@ export async function DELETE(
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const result = await query(
-      `DELETE FROM lancamentos
-       WHERE id = $1 AND usuario_id = $2
-       RETURNING id`,
-      [id, usuarioId]
+    const { aviso } = await transaction((db) =>
+      excluirLancamento(db, usuarioId, id)
     );
 
-    if (result.length === 0) {
-      return NextResponse.json(
-        { error: "Lançamento não encontrado ou não pertence ao usuário." },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ message: "Lançamento removido com sucesso." });
+    return NextResponse.json({ message: "Lançamento removido com sucesso.", aviso });
   } catch (error) {
-    console.error("Erro ao excluir lançamento:", error);
-    return NextResponse.json(
-      { error: "Erro ao excluir lançamento." },
-      { status: 500 }
-    );
+    return respostaDeErro(error, "Erro ao excluir lançamento.");
   }
 }

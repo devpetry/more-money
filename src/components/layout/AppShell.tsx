@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   ChartNoAxesCombined,
   CircleDollarSign,
+  CreditCard,
   Menu,
   Tag,
   Users,
@@ -28,6 +29,7 @@ const NAV_PRINCIPAL = [
   { href: "/dashboard", label: "Dashboard", icon: ChartNoAxesCombined },
   { href: "/lista-lancamentos", label: "Lançamentos", icon: CircleDollarSign },
   { href: "/lista-categorias", label: "Categorias", icon: Tag },
+  { href: "/lista-cartoes", label: "Cartões", icon: CreditCard },
 ];
 
 // Visível apenas para ADMIN (a página também valida o papel no servidor)

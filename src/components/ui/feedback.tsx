@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, TriangleAlert } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -63,29 +63,33 @@ function EmptyState({
   );
 }
 
-// Mensagem em linha (sucesso/erro) para formulários e diálogos
+// Mensagem em linha (sucesso/aviso/erro) para formulários e diálogos
 function InlineAlert({
   tone,
   children,
   className,
 }: {
-  tone: "success" | "error";
+  tone: "success" | "warning" | "error";
   children: React.ReactNode;
   className?: string;
 }) {
-  const Icon = tone === "success" ? CheckCircle2 : AlertCircle;
+  const Icon =
+    tone === "success" ? CheckCircle2 : tone === "warning" ? TriangleAlert : AlertCircle;
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
         "flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm",
-        tone === "success"
-          ? "border-success/30 bg-success/10 text-success"
-          : "border-destructive/30 bg-destructive/10 text-destructive",
+        tone === "success" && "border-success/30 bg-success/10 text-success",
+        tone === "warning" && "border-warning/50 bg-warning/10 text-foreground",
+        tone === "error" && "border-destructive/30 bg-destructive/10 text-destructive",
         className
       )}
     >
-      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <Icon
+        aria-hidden
+        className={cn("mt-0.5 size-4 shrink-0", tone === "warning" && "text-warning")}
+      />
       <p className="font-medium">{children}</p>
     </div>
   );

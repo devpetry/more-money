@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import PageHeader from "./layout/PageHeader";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
-import { TipoBadge } from "./ui/badge";
+import { Badge, TipoBadge } from "./ui/badge";
 import { DataTable, RowActions } from "./ui/data-table";
 import { EmptyState, LoadingState, Skeleton } from "./ui/feedback";
 import { toast } from "./feedback/toast";
@@ -25,7 +25,19 @@ interface Lancamento {
   tipo: string;
   data: string;
   categoria_nome?: string;
+  cartao_nome?: string | null;
   criado_em: string;
+}
+
+function DescricaoLancamento({ lancamento }: { lancamento: Lancamento }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <span className="font-medium">{lancamento.descricao}</span>
+      {lancamento.cartao_nome && (
+        <Badge variant="neutral">Cartão {lancamento.cartao_nome}</Badge>
+      )}
+    </span>
+  );
 }
 
 function ValorLancamento({ lancamento }: { lancamento: Lancamento }) {
@@ -137,11 +149,13 @@ export default function ListLancamentos() {
         method: "DELETE",
       });
 
+      const corpo = await res.json().catch(() => null);
       if (!res.ok) {
         console.error("Falha ao deletar lançamento. Status:", res.status);
-        toast.error("Não foi possível remover o lançamento.");
+        toast.error(corpo?.error || "Não foi possível remover o lançamento.");
       } else {
         toast.success("Lançamento removido com sucesso!");
+        if (corpo?.aviso) toast.warning(corpo.aviso);
       }
 
       carregarLancamentos();
@@ -218,7 +232,7 @@ export default function ListLancamentos() {
                 {
                   key: "descricao",
                   header: "Descrição",
-                  cell: (l) => <span className="font-medium">{l.descricao}</span>,
+                  cell: (l) => <DescricaoLancamento lancamento={l} />,
                   hideOnCard: true,
                 },
                 {
@@ -248,7 +262,7 @@ export default function ListLancamentos() {
                   cell: (l) => l.categoria_nome || "N/A",
                 },
               ]}
-              cardTitle={(l) => l.descricao}
+              cardTitle={(l) => <DescricaoLancamento lancamento={l} />}
               cardAside={(l) => <ValorLancamento lancamento={l} />}
               actions={(l, layout) => (
                 <RowActions

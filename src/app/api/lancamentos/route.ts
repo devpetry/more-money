@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, transaction } from "@/lib/db";
 import { isUuid, requireSession } from "@/lib/api-auth";
+import { respostaDeErro } from "@/lib/api-erro";
+import { criarLancamento } from "@/lib/faturas";
 
 // GET - Listar todos os lançamentos do usuário autenticados
 export async function GET() {
@@ -13,9 +15,12 @@ export async function GET() {
       `SELECT l.id, l.descricao, l.valor, l.tipo,
         TO_CHAR(l.data, 'YYYY-MM-DD') AS data, 
         l.categoria_id, c.nome AS categoria_nome, 
-        l.carteira_id, l.usuario_id, l.criado_em, l.atualizado_em
+        l.carteira_id, l.fatura_id, f.cartao_id, ct.nome AS cartao_nome,
+        l.usuario_id, l.criado_em, l.atualizado_em
        FROM lancamentos l
        LEFT JOIN categorias c ON c.id = l.categoria_id
+       LEFT JOIN faturas f ON f.id = l.fatura_id
+       LEFT JOIN cartoes ct ON ct.id = f.cartao_id
        WHERE l.usuario_id = $1
        ORDER BY l.data DESC, l.criado_em DESC, l.id DESC`,
       [usuarioId]
@@ -31,14 +36,14 @@ export async function GET() {
   }
 }
 
-// POST - Criar novo lançamento
+// POST - Criar novo lançamento (em carteira ou, para despesas, em cartão)
 export async function POST(req: Request) {
   try {
     const auth = await requireSession();
     if (!auth.ok) return auth.response;
     const { usuarioId } = auth;
 
-    const { descricao, valor, tipo, categoria_id, carteira_id, data } =
+    const { descricao, valor, tipo, categoria_id, carteira_id, cartao_id, data } =
       await req.json();
 
     if (!descricao || !valor || !tipo || !data) {
@@ -58,9 +63,13 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!isUuid(carteira_id)) {
+    if (cartao_id ? !isUuid(cartao_id) : !isUuid(carteira_id)) {
       return NextResponse.json(
-        { error: "O campo 'carteira_id' é obrigatório e deve ser válido." },
+        {
+          error: cartao_id
+            ? "O campo 'cartao_id' é inválido."
+            : "O campo 'carteira_id' é obrigatório e deve ser válido.",
+        },
         { status: 400 }
       );
     }
@@ -79,39 +88,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const carteira = await query(
-      `SELECT 1 FROM carteiras WHERE id = $1 AND usuario_id = $2`,
-      [carteira_id, usuarioId]
-    );
-
-    if (carteira.length === 0) {
-      return NextResponse.json(
-        { error: "O campo 'carteira_id' é inválido." },
-        { status: 400 }
-      );
-    }
-
-    const result = await query(
-      `INSERT INTO lancamentos (descricao, valor, tipo, data, categoria_id, carteira_id, usuario_id, "criado_em", "atualizado_em")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-       RETURNING id, descricao, valor, tipo, data, categoria_id, carteira_id, usuario_id, "criado_em"`,
-      [
+    const { lancamento, aviso } = await transaction((db) =>
+      criarLancamento(db, usuarioId, {
         descricao,
         valor,
         tipo,
         data,
-        categoria_id || null,
-        carteira_id,
-        usuarioId,
-      ]
+        categoriaId: categoria_id || null,
+        carteiraId: cartao_id ? null : carteira_id,
+        cartaoId: cartao_id || null,
+      })
     );
 
-    return NextResponse.json(result[0], { status: 201 });
+    return NextResponse.json({ ...lancamento, aviso }, { status: 201 });
   } catch (error) {
-    console.error("Erro ao criar lançamento:", error);
-    return NextResponse.json(
-      { error: "Erro ao criar lançamento" },
-      { status: 500 }
-    );
+    return respostaDeErro(error, "Erro ao criar lançamento");
   }
 }

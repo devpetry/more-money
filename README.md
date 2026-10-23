@@ -103,6 +103,7 @@ O projeto foi desenvolvido com foco em:
 - Dashboard financeiro
 - CRUD de lançamentos
 - CRUD de categorias
+- Cartões de crédito com faturas, fechamento e pagamentos parciais
 - Controle de receitas e despesas
 - Histórico de movimentações
 - Filtro por período
@@ -234,10 +235,44 @@ erDiagram
         varchar tipo
         date data
         uuid categoria_id FK
-        uuid carteira_id FK
+        uuid carteira_id FK "nula em compra de cartão"
+        uuid fatura_id FK "preenchido só em compra de cartão"
         uuid usuario_id FK
         timestamptz criado_em
         timestamptz atualizado_em
+    }
+
+    CARTOES {
+        uuid id PK
+        varchar nome
+        uuid usuario_id FK
+        smallint dia_fechamento
+        smallint dia_vencimento
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+
+    FATURAS {
+        uuid id PK
+        uuid cartao_id FK
+        uuid usuario_id FK
+        date ciclo "dia 1 do mês do ciclo"
+        date data_fechamento
+        date data_vencimento
+        timestamptz fechada_em "só fechamento manual"
+        timestamptz criado_em
+        timestamptz atualizado_em
+    }
+
+    PAGAMENTOS_FATURA {
+        uuid id PK
+        uuid fatura_id FK
+        uuid usuario_id FK
+        uuid carteira_id FK
+        numeric valor
+        date data
+        timestamptz estornado_em
+        timestamptz criado_em
     }
 
     USUARIOS ||--o{ CATEGORIAS : cria
@@ -246,6 +281,30 @@ erDiagram
     USUARIOS ||--o{ LANCAMENTOS : registra
 
     CATEGORIAS ||--o{ LANCAMENTOS : categoriza
+    USUARIOS ||--o{ CARTOES : possui
+    CARTOES ||--o{ FATURAS : gera
+    FATURAS ||--o{ LANCAMENTOS : agrupa
+    FATURAS ||--o{ PAGAMENTOS_FATURA : recebe
+    CARTEIRAS ||--o{ PAGAMENTOS_FATURA : paga
+```
+
+### Cartões e faturas (issue #23)
+
+- Cada cartão tem dias padrão de fechamento e vencimento. A fatura de cada mês (`ciclo`) é criada só quando necessário (compra, fechamento manual ou ajuste de datas) e guarda suas próprias datas, que podem ser ajustadas enquanto ela não estiver paga. Dias maiores que o mês (ex.: 31 em fevereiro) usam o último dia do mês; o vencimento fica no mês do fechamento se o dia for posterior ao do fechamento, senão no mês seguinte.
+- Compra de cartão é um lançamento de **despesa** com `fatura_id` e sem `carteira_id`: não altera o saldo das carteiras. Compra feita no dia do fechamento entra na fatura seguinte.
+- O estado da fatura é **derivado**, não gravado: *aberta*, *fechada com pagamento pendente*, *parcialmente paga* ou *paga*. Fechada = fechamento manual (`fechada_em`) ou `data_fechamento` já alcançada em `America/Sao_Paulo` (fechamento automático, sem job agendado). Fatura fechada de valor zero é considerada paga, sem pagamento fictício.
+- Pagamentos (parciais ou totais) ficam em `pagamentos_fatura` com data efetiva e carteira; o estorno preserva o registro (`estornado_em`). Só o pagamento reduz o saldo da carteira escolhida e entra nos indicadores do dashboard, distribuído entre as categorias na proporção dos lançamentos da fatura.
+- Fatura paga não aceita inclusão, edição ou exclusão de lançamentos nem ajuste de datas (estorne o pagamento antes). Em fatura fechada e não paga essas alterações são permitidas com aviso, desde que o total pago não passe do total da fatura.
+- Pagamentos, estornos e alterações de lançamentos de um cartão rodam em transação, travando a linha do cartão (`SELECT ... FOR UPDATE`).
+- Cartão com faturas (histórico) não pode ser excluído (FK sem `CASCADE`).
+
+### Testes
+
+`npm test` usa o `node:test` nativo (sem dependências). Os testes de regras de datas rodam sempre; os de integração só rodam com `TEST_DATABASE_URL` apontando para um Postgres **descartável** (o nome do banco precisa conter `test`; o schema `public` é recriado a cada execução):
+
+```bash
+docker run -d --rm --name mm-test-pg -e POSTGRES_PASSWORD=teste -e POSTGRES_DB=more_money_test -p 127.0.0.1:55432:5432 postgres:16-alpine
+TEST_DATABASE_URL=postgres://postgres:teste@127.0.0.1:55432/more_money_test npm test
 ```
 
 O tipo de usuário (`tipo_usuario_enum`) aceita `ADMIN` e `PADRAO`.
