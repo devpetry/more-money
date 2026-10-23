@@ -49,7 +49,34 @@ export async function GET(req: Request) {
 
     const totalReceitas = parseFloat(totais?.total_receitas || 0);
     const totalDespesas = parseFloat(totais?.total_despesas || 0);
-    const saldo = totalReceitas - totalDespesas;
+
+    // Saldo por carteira. O filtro de período fica no ON (e não no WHERE) para
+    // que carteiras sem lançamentos no período apareçam com saldo 0.
+    const carteirasRows = await query(
+      `
+      SELECT c.id, c.nome,
+        COALESCE(SUM(CASE WHEN l.tipo = 'receita' THEN l.valor
+                          WHEN l.tipo = 'despesa' THEN -l.valor END), 0)::text AS saldo
+      FROM carteiras c
+      LEFT JOIN lancamentos l ON l.carteira_id = c.id
+        AND l.usuario_id = c.usuario_id
+        AND ($2::date IS NULL OR l.data >= $2)
+        AND ($3::date IS NULL OR l.data < $3)
+      WHERE c.usuario_id = $1
+      GROUP BY c.id, c.nome
+      ORDER BY c.nome ASC
+      `,
+      [usuarioId, startDate, nextMonthStart]
+    );
+
+    // Centavos inteiros: o total é a soma exata dos saldos exibidos.
+    const carteiras = carteirasRows.map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      centavos: Math.round(parseFloat(c.saldo) * 100),
+    }));
+    const saldo =
+      carteiras.reduce((soma, c) => soma + c.centavos, 0) / 100;
 
     const evolucaoMensal = await query(
       `
@@ -119,6 +146,11 @@ export async function GET(req: Request) {
 
     const data = {
       saldo,
+      carteiras: carteiras.map((c) => ({
+        id: c.id,
+        nome: c.nome,
+        saldo: c.centavos / 100,
+      })),
       totalReceitas,
       totalDespesas,
       evolucaoMensal: evolucaoMensal || [],
@@ -134,6 +166,7 @@ export async function GET(req: Request) {
       {
         error: "Erro ao carregar dashboard",
         saldo: 0,
+        carteiras: [],
         totalReceitas: 0,
         totalDespesas: 0,
         evolucaoMensal: [],

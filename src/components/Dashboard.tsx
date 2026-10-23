@@ -19,6 +19,7 @@ import {
   ReceiptText,
   TrendingUp,
   TrendingDown,
+  Wallet,
 } from "lucide-react";
 import FiltroMes from "./dashboard/FiltroMes";
 import ModalLancamento from "./ModalLancamento";
@@ -62,6 +63,7 @@ interface DashboardData {
   totalReceitas: number;
   totalDespesas: number;
   saldo: number;
+  carteiras: { id: string; nome: string; saldo: number }[];
   evolucaoMensal: EvolucaoMensal[];
   despesasPorCategoria: DespesaCategoria[];
   receitasPorCategoria: ReceitaCategoria[];
@@ -170,7 +172,7 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
           {/* Indicadores */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Indicador
-              titulo="Saldo"
+              titulo="Saldo total"
               valor={dados.saldo}
               icone={dados.saldo >= 0 ? TrendingUp : TrendingDown}
               tom={dados.saldo >= 0 ? "success" : "destructive"}
@@ -188,6 +190,19 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
               icone={ArrowDownRight}
               tom="destructive"
             />
+          </div>
+
+          {/* Saldo por carteira */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {(dados.carteiras ?? []).map((c) => (
+              <Indicador
+                key={c.id}
+                titulo={`Carteira ${c.nome}`}
+                valor={c.saldo}
+                icone={Wallet}
+                tom={c.saldo >= 0 ? "success" : "destructive"}
+              />
+            ))}
           </div>
 
           {/* Gráfico de Evolução */}

@@ -30,6 +30,11 @@ interface Categoria {
   tipo: string;
 }
 
+interface Carteira {
+  id: string;
+  nome: string;
+}
+
 type FormErrors = Partial<Record<keyof TLancamentoSchema, string>>;
 
 export default function ModalLancamento({
@@ -45,6 +50,8 @@ export default function ModalLancamento({
   const [data, setData] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [carteiraId, setCarteiraId] = useState("");
+  const [carteiras, setCarteiras] = useState<Carteira[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,6 +68,21 @@ export default function ModalLancamento({
       }
     } catch (err) {
       console.error("Erro ao carregar categorias:", err);
+    }
+  }
+
+  async function carregarCarteiras() {
+    try {
+      const res = await fetch("/api/carteiras");
+      if (!res.ok) {
+        setErroEnvio("Falha ao carregar carteiras.");
+        return;
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) setCarteiras(data);
+    } catch (err) {
+      console.error("Erro ao carregar carteiras:", err);
+      setErroEnvio("Erro ao carregar carteiras.");
     }
   }
 
@@ -88,6 +110,7 @@ export default function ModalLancamento({
       setTipo(data.tipo || "");
       setData(data.data ? data.data.split("T")[0] : "");
       setCategoriaId(data.categoria_id ? String(data.categoria_id) : "");
+      setCarteiraId(data.carteira_id ? String(data.carteira_id) : "");
     } catch (err) {
       console.error("Erro ao carregar lançamento:", err);
       setErroEnvio("Erro ao carregar lançamento.");
@@ -99,6 +122,7 @@ export default function ModalLancamento({
   useEffect(() => {
     if (isOpen) {
       carregarCategorias();
+      carregarCarteiras();
 
       if (mode === "edit") carregarLancamento();
     }
@@ -111,6 +135,7 @@ export default function ModalLancamento({
       setTipo("");
       setData("");
       setCategoriaId("");
+      setCarteiraId("");
       setErrors({});
       setErroEnvio(null);
       setLoading(false);
@@ -133,6 +158,7 @@ export default function ModalLancamento({
       tipo,
       data,
       categoria_id: categoriaId || null,
+      carteira_id: carteiraId,
     };
 
     const validation = LancamentoSchema.safeParse(dataForm);
@@ -318,6 +344,27 @@ export default function ModalLancamento({
                       {c.nome}
                     </option>
                   ))}
+              </NativeSelect>
+            </Field>
+
+            <Field
+              id="lancamento-carteira"
+              label="Carteira"
+              error={errors.carteira_id}
+            >
+              <NativeSelect
+                value={carteiraId}
+                onChange={(e) => setCarteiraId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Selecione uma carteira
+                </option>
+
+                {carteiras.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
               </NativeSelect>
             </Field>
 

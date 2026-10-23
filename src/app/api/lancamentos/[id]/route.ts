@@ -20,7 +20,7 @@ export async function GET(
     const result = await query(
       `SELECT l.id, l.descricao, l.valor, l.tipo, l.data,
               l.categoria_id, c.nome AS categoria_nome,
-              l.usuario_id, l.criado_em, l.atualizado_em
+              l.carteira_id, l.usuario_id, l.criado_em, l.atualizado_em
        FROM lancamentos l
        LEFT JOIN categorias c ON c.id = l.categoria_id
        WHERE l.id = $1 AND l.usuario_id = $2
@@ -60,7 +60,8 @@ export async function PUT(
       return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
-    const { descricao, valor, tipo, categoria_id, data } = await req.json();
+    const { descricao, valor, tipo, categoria_id, carteira_id, data } =
+      await req.json();
 
     if (!descricao || !valor || !tipo || !data) {
       return NextResponse.json(
@@ -79,6 +80,13 @@ export async function PUT(
       );
     }
 
+    if (!isUuid(carteira_id)) {
+      return NextResponse.json(
+        { error: "O campo 'carteira_id' é obrigatório e deve ser válido." },
+        { status: 400 }
+      );
+    }
+
     if (isNaN(parseFloat(valor))) {
       return NextResponse.json(
         { error: "O campo 'valor' deve ser numérico." },
@@ -93,6 +101,18 @@ export async function PUT(
       );
     }
 
+    const carteira = await query(
+      `SELECT 1 FROM carteiras WHERE id = $1 AND usuario_id = $2`,
+      [carteira_id, usuarioId]
+    );
+
+    if (carteira.length === 0) {
+      return NextResponse.json(
+        { error: "O campo 'carteira_id' é inválido." },
+        { status: 400 }
+      );
+    }
+
     const result = await query(
       `UPDATE lancamentos
        SET descricao = $1,
@@ -100,15 +120,17 @@ export async function PUT(
            tipo = $3,
            data = $4,
            categoria_id = $5,
+           carteira_id = $6,
            "atualizado_em" = NOW()
-       WHERE id = $6 AND usuario_id = $7
-       RETURNING id, descricao, valor, tipo, data, categoria_id, usuario_id, "atualizado_em"`,
+       WHERE id = $7 AND usuario_id = $8
+       RETURNING id, descricao, valor, tipo, data, categoria_id, carteira_id, usuario_id, "atualizado_em"`,
       [
         descricao,
         valor,
         tipo,
         data,
         categoria_id || null,
+        carteira_id,
         id,
         usuarioId,
       ]

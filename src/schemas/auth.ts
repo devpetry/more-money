@@ -142,6 +142,7 @@ export const LancamentoSchema = z.object({
     (val) => (val === null || val === undefined ? "" : val),
     z.string().min(1, "A categoria é obrigatória.")
   ),
+  carteira_id: z.string().min(1, "A carteira é obrigatória."),
 });
 
 export type TLancamentoSchema = z.infer<typeof LancamentoSchema>;
