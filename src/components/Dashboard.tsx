@@ -27,7 +27,7 @@ import SeletorPeriodo from "./lancamentos/SeletorPeriodo";
 import {
   descreverVisualizacao,
   intervaloDaVisualizacao,
-  visualizacaoAnoAtual,
+  visualizacaoPadrao,
   type Visualizacao,
 } from "@/lib/lancamentos-periodo";
 import ModalLancamento from "./ModalLancamento";
@@ -85,7 +85,7 @@ export default function Dashboard({ nomeUsuario }: { nomeUsuario: string }) {
   const [loading, setLoading] = useState(true);
   const [isModalLancamentoOpen, setIsModalLancamentoOpen] = useState(false);
   const [visualizacao, setVisualizacao] =
-    useState<Visualizacao>(visualizacaoAnoAtual);
+    useState<Visualizacao>(visualizacaoPadrao);
 
   useEffect(() => {
     carregarDashboard(visualizacao);

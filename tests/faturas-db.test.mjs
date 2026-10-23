@@ -159,11 +159,16 @@ describe("faturas (Postgres)", { skip: !URL && "TEST_DATABASE_URL não definida"
     await compra(u, c, "2099-02-01", 200, alimentacao);
     await compra(u, c, "2099-02-02", 100, lazer);
 
-    const dash = () => consultarDashboard(pool, u, "2099-01-01", "2100-01-01");
+    const dash = () => consultarDashboard(pool, u, "2099-01-01", "2100-01-01", "2100-01-01");
     let d = await dash();
     assert.equal(d.saldo, 1000);
     assert.equal(d.totalDespesas, 0);
     assert.equal(d.despesasPorCategoria.length, 0);
+
+    // sem limite explícito, o saldo só conta até hoje: a receita de 2099 ainda não entrou
+    const padrao = await consultarDashboard(pool, u, "2099-01-01", "2100-01-01");
+    assert.equal(padrao.totalReceitas, 1000);
+    assert.equal(padrao.saldo, 0);
 
     // fatura aberta não aceita pagamento
     await rejeitaCom(pagar(u, c, "2099-02-01", 10, carteiras["Digital"]), /fechadas/, 409);
@@ -178,12 +183,13 @@ describe("faturas (Postgres)", { skip: !URL && "TEST_DATABASE_URL não definida"
     let f = await pagar(u, c, "2099-02-01", 100, carteiras["Física"], "2099-03-15");
     assert.equal(f.status, "parcial");
     assert.equal(f.restante, 200);
-    d = await consultarDashboard(pool, u, "2099-03-01", "2099-04-01");
+    d = await consultarDashboard(pool, u, "2099-03-01", "2099-04-01", "2100-01-01");
     assert.equal(d.totalDespesas, 100);
-    assert.equal(d.saldo, -100);
+    // saldo considera todo o histórico, não só o período filtrado
+    assert.equal(d.saldo, 900);
     assert.deepEqual(
       d.carteiras.map((x) => [x.nome, x.saldo]),
-      [["Digital", 0], ["Física", -100]]
+      [["Digital", 1000], ["Física", -100]]
     );
     assert.deepEqual(d.evolucaoMensal.map((m) => [m.mes, Number(m.despesa)]), [["03/2099", 100]]);
     // proporcional às categorias da fatura: 100 * 200/300 e 100 * 100/300
@@ -191,9 +197,9 @@ describe("faturas (Postgres)", { skip: !URL && "TEST_DATABASE_URL não definida"
     assert.ok(Math.abs(cats["Alimentação"] - 66.6667) < 0.001);
     assert.ok(Math.abs(cats["Lazer"] - 33.3333) < 0.001);
     // em fevereiro nada foi descontado ainda
-    d = await consultarDashboard(pool, u, "2099-02-01", "2099-03-01");
+    d = await consultarDashboard(pool, u, "2099-02-01", "2099-03-01", "2100-01-01");
     assert.equal(d.totalDespesas, 0);
-    assert.equal(d.saldo, 0);
+    assert.equal(d.saldo, 900);
 
     // pagamento acima do pendente e carteira de outro usuário
     await rejeitaCom(pagar(u, c, "2099-02-01", 200.01, carteiras["Digital"]), /exceder/, 409);
@@ -225,14 +231,14 @@ describe("faturas (Postgres)", { skip: !URL && "TEST_DATABASE_URL não definida"
     assert.equal(depois.pagamentos.length, 1);
     assert.ok(depois.pagamentos[0].estornado_em);
     // o pagamento continua valendo em 2099; o estorno entra na data do estorno (hoje)
-    const em2099 = await consultarDashboard(pool, u, "2099-01-01", "2100-01-01");
+    const em2099 = await consultarDashboard(pool, u, "2099-01-01", "2100-01-01", "2100-01-01");
     assert.equal(em2099.totalDespesas, 100);
-    assert.equal(em2099.saldo, -100);
+    assert.equal(em2099.saldo, 0); // pagamento (2099) e estorno (hoje): histórico inteiro
     const ano = (await pool.query(`SELECT to_char((now() AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY') AS a`)).rows[0].a;
-    const hoje = await consultarDashboard(pool, u, `${ano}-01-01`, `${Number(ano) + 1}-01-01`);
+    const hoje = await consultarDashboard(pool, u, `${ano}-01-01`, `${Number(ano) + 1}-01-01`, "2100-01-01");
     assert.equal(hoje.totalDespesas, -100);
-    assert.equal(hoje.saldo, 100);
-    assert.equal(hoje.carteiras.find((x) => x.nome === "Digital").saldo, 100);
+    assert.equal(hoje.saldo, 0);
+    assert.equal(hoje.carteiras.find((x) => x.nome === "Digital").saldo, 0);
     await rejeitaCom(tx((db) => estornarPagamento(db, u, c, "2099-02-01", pagamento.id)), /já estornado/, 404);
   });
 

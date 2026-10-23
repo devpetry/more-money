@@ -95,10 +95,6 @@ export function descreverVisualizacao(v: Visualizacao): string {
   }
 }
 
-export function visualizacaoAnoAtual(hoje = new Date()): Visualizacao {
-  return { modo: "ano", ano: hoje.getFullYear() };
-}
-
 // Intervalo inclusivo em YYYY-MM-DD; null = sem limite naquele lado.
 export function intervaloDaVisualizacao(v: Visualizacao): {
   inicio: string | null;

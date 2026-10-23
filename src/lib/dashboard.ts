@@ -15,7 +15,10 @@ const MOVIMENTOS_NO_PERIODO = `($2::date IS NULL OR m.data >= $2)
   AND ($3::date IS NULL OR m.data < $3)`;
 
 /**
- * Indicadores do dashboard no período [inicio, proximoInicio).
+ * Indicadores do dashboard no período [inicio, proximoInicio). O saldo (total e
+ * por carteira) é a exceção: considera todo o histórico até hoje, sem filtro de
+ * período; lançamentos e pagamentos com data futura só entram quando a data
+ * chegar. `limiteSaldo` (exclusivo, YYYY-MM-DD) substitui "amanhã" nos testes.
  * Compras de cartão (lancamentos.fatura_id) não entram nos indicadores nem no
  * saldo das carteiras: o pagamento da fatura é que conta, pela data efetiva
  * e pela carteira escolhida, e é distribuído entre as categorias na proporção
@@ -26,9 +29,20 @@ export async function consultarDashboard(
   db: Db,
   usuarioId: string,
   startDate: string | null,
-  nextMonthStart: string | null
+  nextMonthStart: string | null,
+  limiteSaldo?: string
 ) {
   const params = [usuarioId, startDate, nextMonthStart];
+  const paramsSaldo = [
+    usuarioId,
+    null,
+    limiteSaldo ??
+      (
+        await db.query(
+          `SELECT ((now() AT TIME ZONE 'America/Sao_Paulo')::date + 1)::text AS d`
+        )
+      ).rows[0].d,
+  ];
 
   const { rows: [totais] } = await db.query(
     `
@@ -49,9 +63,10 @@ export async function consultarDashboard(
   const totalReceitas = parseFloat(String(totais?.total_receitas || 0));
   const totalDespesas = parseFloat(String(totais?.total_despesas || 0));
 
-  // Saldo por carteira. O filtro de período fica no ON (e não no WHERE) para
-  // que carteiras sem lançamentos no período apareçam com saldo 0. Os
-  // pagamentos de fatura saem da carteira escolhida, na data efetiva.
+  // Saldo por carteira: todo o histórico até hoje, independente do período
+  // filtrado ($2 nulo, $3 = amanhã). O JOIN é LEFT para que carteiras sem lançamentos apareçam
+  // com saldo 0. Os pagamentos de fatura saem da carteira escolhida, na data
+  // efetiva.
   const { rows: carteirasRows } = await db.query(
     `
     SELECT c.id, c.nome,
@@ -68,7 +83,7 @@ export async function consultarDashboard(
     GROUP BY c.id, c.nome
     ORDER BY c.nome ASC
     `,
-    params
+    paramsSaldo
   );
 
   // Centavos inteiros: o total é a soma exata dos saldos exibidos.

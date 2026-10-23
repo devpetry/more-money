@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     // inicio/fim (YYYY-MM-DD, inclusivos); "tudo=1" = sem limite de datas.
-    // Sem parâmetros: ano corrente.
+    // Sem parâmetros: mês corrente.
     const dataISO = /^\d{4}-\d{2}-\d{2}$/;
     const inicioParam = searchParams.get("inicio");
     const fimParam = searchParams.get("fim");
@@ -38,9 +38,14 @@ export async function GET(req: Request) {
         nextMonthStart = dia.toISOString().slice(0, 10);
       }
     } else {
-      const anoAtual = new Date().getFullYear();
-      startDate = `${anoAtual}-01-01`;
-      nextMonthStart = `${anoAtual + 1}-01-01`;
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = hoje.getMonth() + 1;
+      startDate = `${ano}-${String(mes).padStart(2, "0")}-01`;
+      nextMonthStart =
+        mes === 12
+          ? `${ano + 1}-01-01`
+          : `${ano}-${String(mes + 1).padStart(2, "0")}-01`;
     }
 
     const data = await consultarDashboard(pool, usuarioId, startDate, nextMonthStart);
